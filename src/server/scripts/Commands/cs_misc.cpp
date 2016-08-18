@@ -1251,14 +1251,24 @@ public:
             for (char const* token : tokens)
                 bonusListIDs.push_back(atoul(token));
         }
-
+		
+		
 		// LegionHearth custom
+		char const* transmog = strtok(NULL, " ");
+		uint32 transmogId = 0;
+		if (transmog)
+		{
+			transmogId = strtol(transmog, NULL, 10);
+
+		}
+	
 		char const* enchant = strtok(NULL, " ");
 		uint32 enchantId = 0;
 		if (enchant)
 		{
 			enchantId = strtol(enchant, NULL, 10);
 		}
+		
 
         Player* player = handler->GetSession()->GetPlayer();
         Player* playerTarget = handler->getSelectedPlayer();
@@ -1299,7 +1309,7 @@ public:
             return false;
         }
 
-        Item* item = playerTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId), GuidSet(), bonusListIDs, false, enchantId);
+        Item* item = playerTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId), GuidSet(), bonusListIDs, false, transmogId, enchantId);
 
         // remove binding (let GM give it to another player later)
         if (player == playerTarget)
