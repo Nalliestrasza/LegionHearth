@@ -11365,7 +11365,7 @@ InventoryResult Player::CanUseItem(Item* pItem, bool not_loading) const
 
             if (pItem->GetSkill() != 0)
             {
-                bool allowEquip = false;
+                bool allowEquip = true;
                 uint32 itemSkill = pItem->GetSkill();
                 // Armor that is binded to account can "morph" from plate to mail, etc. if skill is not learned yet.
                 if (pProto->GetQuality() == ITEM_QUALITY_HEIRLOOM && pProto->GetClass() == ITEM_CLASS_ARMOR && !HasSkill(itemSkill))
@@ -23143,7 +23143,8 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     /// SMSG_WORLD_SERVER_INFO
     WorldPackets::Misc::WorldServerInfo worldServerInfo;
-    worldServerInfo.InstanceGroupSize = GetMap()->GetMapDifficulty()->MaxPlayers;
+    worldServerInfo.InstanceGroupSize = 0;
+	//worldServerInfo.InstanceGroupSize = GetMap()->GetMapDifficulty()->MaxPlayers;
     worldServerInfo.IsTournamentRealm = 0; /// @todo
     // worldServerInfo.RestrictedAccountMaxLevel; /// @todo
     // worldServerInfo.RestrictedAccountMaxMoney; /// @todo
