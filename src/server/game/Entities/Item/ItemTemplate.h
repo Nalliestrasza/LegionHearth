@@ -715,7 +715,7 @@ struct TC_GAME_API ItemTemplate
     uint32 GetSubClass() const { return BasicData->SubClass; }
     uint32 GetQuality() const { return ExtendedData->Quality; }
     uint32 GetFlags() const { return ExtendedData->Flags[0]; }
-    uint32 GetFlags2() const { return 8192 }
+	uint32 GetFlags2() const { return 8192; }
     uint32 GetFlags3() const { return ExtendedData->Flags[2]; }
     float GetUnk1() const { return ExtendedData->Unk1; }
     float GetUnk2() const { return ExtendedData->Unk2; }
