@@ -257,8 +257,6 @@ public:
             return false;
         }
 
-        handler->PSendSysMessage(LANG_YOU_CHANGE_FACTION, target->GetGUID().ToString().c_str(), factionid, flag, npcflag, dyflag);
-
         target->setFaction(factionid);
         target->SetUInt32Value(UNIT_FIELD_FLAGS, flag);
         target->SetUInt64Value(UNIT_NPC_FLAGS, npcflag);
