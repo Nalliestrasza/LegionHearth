@@ -848,10 +848,12 @@ public:
             }
             creature->SetPosition(x, y, z, o);
             creature->GetMotionMaster()->Initialize();
+			creature->AI()->EnterEvadeMode(); // LegionHearth
             if (creature->IsAlive())                            // dead creature will reset movement generator at respawn
             {
                 creature->setDeathState(JUST_DIED);
                 creature->Respawn();
+				creature->AI()->EnterEvadeMode(); // LegionHearth
             }
         }
 
