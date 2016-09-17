@@ -111,4 +111,7 @@ INSERT INTO `rbac_linked_permissions` (`id`, `linkedId`) VALUES
 (196, 842),
 (196, 843),
 (192, 844);
+UPDATE `realmlist` SET `gamebuild`=22594 WHERE `gamebuild`=22566;
+
+ALTER TABLE `realmlist` CHANGE `gamebuild` `gamebuild` int(10) unsigned NOT NULL DEFAULT '22594';
 
