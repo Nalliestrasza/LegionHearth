@@ -40,6 +40,7 @@
 #include "MiscPackets.h"
 #include "Transport.h"
 #include "MapManager.h"
+#include "ItemTemplate.h"
 
 class misc_commandscript : public CommandScript
 {
@@ -1190,70 +1191,70 @@ public:
         return true;
     }
 
-    static bool HandleAddItemCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
+	static bool HandleAddItemCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
 
-        uint32 itemId = 0;
+		uint32 itemId = 0;
 
-        if (args[0] == '[')                                        // [name] manual form
-        {
-            char const* itemNameStr = strtok((char*)args, "]");
+		if (args[0] == '[')                                        // [name] manual form
+		{
+			char const* itemNameStr = strtok((char*)args, "]");
 
-            if (itemNameStr && itemNameStr[0])
-            {
-                std::string itemName = itemNameStr+1;
-                auto itr = std::find_if(sItemSparseStore.begin(), sItemSparseStore.end(), [&itemName](ItemSparseEntry const* sparse)
-                {
-                    for (uint32 i = 0; i < MAX_LOCALES; ++i)
-                        if (itemName == sparse->Name->Str[i])
-                            return true;
-                    return false;
-                });
+			if (itemNameStr && itemNameStr[0])
+			{
+				std::string itemName = itemNameStr + 1;
+				auto itr = std::find_if(sItemSparseStore.begin(), sItemSparseStore.end(), [&itemName](ItemSparseEntry const* sparse)
+				{
+					for (uint32 i = 0; i < MAX_LOCALES; ++i)
+						if (itemName == sparse->Name->Str[i])
+							return true;
+					return false;
+				});
 
-                if (itr == sItemSparseStore.end())
-                {
-                    handler->PSendSysMessage(LANG_COMMAND_COULDNOTFIND, itemNameStr+1);
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
+				if (itr == sItemSparseStore.end())
+				{
+					handler->PSendSysMessage(LANG_COMMAND_COULDNOTFIND, itemNameStr + 1);
+					handler->SetSentErrorMessage(true);
+					return false;
+				}
 
-                itemId = itr->ID;
-            }
-            else
-                return false;
-        }
-        else                                                    // item_id or [name] Shift-click form |color|Hitem:item_id:0:0:0|h[name]|h|r
-        {
-            char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
-            if (!id)
-                return false;
-            itemId = atoul(id);
-        }
+				itemId = itr->ID;
+			}
+			else
+				return false;
+		}
+		else                                                    // item_id or [name] Shift-click form |color|Hitem:item_id:0:0:0|h[name]|h|r
+		{
+			char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
+			if (!id)
+				return false;
+			itemId = atoul(id);
+		}
 
-        char const* ccount = strtok(NULL, " ");
+		char const* ccount = strtok(NULL, " ");
 
-        int32 count = 1;
+		int32 count = 1;
 
-        if (ccount)
-            count = strtol(ccount, NULL, 10);
+		if (ccount)
+			count = strtol(ccount, NULL, 10);
 
-        if (count == 0)
-            count = 1;
+		if (count == 0)
+			count = 1;
 
-        std::vector<int32> bonusListIDs;
-        char const* bonuses = strtok(NULL, " ");
+		std::vector<int32> bonusListIDs;
+		char const* bonuses = strtok(NULL, " ");
 
-        // semicolon separated bonuslist ids (parse them after all arguments are extracted by strtok!)
-        if (bonuses)
-        {
-            Tokenizer tokens(bonuses, ';');
-            for (char const* token : tokens)
-                bonusListIDs.push_back(atoul(token));
-        }
-		
-		
+		// semicolon separated bonuslist ids (parse them after all arguments are extracted by strtok!)
+		if (bonuses)
+		{
+			Tokenizer tokens(bonuses, ';');
+			for (char const* token : tokens)
+				bonusListIDs.push_back(atoul(token));
+		}
+
+
 		// LegionHearth custom
 		char const* transmog = strtok(NULL, " ");
 		uint32 transmogId = 0;
@@ -1262,53 +1263,72 @@ public:
 			transmogId = strtol(transmog, NULL, 10);
 
 		}
-	
+
 		char const* enchant = strtok(NULL, " ");
 		uint32 enchantId = 0;
 		if (enchant)
 		{
 			enchantId = strtol(enchant, NULL, 10);
 		}
-		
 
-        Player* player = handler->GetSession()->GetPlayer();
-        Player* playerTarget = handler->getSelectedPlayer();
-        if (!playerTarget)
-            playerTarget = player;
 
-        TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEM), itemId, count);
+		Player* player = handler->GetSession()->GetPlayer();
+		Player* playerTarget = handler->getSelectedPlayer();
+		if (!playerTarget)
+			playerTarget = player;
 
-        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
-        if (!itemTemplate)
-        {
-            handler->PSendSysMessage(LANG_COMMAND_ITEMIDINVALID, itemId);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+		TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEM), itemId, count);
 
-        // Subtract
-        if (count < 0)
-        {
-            playerTarget->DestroyItemCount(itemId, -count, true, false);
-            handler->PSendSysMessage(LANG_REMOVEITEM, itemId, -count, handler->GetNameLink(playerTarget).c_str());
-            return true;
-        }
+		ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
+		if (!itemTemplate)
+		{
+			handler->PSendSysMessage(LANG_COMMAND_ITEMIDINVALID, itemId);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
 
-        // Adding items
-        uint32 noSpaceForCount = 0;
+		// LegionHearth
+		ItemTemplate const* itemProto = sObjectMgr->GetItemTemplate(itemId);
+		uint8 artifact = itemProto->GetArtifactID();
 
-        // check space and find places
-        ItemPosCountVec dest;
-        InventoryResult msg = playerTarget->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, count, &noSpaceForCount);
-        if (msg != EQUIP_ERR_OK)                               // convert to possible store amount
-            count -= noSpaceForCount;
+		// Subtract (modif by LEGIONHEARTH team = ) )
+		if (count < 0)
+		{
 
-        if (count == 0 || dest.empty())                         // can't add any
-        {
-            handler->PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+			if (artifact < 1)
+			{
+				playerTarget->DestroyItemCount(itemId, -count, true, false);
+				handler->PSendSysMessage(LANG_REMOVEITEM, itemId, -count, handler->GetNameLink(playerTarget).c_str());
+
+			}
+			else
+			{
+				handler->PSendSysMessage("Un objet artéfact ne peut pas être supprimé. (Provisoire...)");
+			}
+			return true;
+		}
+
+		// Adding items
+		uint32 noSpaceForCount = 0;
+
+		// check space and find places
+		ItemPosCountVec dest;
+		InventoryResult msg = playerTarget->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, count, &noSpaceForCount);
+		if (msg != EQUIP_ERR_OK)                               // convert to possible store amount
+			count -= noSpaceForCount;
+
+		if (count == 0 || dest.empty())                         // can't add any
+		{
+			handler->PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		if (player != playerTarget && artifact > 0)
+		{
+			handler->PSendSysMessage("Vous ne pouvez pas ajouter un artéfact à un autre joueur.");
+			return false;
+		}
 
         Item* item = playerTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId), GuidSet(), bonusListIDs, false, transmogId, enchantId);
 
