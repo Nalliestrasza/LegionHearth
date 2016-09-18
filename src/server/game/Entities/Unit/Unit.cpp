@@ -13113,7 +13113,7 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
             }
         }
 
-        player->RewardPlayerAndGroupAtKill(victim, false);
+       // player->RewardPlayerAndGroupAtKill(victim, false); legionhearth
     }
 
     // Do KILL and KILLED procs. KILL proc is called only for the unit who landed the killing blow (and its owner - for pets and totems) regardless of who tapped the victim
