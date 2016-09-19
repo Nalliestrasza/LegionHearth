@@ -1303,7 +1303,7 @@ public:
 			}
 			else
 			{
-				handler->PSendSysMessage("Un objet artéfact ne peut pas être supprimé. (Provisoire...)");
+				handler->PSendSysMessage(LANG_REMOVE_ARTIFACT);
 			}
 			return true;
 		}
@@ -1326,7 +1326,7 @@ public:
 
 		if (player != playerTarget && artifact > 0)
 		{
-			handler->PSendSysMessage("Vous ne pouvez pas ajouter un artéfact à un autre joueur.");
+			handler->PSendSysMessage(LANG_ADD_ARTIFACT_TO_PLAYER);
 			return false;
 		}
 
