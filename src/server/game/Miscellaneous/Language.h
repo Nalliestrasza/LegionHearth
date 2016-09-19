@@ -1223,5 +1223,12 @@ enum TrinityStrings
     LANG_INSTANCE_BIND_MISMATCH                   = 11014,
     LANG_CREATURE_NOT_AI_ENABLED                  = 11015,
     LANG_SELECT_PLAYER_OR_PET                     = 11016,
+
+	// LegionHearth Custom Language.h
+	LANG_REMOVE_ARTIFACT						  = 65000,
+	LANG_ADD_ARTIFACT_TO_PLAYER					  = 65001,
+
+
+
 };
 #endif
