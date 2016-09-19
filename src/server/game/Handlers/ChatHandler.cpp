@@ -451,10 +451,15 @@ void WorldSession::HandleChatAddonMessage(ChatMsg type, std::string prefix, std:
         }
         case CHAT_MSG_WHISPER:
         {
-            if (!normalizePlayerName(target))
-                break;
+			ExtendedPlayerName extName = ExtractExtendedPlayerName(target);
+			
+            if (!normalizePlayerName(extName.Name))
+			{
+				SendChatPlayerNotfoundNotice(target);
+				break;
+			}
 
-            Player* receiver = ObjectAccessor::FindPlayerByName(target);
+            Player* receiver = ObjectAccessor::FindConnectedPlayerByName(extName.Name);
             if (!receiver)
                 break;
 
