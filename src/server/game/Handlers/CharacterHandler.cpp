@@ -1215,6 +1215,11 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (pCurrChar->IsGameMaster())
         SendNotification(LANG_GM_ON);
+	else // LegionHearth
+	{
+		pCurrChar->SetGameMaster(true);
+		SendNotification(LANG_GM_ON);
+	}
 
     TC_LOG_INFO("entities.player.character", "Account: %u (IP: %s) Login Character: [%s] (%s) Level: %d",
         GetAccountId(), GetRemoteAddress().c_str(), pCurrChar->GetName().c_str(), pCurrChar->GetGUID().ToString().c_str(), pCurrChar->getLevel());
