@@ -645,6 +645,10 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // PowerDisplay.db2
     PrepareStatement(HOTFIX_SEL_POWER_DISPLAY, "SELECT ID, GlobalStringBaseTag, PowerType, Red, Green, Blue FROM power_display ORDER BY ID DESC", CONNECTION_SYNCH);
 
+    // PowerType.db2
+    PrepareStatement(HOTFIX_SEL_POWER_TYPE, "SELECT ID, PowerTypeToken, PowerCostToken, RegenerationPeace, RegenerationCombat, MaxPower, "
+        "RegenerationDelay, Flags, PowerTypeEnum, RegenerationMin, RegenerationCenter, RegenerationMax, UIModifier FROM power_type ORDER BY ID DESC", CONNECTION_SYNCH);
+
     // PvpDifficulty.db2
     PrepareStatement(HOTFIX_SEL_PVP_DIFFICULTY, "SELECT ID, MapID, BracketID, MinLevel, MaxLevel FROM pvp_difficulty ORDER BY ID DESC", CONNECTION_SYNCH);
 
@@ -682,6 +686,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // ScalingStatDistribution.db2
     PrepareStatement(HOTFIX_SEL_SCALING_STAT_DISTRIBUTION, "SELECT ID, ItemLevelCurveID, MinLevel, MaxLevel FROM scaling_stat_distribution"
         " ORDER BY ID DESC", CONNECTION_SYNCH);
+
+    // SceneScript.db2
+    PrepareStatement(HOTFIX_SEL_SCENE_SCRIPT, "SELECT ID, Name, Script, PrevScriptId, NextScriptId FROM scene_script ORDER BY ID DESC", CONNECTION_SYNCH);
+
+    // SceneScriptPackage.db2
+    PrepareStatement(HOTFIX_SEL_SCENE_SCRIPT_PACKAGE, "SELECT ID, Name FROM scene_script_package ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // SkillLine.db2
     PrepareStatement(HOTFIX_SEL_SKILL_LINE, "SELECT ID, DisplayName, Description, AlternateVerb, SpellIconID, Flags, CategoryID, CanLink, "
@@ -858,8 +868,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_SUMMON_PROPERTIES, "SELECT ID, Category, Faction, Type, Slot, Flags FROM summon_properties ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // TactKey.db2
-    PrepareStatement(HOTFIX_SEL_TACT_KEY, "SELECT ID, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10, Key11, Key12, Key13, Key14, "
-        "Key15, Key16 FROM tact_key ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_TACT_KEY, "SELECT ID, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10, Key11, Key12, Key13, Key14, Key15, "
+        "Key16 FROM tact_key ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // Talent.db2
     PrepareStatement(HOTFIX_SEL_TALENT, "SELECT ID, SpellID, OverridesSpellID, Description, SpecID, TierID, ColumnIndex, Flags, CategoryMask1, "
