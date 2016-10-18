@@ -23189,10 +23189,9 @@ void Player::SendInstanceResetWarning(uint32 mapid, Difficulty difficulty, uint3
 
 void Player::ApplyEquipCooldown(Item* pItem)
 {
-    if (pItem->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_NO_EQUIP_COOLDOWN))
-        return;
-
     ItemTemplate const* proto = pItem->GetTemplate();
+    if (proto->GetFlags() & ITEM_FLAG_NO_EQUIP_COOLDOWN)
+        return;
 
     for (uint8 i = 0; i < proto->Effects.size(); ++i)
     {
@@ -23478,6 +23477,9 @@ void Player::SendAurasForTarget(Unit* target) const
 
     if (target->HasAuraType(SPELL_AURA_HOVER))
         target->SetHover(true, true);
+
+    if (target->HasAuraType(SPELL_AURA_CAN_TURN_WHILE_FALLING))
+        target->SetCanTurnWhileFalling(true, true);
 
     if (target->HasAura(SPELL_DH_DOUBLE_JUMP))
         target->SetDoubleJump(true, true);
