@@ -1240,7 +1240,9 @@ enum TrinityStrings
 	// LegionHearth Custom Language.h
 	LANG_REMOVE_ARTIFACT						  = 65000,
 	LANG_ADD_ARTIFACT_TO_PLAYER					  = 65001,
-
+	LANG_RANDOM_MESSAGE							  = 65002, // %s 
+	LANG_WP_MOVE								  = 65003, // WP MOVE DONE
+    
 
 
 };
