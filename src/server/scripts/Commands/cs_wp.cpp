@@ -45,6 +45,8 @@ public:
             { "unload", rbac::RBAC_PERM_COMMAND_WP_UNLOAD, false, &HandleWpUnLoadCommand, "" },
             { "reload", rbac::RBAC_PERM_COMMAND_WP_RELOAD, false, &HandleWpReloadCommand, "" },
             { "show",   rbac::RBAC_PERM_COMMAND_WP_SHOW,   false, &HandleWpShowCommand,   "" },
+			{ "move",   rbac::RBAC_PERM_COMMAND_WP_ADD,   false, &HandleWpMoveCommand,   "" },
+
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -1071,6 +1073,56 @@ public:
         handler->PSendSysMessage("|cffff33ffDEBUG: wpshow - no valid command found|r");
         return true;
     }
+
+	static bool HandleWpMoveCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+		// Space
+
+		char const* px = strtok((char*)args, " ");
+		char const* py = strtok(NULL, " ");
+
+		if (!px || !py)
+			return false;
+
+		uint64 wpId = uint64(atoi(px));
+		uint8 moveType = uint8(atoi(py));
+		
+
+		Creature* target = handler->getSelectedCreature();
+		ObjectGuid::LowType guidLow = UI64LIT(0);
+
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+
+		handler->SendSysMessage("Votre PNJ utilise désormais le type définit. Redémarrage du Waypoint !.");
+
+		//SQL
+		QueryResult guidSql = CharacterDatabase.PQuery("SELECT move_type FROM waypoint_data WHERE id = %u", wpId);
+		if (!guidSql)
+		{
+			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_MOVETYPE);
+			stmt->setUInt64(0, wpId); // id
+			stmt->setUInt8(1, moveType); // move_type
+			WorldDatabase.Execute(stmt);
+		}
+		else
+		{
+			// dans le cas ou le joueur souhaite définir un autre type de marche 
+			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_MOVETYPE);
+			stmt->setUInt64(0, wpId); // id
+			stmt->setUInt8(1, moveType); // move_type
+			WorldDatabase.Execute(stmt);
+		}
+
+		return true;
+	}
 };
 
 void AddSC_wp_commandscript()
