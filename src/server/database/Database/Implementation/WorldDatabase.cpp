@@ -94,4 +94,6 @@ void WorldDatabaseConnection::DoPrepareStatements()
 	PrepareStatement(WORLD_INS_WP_MOVETYPE, "INSERT INTO waypoint_data (id, point, move_type) VALUES (?, ?, ?)", CONNECTION_ASYNC);
 	PrepareStatement(WORLD_UPD_WP_MOVETYPE, "UPDATE waypoint_data SET move_type = ? WHERE id = ? AND point = ?", CONNECTION_ASYNC);
 	PrepareStatement(WORLD_SEL_WAYPOINT_LOOKUP, "SELECT * FROM waypoint_data WHERE id = ?", CONNECTION_SYNCH);
+	PrepareStatement(WORLD_INS_WP_DELAY, "INSERT INTO waypoint_data (id, point, delay) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_WP_DELAY, "UPDATE waypoint_data SET delay = ? WHERE id = ? AND point = ?", CONNECTION_ASYNC);
 }

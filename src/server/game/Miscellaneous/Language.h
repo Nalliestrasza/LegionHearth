@@ -1241,7 +1241,11 @@ enum TrinityStrings
 	LANG_REMOVE_ARTIFACT						  = 65000,
 	LANG_ADD_ARTIFACT_TO_PLAYER					  = 65001,
 	LANG_RANDOM_MESSAGE							  = 65002, // %s 
-	LANG_WP_MOVE								  = 65003, // WP MOVE DONE
+	LANG_WP_MOVE_1								  = 65003, // WP MOVE DONE 1 WALK
+	LANG_WP_MOVE_2								  = 65004, // WP MOVE DONE 2 RUN
+	LANG_WP_MOVE_3								  = 65005, // WP MOVE DONE 3 FLYING
+	LANG_WP_DELAY							      = 65006, // WP DELAY DONE
+	
     
 
 

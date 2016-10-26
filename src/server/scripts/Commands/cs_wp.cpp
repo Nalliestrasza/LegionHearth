@@ -45,8 +45,9 @@ public:
             { "unload", rbac::RBAC_PERM_COMMAND_WP_UNLOAD, false, &HandleWpUnLoadCommand, "" },
             { "reload", rbac::RBAC_PERM_COMMAND_WP_RELOAD, false, &HandleWpReloadCommand, "" },
             { "show",   rbac::RBAC_PERM_COMMAND_WP_SHOW,   false, &HandleWpShowCommand,   "" },
-			{ "move",   rbac::RBAC_PERM_COMMAND_WP_ADD,   false, &HandleWpMoveCommand,   "" },
-			{ "lookup", rbac::RBAC_PERM_COMMAND_WP_ADD,   false, &HandleWpLookupCommand,   "" },
+			{ "move",   rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpMoveCommand,   "" },
+			{ "delay",  rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpMoveCommand,   "" },
+			{ "lookup", rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpLookupCommand, "" },
 			
 
         };
@@ -1092,9 +1093,8 @@ public:
 		uint64 wpId = uint64(atoi(px));
 		uint32 pathId = uint32(atoi(py));
 		uint8 moveType = uint8(atoi(pz));
+		
 	
-		
-		
 		Creature* target = handler->getSelectedCreature();
 		Unit* targetu = handler->getSelectedUnit();
 
@@ -1106,8 +1106,6 @@ public:
 		}
 
 
-		handler->SendSysMessage("Votre PNJ utilise désormais le type définit. Redémarrage du Waypoint !.");
-
 		//SQL
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT move_type FROM waypoint_data WHERE id = %u", wpId);
 		if (!guidSql)
@@ -1117,7 +1115,7 @@ public:
 			stmt->setUInt64(1, pathId); // PathID
 			stmt->setUInt8(2, moveType); // move_type
 			WorldDatabase.Execute(stmt);
-			sWaypointMgr->Load(); // RELOAD
+			sWaypointMgr->ReloadPath(wpId); // RELOAD
 		}
 		else
 		{
@@ -1127,8 +1125,81 @@ public:
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
 			WorldDatabase.Execute(stmt);
-			sWaypointMgr->Load(); // RELOAD
+			sWaypointMgr->ReloadPath(wpId); // RELOAD
 		}
+
+		switch (moveType)
+		{
+		case 0:
+			handler->SendSysMessage(LANG_WP_MOVE_1);
+			break;
+		case 1:
+			handler->SendSysMessage(LANG_WP_MOVE_2);
+			break;
+		case 2:
+			handler->SendSysMessage(LANG_WP_MOVE_3);
+			break;
+
+			{
+
+			}
+		}
+
+		return true;
+	}
+
+	static bool HandleWpDelayCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+		// Space
+
+		char const* px = strtok((char*)args, " "); // WP id
+		char const* py = strtok(NULL, " "); // pathID
+		char const* pz = strtok(NULL, " "); // delay
+
+		if (!px || !py || !pz)
+			return false;
+
+		uint64 wpId = uint64(atoi(px));
+		uint32 pathId = uint32(atoi(py));
+		uint32 delay = uint32(atoi(pz));
+		
+		delay = delay * 1000; // Pour les mongoles qui ne savent pas faire usage des milisecondes, ptdr
+
+		Creature* target = handler->getSelectedCreature();
+		Unit* targetu = handler->getSelectedUnit();
+
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		//SQL
+		QueryResult guidSql = WorldDatabase.PQuery("SELECT delay FROM waypoint_data WHERE id = %u", wpId);
+		if (!guidSql)
+		{
+			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
+			stmt->setUInt64(0, wpId); // id
+			stmt->setUInt64(1, pathId); // PathID
+			stmt->setUInt32(2, delay); // delay
+			WorldDatabase.Execute(stmt);
+			sWaypointMgr->ReloadPath(wpId); // RELOAD
+		}
+		else
+		{
+			// dans le cas ou le joueur souhaite changer le delay
+			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
+			stmt->setUInt32(0, delay); //  delay
+			stmt->setUInt64(1, wpId); // id
+			stmt->setUInt64(2, pathId); // PathID
+			WorldDatabase.Execute(stmt);
+			sWaypointMgr->ReloadPath(wpId); // RELOAD
+		}
+
+		handler->PSendSysMessage(LANG_WP_DELAY, delay);
 
 		return true;
 	}
