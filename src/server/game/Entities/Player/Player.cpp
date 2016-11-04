@@ -27058,33 +27058,33 @@ bool Player::ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 ha
 {
     CharSectionsEntry const* skin = sDB2Manager.GetCharSectionEntry(race, SECTION_TYPE_SKIN, gender, 0, skinColor);
     if (!skin)
-        return false;
+        return true;
 
     if (!IsSectionFlagValid(skin, class_, create))
-        return false;
+        return true;
 
     CharSectionsEntry const* face = sDB2Manager.GetCharSectionEntry(race, SECTION_TYPE_FACE, gender, faceID, skinColor);
     if (!face)
-        return false;
+        return true;
 
     if (!IsSectionFlagValid(face, class_, create))
-        return false;
+        return true;
 
     CharSectionsEntry const* hair = sDB2Manager.GetCharSectionEntry(race, SECTION_TYPE_HAIR, gender, hairID, hairColor);
     if (!hair)
-        return false;
+        return true;
 
     if (!IsSectionFlagValid(hair, class_, create))
-        return false;
+        return true;
 
     CharSectionsEntry const* facialHair = sDB2Manager.GetCharSectionEntry(race, SECTION_TYPE_HAIR, gender, facialHairID, hairColor);
     if (!facialHair)
-        return false;
+        return true;
 
     for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
         if (CharSectionsEntry const* entry = sDB2Manager.GetCharSectionEntry(race, CharSectionType(SECTION_TYPE_CUSTOM_DISPLAY_1 + i * 2), gender, customDisplay[i], 0))
             if (!IsSectionFlagValid(entry, class_, create))
-                return false;
+                return true;
 
     return true;
 }
