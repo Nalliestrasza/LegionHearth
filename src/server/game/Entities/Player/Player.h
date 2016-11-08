@@ -1529,6 +1529,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void IncompleteQuest(uint32 quest_id);
         uint32 GetQuestMoneyReward(Quest const* quest) const;
         uint32 GetQuestXPReward(Quest const* quest);
+        bool CanSelectQuestPackageItem(QuestPackageItemEntry const* questPackageItem) const;
         void RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, bool announce = true);
         void FailQuest(uint32 quest_id);
         bool SatisfyQuestSkill(Quest const* qInfo, bool msg) const;
@@ -1966,8 +1967,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void UpdateRangedHitChances();
         void UpdateSpellHitChances();
 
-        void UpdateAllSpellCritChances();
-        void UpdateSpellCritChance(uint32 school);
+        void UpdateSpellCritChance();
         void UpdateArmorPenetration(int32 amount);
         void UpdateExpertise(WeaponAttackType attType);
         void ApplyManaRegenBonus(int32 amount, bool apply);
