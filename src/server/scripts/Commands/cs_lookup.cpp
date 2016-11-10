@@ -1273,7 +1273,8 @@ public:
 
     static bool HandleLookupPlayerIpCommand(ChatHandler* handler, char const* args)
     {
-        std::string ip;
+        //std::string ip;
+		std::string nameTarget;
         int32 limit;
         char* limitStr;
 
@@ -1284,15 +1285,28 @@ public:
             if (!target || target == handler->GetSession()->GetPlayer())
                 return false;
 
-            ip = target->GetSession()->GetRemoteAddress();
+            //ip = target->GetSession()->GetRemoteAddress();
+			nameTarget = target->GetSession()->GetPlayer()->GetName();
             limit = -1;
         }
         else
         {
-            ip = strtok((char*)args, " ");
+            //ip = strtok((char*)args, " ");
+			nameTarget = strtok((char*)args, " ");
             limitStr = strtok(NULL, " ");
             limit = limitStr ? atoi(limitStr) : -1;
         }
+
+		std::string ip;
+		Player* player = ObjectAccessor::FindPlayerByName(nameTarget);
+		if (!player)
+		{
+			ip = nameTarget;
+		}
+		else
+		{
+			ip = player->GetSession()->GetRemoteAddress();
+		}
 
         PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BY_IP);
         stmt->setString(0, ip);

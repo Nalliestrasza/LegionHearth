@@ -96,4 +96,13 @@ void WorldDatabaseConnection::DoPrepareStatements()
 	PrepareStatement(WORLD_SEL_WAYPOINT_LOOKUP, "SELECT * FROM waypoint_data WHERE id = ?", CONNECTION_SYNCH);
 	PrepareStatement(WORLD_INS_WP_DELAY, "INSERT INTO waypoint_data (id, point, delay) VALUES (?, ?, ?)", CONNECTION_ASYNC);
 	PrepareStatement(WORLD_UPD_WP_DELAY, "UPDATE waypoint_data SET delay = ? WHERE id = ? AND point = ?", CONNECTION_ASYNC);
+
+	//CUSTOM
+	PrepareStatement(WORLD_INS_SET_ANIM, "INSERT INTO creature_addon(guid, emote) VALUES (?, ?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_SET_ANIM, "UPDATE creature_addon SET emote = ? WHERE guid = ?", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_INS_SET_AURA, "INSERT INTO creature_addon(guid, auras) VALUES (?, ?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_SET_AURA, "UPDATE creature_addon SET auras = ? WHERE guid = ?", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_SET_MOUNT, "UPDATE creature_addon SET mount = ? WHERE guid = ?", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_INS_SET_MOUNT, "INSERT INTO creature_addon(guid, mount) VALUES (?, ?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_SEL_GAMEOBJECT_TELE, "SELECT pos_x,pos_y,pos_z,mapid,orientation FROM gameobject_tele WHERE entry = ?", CONNECTION_SYNCH);
 }

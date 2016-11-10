@@ -119,6 +119,8 @@ public:
         if (!objectId)
             return false;
 
+		TC_LOG_DEBUG("chat.log.whisper", "%s a .gob add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), objectId);
+
         char* spawntimeSecs = strtok(NULL, " ");
 
         const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
