@@ -1164,8 +1164,6 @@ public:
 		uint64 wpId = uint64(atoi(px));
 		uint32 pathId = uint32(atoi(py));
 		uint32 delay = uint32(atoi(pz));
-		
-		delay = delay * 1000; // Pour les mongoles qui ne savent pas faire usage des milisecondes, ptdr
 
 		Creature* target = handler->getSelectedCreature();
 		Unit* targetu = handler->getSelectedUnit();
@@ -1184,7 +1182,7 @@ public:
 			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
 			stmt->setUInt64(0, wpId); // id
 			stmt->setUInt64(1, pathId); // PathID
-			stmt->setUInt32(2, delay); // delay
+			stmt->setUInt32(2, delay * 1000); // delay + *1000 for miliseconds
 			WorldDatabase.Execute(stmt);
 			sWaypointMgr->ReloadPath(wpId); // RELOAD
 		}
@@ -1192,7 +1190,7 @@ public:
 		{
 			// dans le cas ou le joueur souhaite changer le delay
 			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
-			stmt->setUInt32(0, delay); //  delay
+			stmt->setUInt32(0, delay * 1000); //  delay * 1000 for miliseconds
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
 			WorldDatabase.Execute(stmt);
