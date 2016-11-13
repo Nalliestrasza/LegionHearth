@@ -415,6 +415,7 @@ public:
         return true;
     }
 
+	/*
     static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* args)
     {
         if (!*args)
@@ -453,6 +454,16 @@ public:
         handler->SendGlobalGMSysMessage("Creature template reloaded.");
         return true;
     }
+	*/
+
+	static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* /*args*/)
+	{
+		TC_LOG_INFO("misc", "Reloading creature template...");
+		sObjectMgr->LoadCreatureTemplates();
+		handler->SendGlobalGMSysMessage("DB table `creature_template` reloaded.");
+		return true;
+	}
+
 
     static bool HandleReloadCreatureTemplateOutfitsCommand(ChatHandler* handler, const char* /*args*/)
     {

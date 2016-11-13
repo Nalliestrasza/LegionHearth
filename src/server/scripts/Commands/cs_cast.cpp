@@ -101,6 +101,8 @@ public:
 
         bool triggered = (triggeredStr != NULL);
 
+		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
+
         handler->GetSession()->GetPlayer()->CastSpell(target, spellId, triggered);
 
         return true;
@@ -170,6 +172,10 @@ public:
         bool triggered = (triggeredStr != NULL);
 
         float x, y, z;
+
+		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dist %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
+
+
         handler->GetSession()->GetPlayer()->GetClosePoint(x, y, z, dist);
 
         handler->GetSession()->GetPlayer()->CastSpell(x, y, z, spellId, triggered);
@@ -191,6 +197,8 @@ public:
 
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
+
+		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast self %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
         target->CastSpell(target, spellId, false);
 
@@ -231,6 +239,8 @@ public:
         }
 
         bool triggered = (triggeredStr != NULL);
+
+		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast target %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
         caster->CastSpell(caster->GetVictim(), spellId, triggered);
 
@@ -275,6 +285,8 @@ public:
         }
 
         bool triggered = (triggeredStr != NULL);
+
+		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dest %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
         caster->CastSpell(x, y, z, spellId, triggered);
 
