@@ -113,6 +113,20 @@ public:
 			{ "randsay",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomSayCommand,        "" },
 			{ "randmp",           rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomMPCommand,         "" },
 			{ "pandaren",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandlePandarenCommand,         "" },
+			{ "death", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleMortCommand, "" },
+			{ "combat", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLutteCommand, "" },
+			{ "camouflage", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleTraquerCommand, "" },
+			{ "lire", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLireCommand, "" },
+			{ "ligoter", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleAttacherCommand, "" },
+			{ "ivre", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleExcesCommand, "" },
+			{ "livre", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLivreCommand, "" },
+			{ "ombrelle", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleOmbrelleCommand, "" },
+			{ "carquois", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleCarquoisCommand, "" },
+			{ "sac", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleSacCommand, "" },
+			{ "bondir", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleBondirCommand, "" },
+			{ "vomir", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleVomirCommand, "" },
+			{ "invisible", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleInvisibleCommand, "" },
+			{ "sang", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleSangCommand, "" },
         };
         return commandTable;
     }
@@ -3248,6 +3262,332 @@ public:
 
 		return true;
 	}
+	static bool HandleMortCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 85267;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+
+	// Le .lutte
+
+	static bool HandleLutteCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 94610;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	//Le .traquer
+
+	static bool HandleTraquerCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 80264;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	// Le .lire ( PS : H devrait essayer de retirer le timer sur le le spell )
+
+
+	static bool HandleLireCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+			return false;
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 147164;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+	// Le .attacher
+
+	static bool HandleAttacherCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 93090;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	// Le .exces
+
+	static bool HandleExcesCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 80109;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	// Le .livre
+
+	static bool HandleLivreCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 124064;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	// Le .ombrelle
+
+	static bool HandleOmbrelleCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 131076;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+
+	//Le .carquois
+
+	static bool HandleCarquoisCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		int choix = atoi(args);
+		uint32 spellId;
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		if (!args)
+			spellId = 80642;
+		switch (choix)
+		{
+		case 1: spellId = 80642; break;
+		case 2: spellId = 125165; break;
+		default: handler->SetSentErrorMessage(true); return false;
+		}
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	//Le .sac
+
+	static bool HandleSacCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+			return false;
+		int choix = atoi(args);
+		uint32 spellId;
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		if (!args)
+			spellId = 105008;
+
+		switch (choix)
+		{
+		case 1: spellId = 105008; break;
+		case 2: spellId = 104953; break;
+		case 3: spellId = 85500; break;
+		case 4: spellId = 89695; break;
+		case 5: spellId = 88330; break;
+		case 6: spellId = 78012; break;
+		case 7: spellId = 90085; break;
+		case 8: spellId = 84516; break;
+		case 9: spellId = 122159; break;
+		case 10: spellId = 131732; break;
+		case 11: spellId = 79252; break;
+		case 12: spellId = 106356; break;
+		case 13: spellId = 168026; break;
+		case 14: spellId = 163398; break;
+		default: handler->SetSentErrorMessage(true); return false;
+		}
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	//Le .bondir
+
+	static bool HandleBondirCommand(ChatHandler* handler, char const* /*args*/)
+	{
+		Unit* unit = handler->getSelectedUnit();
+		if (!unit)
+			return false;
+		uint32 spellId = 55518;
+		handler->GetSession()->GetPlayer()->CastSpell(unit, spellId, true);
+		return true;
+	}
+
+	//Le .vomir
+
+	static bool HandleVomirCommand(ChatHandler* handler, char const* /*args*/)
+	{
+		Unit* unit = handler->getSelectedUnit();
+		if (!unit)
+			return false;
+		uint32 spellId = 85234;
+		handler->GetSession()->GetPlayer()->CastSpell(unit, spellId, true);
+		return true;
+	}
+
+	// Le .sang
+	static bool HandleSangCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+		uint32 spellId = 169471;
+
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		{
+			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+		}
+
+		return true;
+	}
+
+	// Le .invisible
+	static bool HandleInvisibleCommand(ChatHandler* handler, char const* args)
+	{
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+			target = handler->GetSession()->GetPlayer();
+		else if (target->GetTypeId() == TYPEID_PLAYER && handler->HasLowerSecurity(target->ToPlayer(), ObjectGuid::Empty))
+			return false;
+
+		target->SetDisplayId(31515);
+
+		return true;
+	}
+
 };
 
 void AddSC_misc_commandscript()
