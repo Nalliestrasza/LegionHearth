@@ -3344,7 +3344,6 @@ public:
 			return false;
 		}
 
-			return false;
 		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
 		uint32 spellId = 147164;
 
