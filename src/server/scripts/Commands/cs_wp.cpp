@@ -46,7 +46,7 @@ public:
             { "reload", rbac::RBAC_PERM_COMMAND_WP_RELOAD, false, &HandleWpReloadCommand, "" },
             { "show",   rbac::RBAC_PERM_COMMAND_WP_SHOW,   false, &HandleWpShowCommand,   "" },
 			{ "move",   rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpMoveCommand,   "" },
-			{ "delay",  rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpMoveCommand,   "" },
+			{ "delay",  rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpDelayCommand,   "" },
 			{ "lookup", rbac::RBAC_PERM_COMMAND_WP_ADD,    false, &HandleWpLookupCommand, "" },
 			
 
