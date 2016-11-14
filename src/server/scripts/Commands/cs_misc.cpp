@@ -3493,7 +3493,6 @@ public:
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
-			return false;
 		int choix = atoi(args);
 		uint32 spellId;
 		// number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
