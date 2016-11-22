@@ -823,8 +823,13 @@ public:
         if (newlevel < 1)
             newlevel = 1;
 
+		/*
         if (newlevel > STRONG_MAX_LEVEL)                         // hardcoded maximum level
             newlevel = STRONG_MAX_LEVEL;
+		*/
+
+		if (newlevel > 120)                         // bye 255 faggots
+			newlevel = 120;
 
         HandleCharacterLevel(target, targetGuid, oldlevel, newlevel, handler);
 
