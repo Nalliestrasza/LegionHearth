@@ -127,6 +127,8 @@ public:
 			{ "vomir", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleVomirCommand, "" },
 			{ "invisible", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleInvisibleCommand, "" },
 			{ "sang", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleSangCommand, "" },
+			{ "nuit", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleNuitCommand, "" },
+
         };
         return commandTable;
     }
@@ -3586,6 +3588,37 @@ public:
 		return true;
 	}
 
+	static bool HandleNuitCommand(ChatHandler* handler, char const* args)
+	{
+
+		std::string argstr = (char*)args;
+		Unit* target = handler->getSelectedUnit();
+		if (!target)
+		{
+			handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		if (argstr == "off")
+		{
+			target->RemoveAura(185394);
+			handler->SendSysMessage("Nuit noire désactivée !");
+			return true;
+		}
+		else if (argstr == "on")
+		{
+			uint32 spellId = 185394;
+			if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+			{
+				ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+				Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+			}
+			handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
+			return true;
+		}
+
+		return true;
+	}
 };
 
 void AddSC_misc_commandscript()
