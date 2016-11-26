@@ -504,26 +504,29 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
                 CreatureOutfit const& outfit = it->second;
                 if (creature->GetDisplayId() == outfit.displayId)
                 {
-                    WorldPackets::Spells::MirrorImageComponentedData packet;
-                    packet.UnitGUID = guid;
-                    packet.DisplayID = outfit.displayId;
-                    packet.RaceID = outfit.race;
-                    packet.Gender = outfit.gender;
-                    packet.ClassID = outfit.Class;
-                    packet.SkinColor = outfit.skin;
-                    packet.FaceVariation = outfit.face;
-                    packet.HairVariation = outfit.hair;
-                    packet.HairColor = outfit.haircolor;
-                    packet.BeardVariation = outfit.facialhair;
-                    packet.GuildGUID = ObjectGuid::Empty;
+					WorldPackets::Spells::MirrorImageComponentedData mirrorImageComponentedData;
+					mirrorImageComponentedData.UnitGUID = guid;
+					mirrorImageComponentedData.DisplayID = outfit.displayId;
+					mirrorImageComponentedData.RaceID = outfit.race;
+					mirrorImageComponentedData.Gender = outfit.gender;
+					mirrorImageComponentedData.ClassID = outfit.Class;
+					
+					mirrorImageComponentedData.SkinColor = outfit.skin;
+					mirrorImageComponentedData.FaceVariation = outfit.face;
+					mirrorImageComponentedData.HairVariation = outfit.hair;
+					mirrorImageComponentedData.HairColor = outfit.haircolor;
+					mirrorImageComponentedData.BeardVariation = outfit.facialhair;
 
-                    packet.ItemDisplayID.reserve(11);
+					static_assert(CreatureOutfit::max_custom_displays == PLAYER_CUSTOM_DISPLAY_SIZE, "Amount of custom displays for player has changed - change it for dressnpcs as well");
+					for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
+						mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
+					mirrorImageComponentedData.GuildGUID = ObjectGuid::Empty;
 
-                    // item displays
+					mirrorImageComponentedData.ItemDisplayID.reserve(11);
                     for (auto const& display : it->second.outfit)
-                        packet.ItemDisplayID.push_back(display);
+						mirrorImageComponentedData.ItemDisplayID.push_back(display);
 
-                    SendPacket(packet.Write());
+                    SendPacket(mirrorImageComponentedData.Write());
                     return;
                 }
             }
