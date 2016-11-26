@@ -113,21 +113,22 @@ public:
 			{ "randsay",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomSayCommand,        "" },
 			{ "randmp",           rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomMPCommand,         "" },
 			{ "pandaren",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandlePandarenCommand,         "" },
-			{ "death", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleMortCommand, "" },
-			{ "combat", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLutteCommand, "" },
-			{ "camouflage", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleTraquerCommand, "" },
-			{ "lire", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLireCommand, "" },
-			{ "ligoter", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleAttacherCommand, "" },
-			{ "ivre", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleExcesCommand, "" },
-			{ "livre", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleLivreCommand, "" },
-			{ "ombrelle", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleOmbrelleCommand, "" },
-			{ "carquois", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleCarquoisCommand, "" },
-			{ "sac", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleSacCommand, "" },
-			{ "bondir", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleBondirCommand, "" },
-			{ "vomir", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleVomirCommand, "" },
-			{ "invisible", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleInvisibleCommand, "" },
-			{ "sang", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleSangCommand, "" },
-			{ "nuit", rbac::RBAC_PERM_COMMAND_AURA, false, &HandleNuitCommand, "" },
+			{ "death",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleMortCommand,             "" },
+			{ "combat",           rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleLutteCommand,            "" },
+			{ "camouflage",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleTraquerCommand,          "" },
+			{ "lire",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleLireCommand,             "" },
+			{ "ligoter",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAttacherCommand,         "" },
+			{ "ivre",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleExcesCommand,            "" },
+			{ "livre",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleLivreCommand,            "" },
+			{ "ombrelle",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleOmbrelleCommand,         "" },
+			{ "carquois",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleCarquoisCommand,         "" },
+			{ "sac",              rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSacCommand,              "" },
+			{ "bondir",           rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleBondirCommand,           "" },
+			{ "vomir",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleVomirCommand,            "" },
+			{ "invisible",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleInvisibleCommand,        "" },
+			{ "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
+			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
+			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
 
         };
         return commandTable;
@@ -2719,7 +2720,8 @@ public:
         if (!unit)
             return false;
 
-        handler->GetSession()->GetPlayer()->CastSpell(unit, 530, true);
+        //handler->GetSession()->GetPlayer()->CastSpell(unit, 530, true); // Charme (Possession) marche pas sur lvl 100+
+		handler->GetSession()->GetPlayer()->CastSpell(unit, 206124, true); // Possession de Jeremy
         return true;
     }
 
@@ -3618,6 +3620,51 @@ public:
 		}
 
 		return true;
+	}
+	static bool HandleForgeInfoCommand(ChatHandler* handler, char const* args)
+	{
+
+		if (!handler->GetSession()->GetPlayer())
+		{
+			handler->SendSysMessage(LANG_NO_PLAYERS_FOUND);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		
+		uint32 guid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
+		
+		//Query
+		PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARSINFO);
+		stmt->setUInt64(0, guid);
+		PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+		if (!result)
+			return false;
+
+		Field* fields = result->Fetch();
+
+		uint8 skin = fields[0].GetUInt8();
+		uint8 face = fields[1].GetUInt8();
+		uint8 hair = fields[2].GetUInt8();
+		uint8 hcol = fields[3].GetUInt8();
+		uint8 pilo = fields[4].GetUInt8();
+		uint8 cust1 = fields[5].GetUInt8();
+		uint8 cust2 = fields[6].GetUInt8();
+		uint8 cust3 = fields[7].GetUInt8();
+
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_TEXT);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_SKIN, skin);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_FACE, face);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_HAIR, hair);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_HCOL, hcol);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_PILO, pilo);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH01, cust1);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
+		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
+
+		return true;
+
+		
 	}
 };
 

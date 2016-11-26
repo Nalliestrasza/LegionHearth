@@ -1245,9 +1245,16 @@ enum TrinityStrings
 	LANG_WP_MOVE_2								  = 65004, // WP MOVE DONE 2 RUN
 	LANG_WP_MOVE_3								  = 65005, // WP MOVE DONE 3 FLYING
 	LANG_WP_DELAY							      = 65006, // WP DELAY DONE
-	
-    
 
+	LANG_CUST_CHARINFOS_SKIN                      = 65100, // PLAYER SKIN
+	LANG_CUST_CHARINFOS_FACE					  = 65101, // PLAYER FACE
+	LANG_CUST_CHARINFOS_HAIR                      = 65102, // PLAYER HAIRS
+	LANG_CUST_CHARINFOS_HCOL                      = 65103, // PLAYER HAIRS COLOR    
+	LANG_CUST_CHARINFOS_PILO                      = 65104, // PLAYER PILOSITY / OTHER
+	LANG_CUST_CHARINFOS_DH01                      = 65105, // PLAYER TATOOS
+	LANG_CUST_CHARINFOS_DH02                      = 65106, // PLAYER HORNS
+	LANG_CUST_CHARINFOS_DH03                      = 65107, // PLAYER EYES
+	LANG_CUST_CHARINFOS_TEXT                      = 65108, // PLAYER INFOS TEXT
 
 };
 #endif
