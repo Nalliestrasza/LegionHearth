@@ -129,7 +129,8 @@ public:
 			{ "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
-
+			{ "debugsync",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleDebugSyncCommand,        "" },
+			
         };
         return commandTable;
     }
@@ -3662,9 +3663,59 @@ public:
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
 
-		return true;
+		return true;	
+	}
 
-		
+	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
+	{
+		char* temp = (char*)args;
+		char* str1 = strtok(temp, "-");
+		char* str2 = strtok(NULL, ";");
+		char* str3 = strtok(NULL, "\0");
+		int minStr = 1;
+		int maxStr = 100;
+		int master = 0;
+		if (str1 != NULL)
+		{
+			minStr = atoi(str1);
+		}
+		if (str2 != NULL)
+		{
+			maxStr = atoi(str2);
+		}
+		else
+		{
+			maxStr = minStr;
+			minStr = 1;
+		}
+		if (str3 != NULL && handler->GetSession()->GetSecurity() >= 3)
+		{
+			master = atoi(str3);
+		}
+
+		if (minStr <= 0 || minStr > maxStr || maxStr > 9999 || master > maxStr)
+		{
+			handler->SendSysMessage("Entrees non valides");
+			return false;
+		}
+		uint32 min = (uint32)minStr;
+		uint32 max = (uint32)maxStr;
+		uint32 roll;
+		if (master == 0)
+		{
+			roll = urand(min, max);
+		}
+		else
+		{
+			roll = (uint32)master;
+		}
+
+		Player* player = handler->GetSession()->GetPlayer();
+		std::string playerName = player->GetName();
+		char msg[255];
+		sprintf(msg, "%s obtient un %u (%u-%u)", playerName.c_str(), roll, min, max);
+		(msg, CHAT_MSG_PARTY, CHAT_MSG_RAID,LANG_UNIVERSAL, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), nullptr);
+		return true;
 	}
 };
 

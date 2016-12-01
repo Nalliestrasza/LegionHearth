@@ -209,12 +209,12 @@ bool MoveSplineInitArgs::Validate(Unit* unit) const
     CHECK(path.size() > 1);
     CHECK(velocity > 0.1f);
     CHECK(time_perc >= 0.f && time_perc <= 1.f);
-    CHECK(_checkPathLengths());
+   // CHECK(_checkPathLengths()); Don't check this shit pls
     return true;
 #undef CHECK
 }
 
-// check path lengths - why are we even starting such short movement?
+//check path lengths - why are we even starting such short movement?
 bool MoveSplineInitArgs::_checkPathLengths() const
 {
     if (path.size() > 2 || facing.type == MONSTER_MOVE_NORMAL)
