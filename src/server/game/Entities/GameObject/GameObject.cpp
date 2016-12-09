@@ -1710,6 +1710,27 @@ void GameObject::Use(Unit* user)
 
             user->RemoveAurasByType(SPELL_AURA_MOUNTED);
             spellId = info->spellCaster.spell;
+			
+			//GOB TELEPORTER CUSTOM
+			if (info->entry > 10000000)
+			{
+				PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_TELE);
+				stmt->setUInt64(0, info->entry);
+				PreparedQueryResult result = WorldDatabase.Query(stmt);
+				
+				if (result)
+				{
+					Field* fields = result->Fetch();
+					float x = fields[0].GetFloat();
+					float y = fields[1].GetFloat();
+					float z = fields[2].GetFloat();
+					uint16 mapId = fields[3].GetUInt16();
+					float o = fields[4].GetFloat();
+					
+					Player* player = user->ToPlayer();
+					player->TeleportTo(mapId, x, y, z, o, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
+				}
+			}
 
             AddUse();
             break;
