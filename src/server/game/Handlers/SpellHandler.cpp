@@ -520,7 +520,7 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
 					static_assert(CreatureOutfit::max_custom_displays == PLAYER_CUSTOM_DISPLAY_SIZE, "Amount of custom displays for player has changed - change it for dressnpcs as well");
 					for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
 						mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
-					mirrorImageComponentedData.GuildGUID = ObjectGuid::Empty;
+					mirrorImageComponentedData.GuildGUID = (sGuildMgr->GetGuildById(outfit.guild) ? sGuildMgr->GetGuildById(outfit.guild)->GetGUID() : ObjectGuid::Empty);
 
 					mirrorImageComponentedData.ItemDisplayID.reserve(11);
                     for (auto const& display : it->second.outfit)
