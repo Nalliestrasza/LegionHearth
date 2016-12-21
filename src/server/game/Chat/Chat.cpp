@@ -297,8 +297,8 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
                 return true;
 
             Player* player = m_session->GetPlayer();
-            if (!AccountMgr::IsPlayerAccount(m_session->GetSecurity()))
-            {
+            //if (!AccountMgr::IsPlayerAccount(m_session->GetSecurity())) // Pas besoin d'avoir un grade pour avoir les logs des commandes
+            //{
                 ObjectGuid guid = player->GetTarget();
                 uint32 areaId = player->GetAreaId();
                 std::string areaName = "Unknown";
@@ -319,7 +319,7 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
                     areaId, areaName.c_str(), zoneName.c_str(),
                     (player->GetSelectedUnit()) ? player->GetSelectedUnit()->GetName().c_str() : "",
                     guid.ToString().c_str());
-            }
+            //}
         }
         // some commands have custom error messages. Don't send the default one in these cases.
         else if (!HasSentErrorMessage())
