@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -57,11 +57,6 @@ enum RogueSpells
     SPELL_ROGUE_HONOR_AMONG_THIEVES                 = 51698,
     SPELL_ROGUE_HONOR_AMONG_THIEVES_PROC            = 51699,
     SPELL_ROGUE_T5_2P_SET_BONUS                     = 37169
-};
-
-enum RogueSpellIcons
-{
-    ICON_ROGUE_IMPROVED_RECUPERATE                  = 4819
 };
 
 // 13877, 33735, (check 51211, 65956) - Blade Flurry
@@ -551,55 +546,6 @@ class spell_rog_preparation : public SpellScriptLoader
         }
 };
 
-// 73651 - Recuperate
-class spell_rog_recuperate : public SpellScriptLoader
-{
-    public:
-        spell_rog_recuperate() : SpellScriptLoader("spell_rog_recuperate") { }
-
-        class spell_rog_recuperate_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_rog_recuperate_AuraScript);
-
-            bool Load() override
-            {
-                return GetCaster()->GetTypeId() == TYPEID_PLAYER;
-            }
-
-            void OnPeriodic(AuraEffect const* /*aurEff*/)
-            {
-                if (Unit* caster = GetCaster())
-                    if (AuraEffect* effect = GetAura()->GetEffect(EFFECT_0))
-                        effect->RecalculateAmount(caster);
-            }
-
-            void CalculateBonus(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-            {
-                canBeRecalculated = false;
-                if (Unit* caster = GetCaster())
-                {
-                    int32 baseAmount = GetSpellInfo()->GetEffect(EFFECT_0)->CalcValue(caster) * 1000;
-                    // Improved Recuperate
-                    if (AuraEffect const* auraEffect = caster->GetDummyAuraEffect(SPELLFAMILY_ROGUE, ICON_ROGUE_IMPROVED_RECUPERATE, EFFECT_0))
-                        baseAmount += auraEffect->GetAmount();
-
-                    amount = CalculatePct(caster->GetMaxHealth(), float(baseAmount) / 1000.0f);
-                }
-            }
-
-            void Register() override
-            {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_rog_recuperate_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
-                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_rog_recuperate_AuraScript::CalculateBonus, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
-            }
-        };
-
-        AuraScript* GetAuraScript() const override
-        {
-            return new spell_rog_recuperate_AuraScript();
-        }
-};
-
 // 1943 - Rupture
 class spell_rog_rupture : public SpellScriptLoader
 {
@@ -991,6 +937,33 @@ public:
     }
 };
 
+// 70805 - Rogue T10 2P Bonus -- THIS SHOULD BE REMOVED WITH NEW PROC SYSTEM.
+class spell_rog_t10_2p_bonus : public SpellScriptLoader
+{
+public:
+    spell_rog_t10_2p_bonus() : SpellScriptLoader("spell_rog_t10_2p_bonus") { }
+
+    class spell_rog_t10_2p_bonus_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_rog_t10_2p_bonus_AuraScript);
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            return eventInfo.GetActor() == eventInfo.GetActionTarget();
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_rog_t10_2p_bonus_AuraScript::CheckProc);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_rog_t10_2p_bonus_AuraScript();
+    }
+};
+
 // 2098 - Eviscerate
 class spell_rog_eviscerate : public SpellScriptLoader
 {
@@ -1063,7 +1036,6 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_killing_spree();
     new spell_rog_master_of_subtlety();
     new spell_rog_preparation();
-    new spell_rog_recuperate();
     new spell_rog_rupture();
     new spell_rog_shiv();
     new spell_rog_stealth();
@@ -1073,6 +1045,7 @@ void AddSC_rogue_spell_scripts()
     new spell_rog_tricks_of_the_trade_proc();
     new spell_rog_serrated_blades();
     new spell_rog_honor_among_thieves();
+    new spell_rog_t10_2p_bonus();
     new spell_rog_eviscerate();
     new spell_rog_envenom();
 }

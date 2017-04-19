@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -117,16 +117,17 @@ Quest::Quest(Field* questRecord)
     LimitTime = questRecord[103].GetUInt32();
     AllowableRaces = questRecord[104].GetInt32();
     QuestRewardID = questRecord[105].GetUInt32();
+    Expansion = questRecord[106].GetInt32();
 
-    LogTitle = questRecord[106].GetString();
-    LogDescription = questRecord[107].GetString();
-    QuestDescription = questRecord[108].GetString();
-    AreaDescription = questRecord[109].GetString();
-    PortraitGiverText = questRecord[110].GetString();
-    PortraitGiverName = questRecord[111].GetString();
-    PortraitTurnInText = questRecord[112].GetString();
-    PortraitTurnInName = questRecord[113].GetString();
-    QuestCompletionLog = questRecord[114].GetString();
+    LogTitle = questRecord[107].GetString();
+    LogDescription = questRecord[108].GetString();
+    QuestDescription = questRecord[109].GetString();
+    AreaDescription = questRecord[110].GetString();
+    PortraitGiverText = questRecord[111].GetString();
+    PortraitGiverName = questRecord[112].GetString();
+    PortraitTurnInText = questRecord[113].GetString();
+    PortraitTurnInName = questRecord[114].GetString();
+    QuestCompletionLog = questRecord[115].GetString();
 
     for (uint32 i = 0; i < QUEST_EMOTE_COUNT; ++i)
     {
@@ -140,7 +141,15 @@ Quest::Quest(Field* questRecord)
 void Quest::LoadQuestDetails(Field* fields)
 {
     for (uint32 i = 0; i < QUEST_EMOTE_COUNT; ++i)
+    {
+        if (!sEmotesStore.LookupEntry(fields[1 + i].GetUInt16()))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `quest_details` has non-existing Emote%i (%u) set for quest %u. Skipped.", 1+i, fields[1+i].GetUInt16(), fields[0].GetUInt32());
+            continue;
+        }
+
         DetailsEmote[i] = fields[1 + i].GetUInt16();
+    }
 
     for (uint32 i = 0; i < QUEST_EMOTE_COUNT; ++i)
         DetailsEmoteDelay[i] = fields[5 + i].GetUInt32();
@@ -150,6 +159,13 @@ void Quest::LoadQuestRequestItems(Field* fields)
 {
     EmoteOnComplete = fields[1].GetUInt16();
     EmoteOnIncomplete = fields[2].GetUInt16();
+
+    if (!sEmotesStore.LookupEntry(EmoteOnComplete))
+        TC_LOG_ERROR("sql.sql", "Table `quest_request_items` has non-existing EmoteOnComplete (%u) set for quest %u.", EmoteOnComplete, fields[0].GetUInt32());
+
+    if (!sEmotesStore.LookupEntry(EmoteOnIncomplete))
+        TC_LOG_ERROR("sql.sql", "Table `quest_request_items` has non-existing EmoteOnIncomplete (%u) set for quest %u.", EmoteOnIncomplete, fields[0].GetUInt32());
+
     EmoteOnCompleteDelay = fields[3].GetUInt32();
     EmoteOnIncompleteDelay = fields[4].GetUInt32();
     RequestItemsText = fields[5].GetString();
@@ -158,7 +174,15 @@ void Quest::LoadQuestRequestItems(Field* fields)
 void Quest::LoadQuestOfferReward(Field* fields)
 {
     for (uint32 i = 0; i < QUEST_EMOTE_COUNT; ++i)
+    {
+        if (!sEmotesStore.LookupEntry(fields[1 + i].GetUInt16()))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `quest_offer_reward` has non-existing Emote%i (%u) set for quest %u. Skipped.", 1+i, fields[1+i].GetUInt16(), fields[0].GetUInt32());
+            continue;
+        }
+
         OfferRewardEmote[i] = fields[1 + i].GetUInt16();
+    }
 
     for (uint32 i = 0; i < QUEST_EMOTE_COUNT; ++i)
         OfferRewardEmoteDelay[i] = fields[5 + i].GetUInt32();
@@ -183,7 +207,8 @@ void Quest::LoadQuestTemplateAddon(Field* fields)
     RequiredMinRepValue = fields[13].GetInt32();
     RequiredMaxRepValue = fields[14].GetInt32();
     SourceItemIdCount = fields[15].GetUInt8();
-    SpecialFlags = fields[16].GetUInt8();
+    RewardMailSenderEntry = fields[16].GetUInt32();
+    SpecialFlags = fields[17].GetUInt8();
 
     if (SpecialFlags & QUEST_SPECIAL_FLAGS_AUTO_ACCEPT)
         Flags |= QUEST_FLAGS_AUTO_ACCEPT;
@@ -193,6 +218,7 @@ void Quest::LoadQuestObjective(Field* fields)
 {
     QuestObjective obj;
     obj.ID = fields[0].GetUInt32();
+    obj.QuestID = fields[1].GetUInt32();
     obj.Type = fields[2].GetUInt8();
     obj.StorageIndex = fields[3].GetInt8();
     obj.ObjectID = fields[4].GetInt32();
@@ -229,7 +255,7 @@ uint32 Quest::XPValue(uint32 playerLevel) const
     {
         uint32 questLevel = uint32(Level == -1 ? playerLevel : Level);
         QuestXPEntry const* questXp = sQuestXPStore.LookupEntry(questLevel);
-        if (!questXp || RewardXPDifficulty > 10)
+        if (!questXp || RewardXPDifficulty >= 10)
             return 0;
 
         float multiplier = 1.0f;
@@ -346,6 +372,9 @@ bool Quest::IsRaidQuest(Difficulty difficulty) const
             break;
     }
 
+    if ((Flags & QUEST_FLAGS_RAID) != 0)
+        return true;
+
     return false;
 }
 
@@ -373,4 +402,11 @@ uint32 Quest::CalculateHonorGain(uint8 /*level*/) const
     }*/
 
     return honor;
+}
+
+bool Quest::CanIncreaseRewardedQuestCounters() const
+{
+    // Dungeon Finder/Daily/Repeatable (if not weekly, monthly or seasonal) quests are never considered rewarded serverside.
+    // This affects counters and client requests for completed quests.
+    return (!IsDFQuest() && !IsDaily() && (!IsRepeatable() || IsWeekly() || IsMonthly() || IsSeasonal()));
 }

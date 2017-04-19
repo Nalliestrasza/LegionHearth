@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -115,7 +115,8 @@ enum ScriptCommands
     SCRIPT_COMMAND_MODEL                 = 32,               // source = Creature, datalong = model id
     SCRIPT_COMMAND_CLOSE_GOSSIP          = 33,               // source = Player
     SCRIPT_COMMAND_PLAYMOVIE             = 34,               // source = Player, datalong = movie id
-    SCRIPT_COMMAND_PLAY_ANIMKIT          = 35                // source = Creature, datalong = AnimKit id
+    SCRIPT_COMMAND_MOVEMENT              = 35,               // source = Creature, datalong = MovementType, datalong2 = MovementDistance (spawndist f.ex.), dataint = pathid
+    SCRIPT_COMMAND_PLAY_ANIMKIT          = 36                // source = Creature, datalong = AnimKit id
 };
 
 // Benchmarked: Faster than std::unordered_map (insert/find)
@@ -385,7 +386,14 @@ struct ScriptInfo
             uint32 MovieID;         // datalong
         } PlayMovie;
 
-        struct                      // SCRIPT_COMMAND_PLAY_ANIMKIT (35)
+        struct                       // SCRIPT_COMMAND_MOVEMENT (35)
+        {
+            uint32 MovementType;     // datalong
+            uint32 MovementDistance; // datalong2
+            int32  Path;             // dataint
+        } Movement;
+
+        struct                      // SCRIPT_COMMAND_PLAY_ANIMKIT (36)
         {
             uint32 AnimKitID;       // datalong
         } PlayAnimKit;
@@ -453,6 +461,8 @@ typedef std::unordered_map<uint32, CreatureLocale> CreatureLocaleContainer;
 typedef std::unordered_map<uint32, GameObjectLocale> GameObjectLocaleContainer;
 typedef std::unordered_map<uint32, QuestTemplateLocale> QuestTemplateLocaleContainer;
 typedef std::unordered_map<uint32, QuestObjectivesLocale> QuestObjectivesLocaleContainer;
+typedef std::unordered_map<uint32, QuestOfferRewardLocale> QuestOfferRewardLocaleContainer;
+typedef std::unordered_map<uint32, QuestRequestItemsLocale> QuestRequestItemsLocaleContainer;
 typedef std::unordered_map<uint32, PageTextLocale> PageTextLocaleContainer;
 typedef std::unordered_map<uint32, GossipMenuItemsLocale> GossipMenuItemsLocaleContainer;
 typedef std::unordered_map<uint32, PointOfInterestLocale> PointOfInterestLocaleContainer;
@@ -466,7 +476,7 @@ typedef std::pair<QuestRelationsReverse::const_iterator, QuestRelationsReverse::
 
 struct PetLevelInfo
 {
-    PetLevelInfo() : health(0), mana(0), armor(0) { for (uint8 i=0; i < MAX_STATS; ++i) stats[i] = 0; }
+    PetLevelInfo() : health(0), mana(0), armor(0) { memset(stats, 0, sizeof(stats)); }
 
     uint16 stats[MAX_STATS];
     uint16 health;
@@ -624,26 +634,6 @@ typedef std::unordered_map<uint32, TrainerSpellData> CacheTrainerSpellContainer;
 typedef std::unordered_map<uint8, uint8> ExpansionRequirementContainer;
 typedef std::unordered_map<uint32, std::string> RealmNameContainer;
 
-struct CharcterTemplateClass
-{
-    CharcterTemplateClass(uint8 factionGroup, uint8 classID) :
-        FactionGroup(factionGroup), ClassID(classID) { }
-
-    uint8 FactionGroup;
-    uint8 ClassID;
-};
-
-struct CharacterTemplate
-{
-    uint32 TemplateSetId;
-    std::vector<CharcterTemplateClass> Classes;
-    std::string Name;
-    std::string Description;
-    uint8 Level;
-};
-
-typedef std::unordered_map<uint32, CharacterTemplate> CharacterTemplateContainer;
-
 struct SceneTemplate
 {
     uint32 SceneId;
@@ -751,6 +741,7 @@ class TC_GAME_API ObjectMgr
         typedef std::unordered_map<uint32, Item*> ItemMap;
 
         typedef std::unordered_map<uint32, Quest*> QuestMap;
+        typedef std::unordered_map<uint32 /*questObjectiveId*/, QuestObjective const*> QuestObjectivesByIdContainer;
 
         typedef std::unordered_map<uint32, AreaTriggerStruct> AreaTriggerContainer;
 
@@ -853,6 +844,12 @@ class TC_GAME_API ObjectMgr
         }
 
         QuestMap const& GetQuestTemplates() const { return _questTemplates; }
+
+        QuestObjective const* GetQuestObjective(uint32 questObjectiveId) const
+        {
+            auto itr = _questObjectives.find(questObjectiveId);
+            return itr != _questObjectives.end() ? itr->second : nullptr;
+        }
 
         std::unordered_set<uint32> const* GetQuestsForAreaTrigger(uint32 Trigger_ID) const
         {
@@ -1047,6 +1044,8 @@ class TC_GAME_API ObjectMgr
         void LoadItemScriptNames();
         void LoadQuestTemplateLocale();
         void LoadQuestObjectivesLocale();
+        void LoadQuestOfferRewardLocale();
+        void LoadQuestRequestItemsLocale();
         void LoadPageTextLocales();
         void LoadGossipMenuItemsLocales();
         void LoadPointOfInterestLocales();
@@ -1094,7 +1093,7 @@ class TC_GAME_API ObjectMgr
 
         void LoadVendors();
         void LoadTrainerSpell();
-        void AddSpellToTrainer(uint32 entry, uint32 spell, uint32 spellCost, uint32 reqSkill, uint32 reqSkillValue, uint32 reqLevel);
+        void AddSpellToTrainer(uint32 entry, uint32 spell, uint32 spellCost, uint32 reqSkill, uint32 reqSkillValue, uint32 reqLevel, uint32 Index);
 
         void LoadTerrainPhaseInfo();
         void LoadTerrainSwapDefaults();
@@ -1151,9 +1150,9 @@ class TC_GAME_API ObjectMgr
             if (map_itr == _mailLevelRewardStore.end())
                 return nullptr;
 
-            for (MailLevelRewardList::const_iterator set_itr = map_itr->second.begin(); set_itr != map_itr->second.end(); ++set_itr)
-                if (set_itr->raceMask & raceMask)
-                    return &*set_itr;
+            for (auto const& mailLevelReward : map_itr->second)
+                if (mailLevelReward.raceMask & raceMask)
+                    return &mailLevelReward;
 
             return nullptr;
         }
@@ -1216,6 +1215,18 @@ class TC_GAME_API ObjectMgr
         {
             QuestTemplateLocaleContainer::const_iterator itr = _questTemplateLocaleStore.find(entry);
             if (itr == _questTemplateLocaleStore.end()) return nullptr;
+            return &itr->second;
+        }
+        QuestOfferRewardLocale const* GetQuestOfferRewardLocale(uint32 entry) const
+        {
+            auto itr = _questOfferRewardLocaleStore.find(entry);
+            if (itr == _questOfferRewardLocaleStore.end()) return nullptr;
+            return &itr->second;
+        }
+        QuestRequestItemsLocale const* GetQuestRequestItemsLocale(uint32 entry) const
+        {
+            auto itr = _questRequestItemsLocaleStore.find(entry);
+            if (itr == _questRequestItemsLocaleStore.end()) return nullptr;
             return &itr->second;
         }
         QuestObjectivesLocale const* GetQuestObjectivesLocale(uint32 entry) const
@@ -1317,7 +1328,7 @@ class TC_GAME_API ObjectMgr
 
         void AddVendorItem(uint32 entry, uint32 item, int32 maxcount, uint32 incrtime, uint32 extendedCost, uint8 type, bool persist = true); // for event
         bool RemoveVendorItem(uint32 entry, uint32 item, uint8 type, bool persist = true); // for event
-        bool IsVendorItemValid(uint32 vendor_entry, uint32 id, int32 maxcount, uint32 ptime, uint32 ExtendedCost, uint8 type, Player* player = NULL, std::set<uint32>* skip_vendors = NULL, uint32 ORnpcflag = 0) const;
+        bool IsVendorItemValid(uint32 vendor_entry, uint32 id, int32 maxcount, uint32 ptime, uint32 ExtendedCost, uint8 type, Player* player = nullptr, std::set<uint32>* skip_vendors = nullptr, uint32 ORnpcflag = 0) const;
 
         void LoadScriptNames();
         ScriptNameContainer const& GetAllScriptNames() const;
@@ -1405,7 +1416,6 @@ class TC_GAME_API ObjectMgr
         bool IsTransportMap(uint32 mapId) const { return _transportMaps.count(mapId) != 0; }
 
         void LoadRaceAndClassExpansionRequirements();
-        void LoadCharacterTemplates();
         void LoadRealmNames();
 
         std::string GetRealmName(uint32 realm) const;
@@ -1427,16 +1437,6 @@ class TC_GAME_API ObjectMgr
             if (itr != _classExpansionRequirementStore.end())
                 return itr->second;
             return EXPANSION_CLASSIC;
-        }
-
-        CharacterTemplateContainer const& GetCharacterTemplates() const { return _characterTemplateStore; }
-        CharacterTemplate const* GetCharacterTemplate(uint32 id) const
-        {
-            auto itr = _characterTemplateStore.find(id);
-            if (itr != _characterTemplateStore.end())
-                return &itr->second;
-
-            return nullptr;
         }
 
         SceneTemplate const* GetSceneTemplate(uint32 sceneId) const
@@ -1473,6 +1473,7 @@ class TC_GAME_API ObjectMgr
         std::map<HighGuid, std::unique_ptr<ObjectGuidGeneratorBase>> _guidGenerators;
 
         QuestMap _questTemplates;
+        QuestObjectivesByIdContainer _questObjectives;
 
         typedef std::unordered_map<uint32, NpcText> NpcTextContainer;
         typedef std::unordered_map<uint32, std::unordered_set<uint32>> QuestAreaTriggerContainer;
@@ -1586,6 +1587,8 @@ class TC_GAME_API ObjectMgr
         ItemTemplateContainer _itemTemplateStore;
         QuestTemplateLocaleContainer _questTemplateLocaleStore;
         QuestObjectivesLocaleContainer _questObjectivesLocaleStore;
+        QuestOfferRewardLocaleContainer _questOfferRewardLocaleStore;
+        QuestRequestItemsLocaleContainer _questRequestItemsLocaleStore;
         PageTextLocaleContainer _pageTextLocaleStore;
         GossipMenuItemsLocaleContainer _gossipMenuItemsLocaleStore;
         PointOfInterestLocaleContainer _pointOfInterestLocaleStore;
@@ -1602,7 +1605,6 @@ class TC_GAME_API ObjectMgr
         ExpansionRequirementContainer _classExpansionRequirementStore;
         RealmNameContainer _realmNameStore;
 
-        CharacterTemplateContainer _characterTemplateStore;
         SceneTemplateContainer _sceneTemplateStore;
 
         enum CreatureLinkedRespawnType

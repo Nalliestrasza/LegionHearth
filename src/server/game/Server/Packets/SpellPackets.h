@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -248,6 +248,7 @@ namespace WorldPackets
         {
             uint32 Type = 0;
             int16 PlayerLevelDelta = 0;
+            uint16 PlayerItemLevel = 0;
             uint8 TargetLevel = 0;
             uint8 Expansion = 0;
             uint8 Class = 1;
@@ -265,13 +266,13 @@ namespace WorldPackets
             uint32 ActiveFlags = 0;
             uint16 CastLevel = 1;
             uint8 Applications = 1;
+            Optional<SandboxScalingData> SandboxScaling;
             Optional<ObjectGuid> CastUnit;
             Optional<int32> Duration;
             Optional<int32> Remaining;
             Optional<float> TimeMod;
             std::vector<float> Points;
             std::vector<float> EstimatedPoints;
-            Optional<SandboxScalingData> SandboxScaling;
         };
 
         struct AuraInfo
@@ -504,7 +505,7 @@ namespace WorldPackets
 
             ObjectGuid CasterUnit;
             uint32 SpellID  = 0;
-            uint32 SpelXSpellVisualID = 0;
+            uint32 SpellXSpellVisualID = 0;
             uint16 Reason   = 0;
             ObjectGuid CastID;
         };
@@ -518,7 +519,7 @@ namespace WorldPackets
 
             ObjectGuid CasterUnit;
             uint32 SpellID  = 0;
-            uint32 SpelXSpellVisualID = 0;
+            uint32 SpellXSpellVisualID = 0;
             uint8 Reason    = 0;
             ObjectGuid CastID;
         };
@@ -761,7 +762,7 @@ namespace WorldPackets
             int32 SpellVisualID = 0;
         };
 
-        class PlaySpellVisual final : public ServerPacket
+        class TC_GAME_API PlaySpellVisual final : public ServerPacket
         {
         public:
             PlaySpellVisual() : ServerPacket(SMSG_PLAY_SPELL_VISUAL, 16 + 16 + 2 + 4 + 1 + 2 + 4 + 4 * 4) { }
@@ -834,6 +835,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 SpellID = 0;
+            int32 SpellXSpellVisualID = 0;
             Optional<SpellChannelStartInterruptImmunities> InterruptImmunities;
             ObjectGuid CasterGUID;
             Optional<SpellTargetedHealPrediction> HealPrediction;
@@ -1015,6 +1017,17 @@ namespace WorldPackets
             ObjectGuid VictimGUID;
             uint32 SpellID = 0;
             std::vector<int32> FailedSpells;
+        };
+
+        class CustomLoadScreen final : public ServerPacket
+        {
+        public:
+            CustomLoadScreen(uint32 teleportSpellId, uint32 loadingScreenId) : ServerPacket(SMSG_CUSTOM_LOAD_SCREEN), TeleportSpellID(teleportSpellId), LoadingScreenID(loadingScreenId) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 TeleportSpellID;
+            uint32 LoadingScreenID;
         };
     }
 }

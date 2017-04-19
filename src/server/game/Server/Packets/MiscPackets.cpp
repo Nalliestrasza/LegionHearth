@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -176,13 +176,6 @@ WorldPacket const* WorldPackets::Misc::WorldServerInfo::Write()
     _worldPacket.FlushBits();
 
     return &_worldPacket;
-}
-
-void WorldPackets::Misc::AreaTrigger::Read()
-{
-    _worldPacket >> AreaTriggerID;
-    Entered = _worldPacket.ReadBit();
-    FromClient = _worldPacket.ReadBit();
 }
 
 void WorldPackets::Misc::SetDungeonDifficulty::Read()

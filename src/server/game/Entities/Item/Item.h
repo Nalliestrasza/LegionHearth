@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -22,6 +22,7 @@
 #include "Common.h"
 #include "Object.h"
 #include "LootMgr.h"
+#include "ItemEnchantmentMgr.h"
 #include "ItemTemplate.h"
 #include "DatabaseEnv.h"
 
@@ -250,6 +251,7 @@ enum ItemModifier : uint16
     ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_3         = 21,
     ITEM_MODIFIER_CHALLENGE_KEYSTONE_IS_CHARGED         = 22,
     ITEM_MODIFIER_ARTIFACT_KNOWLEDGE_LEVEL              = 23,
+    ITEM_MODIFIER_ARTIFACT_TIER                         = 24,
 
     MAX_ITEM_MODIFIERS
 };
@@ -334,7 +336,7 @@ class TC_GAME_API Item : public Object
         bool IsBoundByEnchant() const;
         virtual void SaveToDB(SQLTransaction& trans);
         virtual bool LoadFromDB(ObjectGuid::LowType guid, ObjectGuid ownerGuid, Field* fields, uint32 entry);
-        void LoadArtifactData(uint32 xp, uint32 artifactAppearanceId, std::vector<ItemDynamicFieldArtifactPowers>& powers);  // must be called after LoadFromDB to have gems (relics) initialized
+        void LoadArtifactData(uint64 xp, uint32 artifactAppearanceId, std::vector<ItemDynamicFieldArtifactPowers>& powers);  // must be called after LoadFromDB to have gems (relics) initialized
 
         void AddBonuses(uint32 bonusListID);
 
@@ -395,9 +397,10 @@ class TC_GAME_API Item : public Object
         // RandomPropertyId (signed but stored as unsigned)
         int32 GetItemRandomPropertyId() const { return GetInt32Value(ITEM_FIELD_RANDOM_PROPERTIES_ID); }
         uint32 GetItemSuffixFactor() const { return GetUInt32Value(ITEM_FIELD_PROPERTY_SEED); }
-        void SetItemRandomProperties(int32 randomPropId);
+        void SetItemRandomProperties(ItemRandomEnchantmentId const& randomPropId);
         void UpdateItemSuffixFactor();
-        static int32 GenerateItemRandomPropertyId(uint32 item_id);
+        static ItemRandomEnchantmentId GenerateItemRandomPropertyId(uint32 item_id);
+        ItemRandomEnchantmentId GetItemRandomEnchantmentId() const { return m_randomEnchantment; }
         void SetEnchantment(EnchantmentSlot slot, uint32 id, uint32 duration, uint32 charges, ObjectGuid caster = ObjectGuid::Empty);
         void SetEnchantmentDuration(EnchantmentSlot slot, uint32 duration, Player* owner);
         void SetEnchantmentCharges(EnchantmentSlot slot, uint32 charges);
@@ -512,7 +515,7 @@ class TC_GAME_API Item : public Object
         void ApplyArtifactPowerEnchantmentBonuses(uint32 enchantId, bool apply, Player* owner);
         void CopyArtifactDataFromParent(Item* parent);
 
-        void GiveArtifactXp(int32 amount, Item* sourceItem, uint32 artifactCategoryId);
+        void GiveArtifactXp(uint64 amount, Item* sourceItem, uint32 artifactCategoryId);
     protected:
         BonusData _bonusData;
 
@@ -528,6 +531,7 @@ class TC_GAME_API Item : public Object
         uint32 m_paidMoney;
         uint32 m_paidExtendedCost;
         GuidSet allowedGUIDs;
+        ItemRandomEnchantmentId m_randomEnchantment;        // store separately to easily find which bonus list is the one randomly given for stat rerolling
         ObjectGuid m_childItem;
         std::unordered_map<uint32, uint16> m_artifactPowerIdToIndex;
         std::array<uint32, MAX_ITEM_PROTO_SOCKETS> m_gemScalingLevels;

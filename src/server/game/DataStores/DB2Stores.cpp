@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -56,6 +56,7 @@ DB2Storage<ChrClassesEntry>                     sChrClassesStore("ChrClasses.db2
 DB2Storage<ChrClassesXPowerTypesEntry>          sChrClassesXPowerTypesStore("ChrClassesXPowerTypes.db2", ChrClassesXPowerTypesLoadInfo::Instance());
 DB2Storage<ChrRacesEntry>                       sChrRacesStore("ChrRaces.db2", ChrRacesLoadInfo::Instance());
 DB2Storage<ChrSpecializationEntry>              sChrSpecializationStore("ChrSpecialization.db2", ChrSpecializationLoadInfo::Instance());
+DB2Storage<CinematicCameraEntry>                sCinematicCameraStore("CinematicCamera.db2", CinematicCameraLoadInfo::Instance());
 DB2Storage<CinematicSequencesEntry>             sCinematicSequencesStore("CinematicSequences.db2", CinematicSequencesLoadInfo::Instance());
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", CreatureDisplayInfoLoadInfo::Instance());
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", CreatureDisplayInfoExtraLoadInfo::Instance());
@@ -132,7 +133,7 @@ DB2Storage<ItemRandomSuffixEntry>               sItemRandomSuffixStore("ItemRand
 DB2Storage<ItemSearchNameEntry>                 sItemSearchNameStore("ItemSearchName.db2", ItemSearchNameLoadInfo::Instance());
 DB2Storage<ItemSetEntry>                        sItemSetStore("ItemSet.db2", ItemSetLoadInfo::Instance());
 DB2Storage<ItemSetSpellEntry>                   sItemSetSpellStore("ItemSetSpell.db2", ItemSetSpellLoadInfo::Instance());
-DB2Storage<ItemSparseEntry>                     sItemSparseStore("Item-sparse.db2", ItemSparseLoadInfo::Instance());
+DB2Storage<ItemSparseEntry>                     sItemSparseStore("ItemSparse.db2", ItemSparseLoadInfo::Instance());
 DB2Storage<ItemSpecEntry>                       sItemSpecStore("ItemSpec.db2", ItemSpecLoadInfo::Instance());
 DB2Storage<ItemSpecOverrideEntry>               sItemSpecOverrideStore("ItemSpecOverride.db2", ItemSpecOverrideLoadInfo::Instance());
 DB2Storage<ItemUpgradeEntry>                    sItemUpgradeStore("ItemUpgrade.db2", ItemUpgradeLoadInfo::Instance());
@@ -149,6 +150,7 @@ DB2Storage<ModifierTreeEntry>                   sModifierTreeStore("ModifierTree
 DB2Storage<MountCapabilityEntry>                sMountCapabilityStore("MountCapability.db2", MountCapabilityLoadInfo::Instance());
 DB2Storage<MountEntry>                          sMountStore("Mount.db2", MountLoadInfo::Instance());
 DB2Storage<MountTypeXCapabilityEntry>           sMountTypeXCapabilityStore("MountTypeXCapability.db2", MountTypeXCapabilityLoadInfo::Instance());
+DB2Storage<MountXDisplayEntry>                  sMountXDisplayStore("MountXDisplay.db2", MountXDisplayLoadInfo::Instance());
 DB2Storage<MovieEntry>                          sMovieStore("Movie.db2", MovieLoadInfo::Instance());
 DB2Storage<NameGenEntry>                        sNameGenStore("NameGen.db2", NameGenLoadInfo::Instance());
 DB2Storage<NamesProfanityEntry>                 sNamesProfanityStore("NamesProfanity.db2", NamesProfanityLoadInfo::Instance());
@@ -240,8 +242,6 @@ TaxiPathNodesByPath                             sTaxiPathNodesByPath;
 
 typedef std::vector<std::string> DB2StoreProblemList;
 
-uint32 DB2FilesCount = 0;
-
 template<class T, template<class> class DB2>
 inline void LoadDB2(uint32& availableDb2Locales, DB2StoreProblemList& errlist, DB2Manager::StorageMap& stores, DB2StorageBase* storage, std::string const& db2Path, uint32 defaultLocale, DB2<T> const& /*hint*/)
 {
@@ -263,8 +263,6 @@ inline void LoadDB2(uint32& availableDb2Locales, DB2StoreProblemList& errlist, D
             "Size of '%s' set by format string (%u) not equal size of C++ structure (" SZFMTD ").",
             storage->GetFileName().c_str(), loadInfo->Meta->GetRecordSize(), sizeof(T));
     }
-
-    ++DB2FilesCount;
 
     if (storage->Load(db2Path + localeNames[defaultLocale] + '/', defaultLocale))
     {
@@ -353,6 +351,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sChrClassesXPowerTypesStore);
     LOAD_DB2(sChrRacesStore);
     LOAD_DB2(sChrSpecializationStore);
+    LOAD_DB2(sCinematicCameraStore);
     LOAD_DB2(sCinematicSequencesStore);
     LOAD_DB2(sCreatureDisplayInfoStore);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
@@ -446,6 +445,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sMountCapabilityStore);
     LOAD_DB2(sMountStore);
     LOAD_DB2(sMountTypeXCapabilityStore);
+    LOAD_DB2(sMountXDisplayStore);
     LOAD_DB2(sMovieStore);
     LOAD_DB2(sNameGenStore);
     LOAD_DB2(sNamesProfanityStore);
@@ -732,6 +732,9 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     for (MountTypeXCapabilityEntry const* mountTypeCapability : sMountTypeXCapabilityStore)
         _mountCapabilitiesByType[mountTypeCapability->MountTypeID].insert(mountTypeCapability);
 
+    for (MountXDisplayEntry const* mountDisplay : sMountXDisplayStore)
+        _mountDisplays[mountDisplay->MountID].push_back(mountDisplay);
+
     for (NameGenEntry const* nameGen : sNameGenStore)
         _nameGenData[nameGen->Race][nameGen->Sex].push_back(nameGen);
 
@@ -916,18 +919,18 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
         _worldMapAreaByAreaID[worldMapArea->AreaID] = worldMapArea;
 
     // error checks
-    if (bad_db2_files.size() >= DB2FilesCount)
+    if (bad_db2_files.size() == _stores.size())
     {
-        TC_LOG_ERROR("misc", "\nIncorrect DataDir value in worldserver.conf or ALL required *.db2 files (%d) not found by path: %sdbc/%s/", DB2FilesCount, dataPath.c_str(), localeNames[defaultLocale]);
+        TC_LOG_ERROR("misc", "\nIncorrect DataDir value in worldserver.conf or ALL required *.db2 files (" SZFMTD ") not found by path: %sdbc/%s/", _stores.size(), dataPath.c_str(), localeNames[defaultLocale]);
         exit(1);
     }
     else if (!bad_db2_files.empty())
     {
         std::string str;
-        for (auto i = bad_db2_files.begin(); i != bad_db2_files.end(); ++i)
-            str += *i + "\n";
+        for (auto const& bad_db2_file : bad_db2_files)
+            str += bad_db2_file + "\n";
 
-        TC_LOG_ERROR("misc", "\nSome required *.db2 files (%u from %d) not found or not compatible:\n%s", (uint32)bad_db2_files.size(), DB2FilesCount, str.c_str());
+        TC_LOG_ERROR("misc", "\nSome required *.db2 files (" SZFMTD " from " SZFMTD ") not found or not compatible:\n%s", bad_db2_files.size(), _stores.size(), str.c_str());
         exit(1);
     }
 
@@ -944,7 +947,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
         exit(1);
     }
 
-    TC_LOG_INFO("server.loading", ">> Initialized %d DB2 data stores in %u ms", DB2FilesCount, GetMSTimeDiffToNow(oldMSTime));
+    TC_LOG_INFO("server.loading", ">> Initialized " SZFMTD " DB2 data stores in %u ms", _stores.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
 DB2StorageBase const* DB2Manager::GetStorage(uint32 type) const
@@ -1003,7 +1006,7 @@ time_t DB2Manager::GetHotfixDate(uint32 entry, uint32 type) const
             if (time_t(hotfix.Timestamp) > ret)
                 ret = time_t(hotfix.Timestamp);
 
-    return ret ? ret : time(NULL);
+    return ret ? ret : time(nullptr);
 }
 
 std::vector<uint32> DB2Manager::GetAreasForGroup(uint32 areaGroupId) const
@@ -1561,6 +1564,11 @@ DB2Manager::MountTypeXCapabilitySet const* DB2Manager::GetMountCapabilities(uint
     return nullptr;
 }
 
+DB2Manager::MountXDisplayContainer const* DB2Manager::GetMountDisplays(uint32 mountId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_mountDisplays, mountId);
+}
+
 std::string DB2Manager::GetNameGenEntry(uint8 race, uint8 gender, LocaleConstant locale) const
 {
     ASSERT(gender < GENDER_NONE);
@@ -1594,7 +1602,7 @@ ResponseCodes DB2Manager::ValidateName(std::wstring const& name, LocaleConstant 
 
 PvpDifficultyEntry const* DB2Manager::GetBattlegroundBracketByLevel(uint32 mapid, uint32 level)
 {
-    PvpDifficultyEntry const* maxEntry = NULL;              // used for level > max listed level case
+    PvpDifficultyEntry const* maxEntry = nullptr;           // used for level > max listed level case
     for (uint32 i = 0; i < sPvpDifficultyStore.GetNumRows(); ++i)
     {
         if (PvpDifficultyEntry const* entry = sPvpDifficultyStore.LookupEntry(i))

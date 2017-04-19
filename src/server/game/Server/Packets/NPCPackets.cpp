@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -54,7 +54,6 @@ WorldPacket const* WorldPackets::NPC::GossipMessage::Write()
         _worldPacket << int32(text.QuestFlags[1]);
 
         _worldPacket.WriteBit(text.Repeatable);
-        _worldPacket.WriteBit(text.Ignored);
         _worldPacket.WriteBits(text.QuestTitle.size(), 9);
         _worldPacket.FlushBits();
 

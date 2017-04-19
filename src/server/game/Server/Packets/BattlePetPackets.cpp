@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -115,7 +115,6 @@ void WorldPackets::BattlePet::BattlePetModifyName::Read()
     _worldPacket >> PetGuid;
     uint32 nameLength = _worldPacket.ReadBits(7);
     bool hasDeclinedNames = _worldPacket.ReadBit();
-    Name = _worldPacket.ReadString(nameLength);
 
     if (hasDeclinedNames)
     {
@@ -127,6 +126,8 @@ void WorldPackets::BattlePet::BattlePetModifyName::Read()
         for (uint8 i = 0; i < 5; ++i)
             Declined.name[i] = _worldPacket.ReadString(declinedNameLengths[i]);
     }
+
+    Name = _worldPacket.ReadString(nameLength);
 }
 
 void WorldPackets::BattlePet::BattlePetDeletePet::Read()

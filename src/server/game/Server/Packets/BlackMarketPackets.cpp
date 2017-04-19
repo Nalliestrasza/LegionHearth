@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -114,8 +114,8 @@ void WorldPackets::BlackMarket::BlackMarketBidOnItem::Read()
 {
     _worldPacket >> Guid;
     _worldPacket >> MarketID;
-    _worldPacket >> Item;
     _worldPacket >> BidAmount;
+    _worldPacket >> Item;
 }
 
 WorldPacket const* WorldPackets::BlackMarket::BlackMarketBidOnItemResult::Write()

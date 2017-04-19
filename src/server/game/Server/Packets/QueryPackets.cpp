@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -276,19 +276,6 @@ WorldPacket const* WorldPackets::Query::DBReply::Write()
     _worldPacket.WriteBit(Allow);
     _worldPacket << uint32(Data.size());
     _worldPacket.append(Data);
-
-    return &_worldPacket;
-}
-
-WorldPacket const* WorldPackets::Query::HotfixNotifyBlob::Write()
-{
-    _worldPacket << uint32(Hotfixes->size());
-    for (HotfixNotify const& hotfix : *Hotfixes)
-    {
-        _worldPacket << uint32(hotfix.TableHash);
-        _worldPacket << int32(hotfix.Entry);
-        _worldPacket << uint32(hotfix.Timestamp);
-    }
 
     return &_worldPacket;
 }

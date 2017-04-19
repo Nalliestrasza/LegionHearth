@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -115,7 +115,7 @@ EnumName<UnitFlags> const unitFlags[MAX_UNIT_FLAGS] =
 {
     CREATE_NAMED_ENUM(UNIT_FLAG_SERVER_CONTROLLED),
     CREATE_NAMED_ENUM(UNIT_FLAG_NON_ATTACKABLE),
-    CREATE_NAMED_ENUM(UNIT_FLAG_DISABLE_MOVE),
+    CREATE_NAMED_ENUM(UNIT_FLAG_REMOVE_CLIENT_CONTROL),
     CREATE_NAMED_ENUM(UNIT_FLAG_PVP_ATTACKABLE),
     CREATE_NAMED_ENUM(UNIT_FLAG_RENAME),
     CREATE_NAMED_ENUM(UNIT_FLAG_PREPARATION),
@@ -127,7 +127,7 @@ EnumName<UnitFlags> const unitFlags[MAX_UNIT_FLAGS] =
     CREATE_NAMED_ENUM(UNIT_FLAG_PET_IN_COMBAT),
     CREATE_NAMED_ENUM(UNIT_FLAG_PVP),
     CREATE_NAMED_ENUM(UNIT_FLAG_SILENCED),
-    CREATE_NAMED_ENUM(UNIT_FLAG_UNK_14),
+    CREATE_NAMED_ENUM(UNIT_FLAG_CANNOT_SWIM),
     CREATE_NAMED_ENUM(UNIT_FLAG_UNK_15),
     CREATE_NAMED_ENUM(UNIT_FLAG_UNK_16),
     CREATE_NAMED_ENUM(UNIT_FLAG_PACIFIED),
@@ -251,7 +251,7 @@ public:
         if (!charID)
             return false;
 
-        uint32 id  = atoi(charID);
+        uint32 id  = atoul(charID);
         if (!sObjectMgr->GetCreatureTemplate(id))
             return false;
 
@@ -376,7 +376,7 @@ public:
         char* guidStr = strtok((char*)args, " ");
         char* waitStr = strtok((char*)nullptr, " ");
 
-        ObjectGuid::LowType lowGuid = strtoull(guidStr, nullptr, 10);
+        ObjectGuid::LowType lowGuid = atoull(guidStr);
 
         // attempt check creature existence by DB data
         CreatureData const* data = sObjectMgr->GetCreatureData(lowGuid);
@@ -425,7 +425,7 @@ public:
         if (!*args)
             return false;
 
-        uint32 newEntryNum = atoi(args);
+        uint32 newEntryNum = atoul(args);
         if (!newEntryNum)
             return false;
 
@@ -450,7 +450,7 @@ public:
         if (!*args)
             return false;
 
-        uint8 lvl = (uint8) atoi((char*)args);
+        uint8 lvl = (uint8) atoi(args);
         if (lvl < 1 || lvl > sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) + 3)
         {
             handler->SendSysMessage(LANG_BAD_VALUE);
@@ -485,12 +485,10 @@ public:
             if (!cId)
                 return false;
 
-            ObjectGuid::LowType lowguid = strtoull(cId, nullptr, 10);
+            ObjectGuid::LowType lowguid = atoull(cId);
             if (!lowguid)
                 return false;
-
-            if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
-                unit = handler->GetSession()->GetPlayer()->GetMap()->GetCreature(ObjectGuid::Create<HighGuid::Creature>(cr_data->mapid, cr_data->id, lowguid));
+            unit = handler->GetCreatureFromPlayerMapByDbGuid(lowguid);
         }
         else
             unit = handler->getSelectedCreature();
@@ -556,7 +554,7 @@ public:
         if (!*args)
             return false;
 
-        uint32 factionId = (uint32) atoi((char*)args);
+        uint32 factionId = atoul(args);
 
         if (!sFactionTemplateStore.LookupEntry(factionId))
         {
@@ -599,7 +597,7 @@ public:
         if (!*args)
             return false;
 
-        uint64 npcFlags = std::strtoull(args, nullptr, 10);
+        uint64 npcFlags = atoull(args);
 
         Creature* creature = handler->getSelectedCreature();
 
@@ -815,7 +813,7 @@ public:
             if (!cId)
                 return false;
 
-            lowguid = strtoull(cId, nullptr, 10);
+            lowguid = atoull(cId);
 
             // Attempting creature load from DB data
             CreatureData const* data = sObjectMgr->GetCreatureData(lowguid);
@@ -903,7 +901,7 @@ public:
         if (!*args)
             return false;
 
-        uint32 displayId = (uint32) atoi((char*)args);
+        uint32 displayId = atoul(args);
 
         Creature* creature = handler->getSelectedCreature();
 
@@ -997,12 +995,10 @@ public:
         }
         else                                                    // case .setmovetype #creature_guid $move_type (with selected creature)
         {
-            lowguid = strtoull(guid_str, nullptr, 10);
+            lowguid = atoull(guid_str);
 
-            /* impossible without entry
             if (lowguid)
-                creature = ObjectAccessor::GetCreature(*handler->GetSession()->GetPlayer(), MAKE_GUID(lowguid, HIGHGUID_UNIT));
-            */
+                creature = handler->GetCreatureFromPlayerMapByDbGuid(lowguid);
 
             // attempt check creature existence by DB data
             if (!creature)
@@ -1105,7 +1101,7 @@ public:
         if (!*args)
             return false;
 
-        uint32 phaseID = uint32(atoi((char*)args));
+        uint32 phaseID = atoul(args);
         if (!sPhaseStore.LookupEntry(phaseID))
         {
             handler->SendSysMessage(LANG_PHASE_NOTFOUND);
@@ -1218,7 +1214,7 @@ public:
         if (!stime)
             return false;
 
-        int spawnTime = atoi((char*)stime);
+        int spawnTime = atoi(stime);
 
         if (spawnTime < 0)
         {
@@ -1419,7 +1415,7 @@ public:
 
         Player* chr = handler->GetSession()->GetPlayer();
 
-        uint32 id = atoi(charID);
+        uint32 id = atoul(charID);
         if (!id)
             return false;
 
@@ -1548,7 +1544,7 @@ public:
         if (!*args)
             return false;
 
-        ObjectGuid::LowType leaderGUID = strtoull(args, nullptr, 10);
+        ObjectGuid::LowType leaderGUID = atoull(args);
         Creature* creature = handler->getSelectedCreature();
 
         if (!creature || !creature->GetSpawnId())
@@ -1600,7 +1596,7 @@ public:
         if (!*args)
             return false;
 
-        ObjectGuid::LowType linkguid = strtoull(args, nullptr, 10);
+        ObjectGuid::LowType linkguid = atoull(args);
 
         Creature* creature = handler->getSelectedCreature();
 

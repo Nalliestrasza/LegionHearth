@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -205,16 +205,6 @@ namespace WorldPackets
             uint32 RecordID = 0;
             bool Allow = false;
             ByteBuffer Data;
-        };
-
-        class HotfixNotifyBlob final : public ServerPacket
-        {
-        public:
-            HotfixNotifyBlob() : ServerPacket(SMSG_HOTFIX_NOTIFY_BLOB, 4) { }
-
-            WorldPacket const* Write() override;
-
-            HotfixData const* Hotfixes = nullptr;
         };
 
         class QueryGameObject final : public ClientPacket

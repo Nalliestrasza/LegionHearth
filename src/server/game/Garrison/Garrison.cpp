@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -543,6 +543,7 @@ void Garrison::SendInfo()
     garrison.GarrSiteID = _siteLevel->SiteID;
     garrison.GarrSiteLevelID = _siteLevel->ID;
     garrison.NumFollowerActivationsRemaining = _followerActivationsRemainingToday;
+    garrison.FollowerSoftCap = 20;
     for (auto& p : _plots)
     {
         Plot& plot = p.second;
@@ -727,7 +728,7 @@ GameObject* Garrison::Plot::CreateGameObject(Map* map, GarrisonFactionIndex fact
 
     Position const& pos = PacketInfo.PlotPos;
     GameObject* building = new GameObject();
-    if (!building->Create(entry, map, 0, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 255, GO_STATE_READY))
+    if (!building->Create(entry, map, 0, pos, G3D::Quat(), 255, GO_STATE_READY))
     {
         delete building;
         return nullptr;
@@ -739,8 +740,7 @@ GameObject* Garrison::Plot::CreateGameObject(Map* map, GarrisonFactionIndex fact
         {
             Position const& pos2 = finalizeInfo->FactionInfo[faction].Pos;
             GameObject* finalizer = new GameObject();
-            if (finalizer->Create(finalizeInfo->FactionInfo[faction].GameObjectId, map, 0, pos2.GetPositionX(), pos2.GetPositionY(),
-                pos2.GetPositionZ(), pos2.GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, 255, GO_STATE_READY))
+            if (finalizer->Create(finalizeInfo->FactionInfo[faction].GameObjectId, map, 0, pos2, G3D::Quat(), 255, GO_STATE_READY))
             {
                 // set some spell id to make the object delete itself after use
                 finalizer->SetSpellId(finalizer->GetGOInfo()->goober.spell);
