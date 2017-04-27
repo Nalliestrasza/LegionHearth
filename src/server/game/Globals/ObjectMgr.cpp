@@ -8306,28 +8306,28 @@ void ObjectMgr::LoadCreatureOutfits()
         co.hair         = fields[i++].GetUInt8();
         co.haircolor    = fields[i++].GetUInt8();
         co.facialhair   = fields[i++].GetUInt8();
-		for (uint32 j = 0; j < CreatureOutfit::max_custom_displays; ++j)
-			co.customdisplay[j] = fields[i++].GetUInt8();
+        for (uint32 j = 0; j < CreatureOutfit::max_custom_displays; ++j)
+            co.customdisplay[j] = fields[i++].GetUInt8();
 
 		co.guild = fields[i++].GetUInt64();
 
-		for (uint32 j = 0; j < CreatureOutfit::max_outfit_displays; ++j)
+        for (uint32 j = 0; j < CreatureOutfit::max_outfit_displays; ++j)
         {
-			int64 displayInfo = fields[i + j].GetInt64();
+            int64 displayInfo = fields[i + j].GetInt64();
             if (displayInfo > 0) // entry
             {
-				uint32 entry = static_cast<uint32>(displayInfo & 0xFFFFFFFF);
-				uint32 appearancemodid = static_cast<uint32>(displayInfo >> 32);
-				if (uint32 display = sDB2Manager.GetItemDisplayId(entry, appearancemodid))
+                uint32 item_entry = static_cast<uint32>(displayInfo & 0xFFFFFFFF);
+                uint32 appearancemodid = static_cast<uint32>(displayInfo >> 32);
+                if (uint32 display = sDB2Manager.GetItemDisplayId(item_entry, appearancemodid))
                     co.outfit[j] = display;
                 else
                 {
-                    TC_LOG_ERROR("server.loading", ">> Creature entry %u in `creature_template_outfits` has invalid item entry %i", entry, displayInfo);
+                    TC_LOG_ERROR("server.loading", ">> Creature entry %u in `creature_template_outfits` has invalid (item entry, appearance) combination: %u, %u. Value in DB: %s", entry, item_entry, appearancemodid, std::to_string(displayInfo).c_str());
                     co.outfit[j] = 0;
                 }
             }
             else // display
-				co.outfit[j] = static_cast<uint32>(-displayInfo);
+                co.outfit[j] = static_cast<uint32>(-displayInfo);
         }
 
         _creatureOutfitStore[entry] = co;
@@ -9610,7 +9610,7 @@ uint32 ObjectMgr::GetCreatureDisplay(int32 modelid) const
     const CreatureOutfitContainer& outfits = GetCreatureOutfitMap();
     CreatureOutfitContainer::const_iterator it = outfits.find(-modelid);
     if (it != outfits.end())
-        return it->second.displayId;
+        return 11686; // invisible for mirror image
 
     return 0;
 }

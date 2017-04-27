@@ -507,58 +507,55 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
             if (it != outfits.end())
             {
                 CreatureOutfit const& outfit = it->second;
-                if (creature->GetDisplayId() == outfit.displayId)
-                {
-					WorldPackets::Spells::MirrorImageComponentedData mirrorImageComponentedData;
-					mirrorImageComponentedData.UnitGUID = guid;
-					mirrorImageComponentedData.DisplayID = outfit.displayId;
-					mirrorImageComponentedData.RaceID = outfit.race;
-					mirrorImageComponentedData.Gender = outfit.gender;
-					mirrorImageComponentedData.ClassID = outfit.Class;
-					
-					mirrorImageComponentedData.SkinColor = outfit.skin;
-					mirrorImageComponentedData.FaceVariation = outfit.face;
-					mirrorImageComponentedData.HairVariation = outfit.hair;
-					mirrorImageComponentedData.HairColor = outfit.haircolor;
-					mirrorImageComponentedData.BeardVariation = outfit.facialhair;
 
-					static_assert(CreatureOutfit::max_custom_displays == PLAYER_CUSTOM_DISPLAY_SIZE, "Amount of custom displays for player has changed - change it for dressnpcs as well");
-					for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
-						mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
-					
+                WorldPackets::Spells::MirrorImageComponentedData mirrorImageComponentedData;
+                mirrorImageComponentedData.UnitGUID = guid;
+                mirrorImageComponentedData.DisplayID = outfit.displayId;
+                mirrorImageComponentedData.RaceID = outfit.race;
+                mirrorImageComponentedData.Gender = outfit.gender;
+                mirrorImageComponentedData.ClassID = outfit.Class;
 
-					// CUSTOM GUILD SCRIPT
-					boolean isGuild = (sGuildMgr->GetGuildById(outfit.guild) ? true : false);
+                mirrorImageComponentedData.SkinColor = outfit.skin;
+                mirrorImageComponentedData.FaceVariation = outfit.face;
+                mirrorImageComponentedData.HairVariation = outfit.hair;
+                mirrorImageComponentedData.HairColor = outfit.haircolor;
+                mirrorImageComponentedData.BeardVariation = outfit.facialhair;
 
-					if (isGuild)
-					{
-						Guild* guild = sGuildMgr->GetGuildById(outfit.guild);
-						EmblemInfo m_emblemInfo = guild->GetEmblemInfo();
-						WorldPackets::Guild::QueryGuildInfoResponse response;
-						response.GuildGuid = guild->GetGUID();
-						response.Info = boost::in_place();
+                static_assert(CreatureOutfit::max_custom_displays == PLAYER_CUSTOM_DISPLAY_SIZE, "Amount of custom displays for player has changed - change it for dressnpcs as well");
+                for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
+                    mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
 
-						response.Info->GuildGUID = guild->GetGUID();
-						response.Info->VirtualRealmAddress = GetVirtualRealmAddress();
+				// CUSTOM GUILD SCRIPT
+				boolean isGuild = (sGuildMgr->GetGuildById(outfit.guild) ? true : false);
 
-						response.Info->EmblemStyle = m_emblemInfo.GetStyle();
-						response.Info->EmblemColor = m_emblemInfo.GetColor();
-						response.Info->BorderStyle = m_emblemInfo.GetBorderStyle();
-						response.Info->BorderColor = m_emblemInfo.GetBorderColor();
-						response.Info->BackgroundColor = m_emblemInfo.GetBackgroundColor();
+				if (isGuild)
+				{
+					Guild* guild = sGuildMgr->GetGuildById(outfit.guild);
+					EmblemInfo m_emblemInfo = guild->GetEmblemInfo();
+					WorldPackets::Guild::QueryGuildInfoResponse response;
+					response.GuildGuid = guild->GetGUID();
+					response.Info = boost::in_place();
 
-						SendPacket(response.Write());
-					}
+					response.Info->GuildGUID = guild->GetGUID();
+					response.Info->VirtualRealmAddress = GetVirtualRealmAddress();
 
-					mirrorImageComponentedData.GuildGUID = (sGuildMgr->GetGuildById(outfit.guild) ? sGuildMgr->GetGuildById(outfit.guild)->GetGUID() : ObjectGuid::Empty);
+					response.Info->EmblemStyle = m_emblemInfo.GetStyle();
+					response.Info->EmblemColor = m_emblemInfo.GetColor();
+					response.Info->BorderStyle = m_emblemInfo.GetBorderStyle();
+					response.Info->BorderColor = m_emblemInfo.GetBorderColor();
+					response.Info->BackgroundColor = m_emblemInfo.GetBackgroundColor();
 
-					mirrorImageComponentedData.ItemDisplayID.reserve(11);
-                    for (auto const& display : it->second.outfit)
-						mirrorImageComponentedData.ItemDisplayID.push_back(display);
+					SendPacket(response.Write());
+				}
 
-                    SendPacket(mirrorImageComponentedData.Write());
-                    return;
-                }
+				mirrorImageComponentedData.GuildGUID = (sGuildMgr->GetGuildById(outfit.guild) ? sGuildMgr->GetGuildById(outfit.guild)->GetGUID() : ObjectGuid::Empty);
+
+                mirrorImageComponentedData.ItemDisplayID.reserve(11);
+                for (auto const& display : it->second.outfit)
+                    mirrorImageComponentedData.ItemDisplayID.push_back(display);
+
+                SendPacket(mirrorImageComponentedData.Write());
+                return;
             }
         }
     }

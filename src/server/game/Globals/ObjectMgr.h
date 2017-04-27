@@ -142,6 +142,7 @@ struct CreatureOutfit
 {
 	static constexpr uint32 max_outfit_displays = 11;
 	static constexpr uint32 max_custom_displays = 3;
+
     uint8 race;
     uint8 Class;
     uint8 gender;
@@ -154,6 +155,7 @@ struct CreatureOutfit
 	uint64 guild;
     uint32 displayId;
 	uint32 outfit[max_outfit_displays];
+
 };
 
 typedef std::unordered_map<uint32, CreatureOutfit> CreatureOutfitContainer;

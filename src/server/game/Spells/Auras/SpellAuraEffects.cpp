@@ -1944,8 +1944,9 @@ void AuraEffect::HandleAuraTransform(AuraApplication const* aurApp, uint8 mode, 
                 {
                     uint32 model_id = 0;
 
-                    if (uint32 modelid = sObjectMgr->GetCreatureDisplay(ci->GetRandomValidModelId()))
-                        model_id = modelid;                     // Will use the default model here
+                    // choose a model, based on trigger flag
+                    if (uint32 modelid = sObjectMgr->GetCreatureDisplay(sObjectMgr->ChooseDisplayId(ci)))
+                        model_id = modelid;
 
                     target->SetDisplayId(model_id);
 
