@@ -371,15 +371,15 @@ void WorldSession::HandleQuestPOIQuery(WorldPackets::Query::QuestPOIQuery& quest
                     questPOIBlobData.PlayerConditionID  = data->PlayerConditionID;
                     questPOIBlobData.UnkWoD1            = data->UnkWoD1;
 
-					for (QuestPOIPoint const& point : data->points)
-					{
-						WorldPackets::Query::QuestPOIBlobPoint questPOIBlobPoint;
+                    for (QuestPOIPoint const& point : data->points)
+                    {
+                        WorldPackets::Query::QuestPOIBlobPoint questPOIBlobPoint;
 
-						questPOIBlobPoint.X = point.X;
-						questPOIBlobPoint.Y = point.Y;
+                        questPOIBlobPoint.X = point.X;
+                        questPOIBlobPoint.Y = point.Y;
 
-						questPOIBlobData.QuestPOIBlobPointStats.push_back(questPOIBlobPoint);
-					}
+                        questPOIBlobData.QuestPOIBlobPointStats.push_back(questPOIBlobPoint);
+                    }
 
 					questPOIData.QuestPOIBlobDataStats.push_back(questPOIBlobData);
 				}
