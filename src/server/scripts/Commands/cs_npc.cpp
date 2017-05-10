@@ -910,7 +910,14 @@ public:
             handler->SendSysMessage(LANG_SELECT_CREATURE);
             handler->SetSentErrorMessage(true);
             return false;
-        }
+		}
+
+		//no morph if creature outfit
+		if (creature->GetOutfit() < 0)
+		{
+			handler->SendSysMessage(LANG_MORPH_DRESSNPC);
+			return false;
+		}
 
         creature->SetDisplayId(displayId);
         creature->SetNativeDisplayId(displayId);

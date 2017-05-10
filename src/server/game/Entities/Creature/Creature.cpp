@@ -2952,7 +2952,7 @@ bool Creature::CanGiveExperience() const
 		&& !IsPet()
 		&& !IsTotem()
 		&& !(GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_NO_XP_AT_KILL);
-	>> >> >> > 38b1ad0ce1aab774f0ca726f99e0608bafa067c6
+}
 
 
 MirrorImageUpdate::MirrorImageUpdate(Creature* creature) : BasicEvent(), creature(creature)

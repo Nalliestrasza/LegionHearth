@@ -1252,6 +1252,7 @@ enum TrinityStrings
 	LANG_WP_MOVE_2								  = 65004, // WP MOVE DONE 2 RUN
 	LANG_WP_MOVE_3								  = 65005, // WP MOVE DONE 3 FLYING
 	LANG_WP_DELAY							      = 65006, // WP DELAY DONE
+	LANG_MORPH_DRESSNPC                           = 65007, // MORPH DRESSNPC
 
 	LANG_CUST_CHARINFOS_SKIN                      = 65100, // PLAYER SKIN
 	LANG_CUST_CHARINFOS_FACE					  = 65101, // PLAYER FACE

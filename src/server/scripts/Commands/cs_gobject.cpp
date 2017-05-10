@@ -158,7 +158,7 @@ public:
         // fill the gameobject data and save to the db
         object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), player->GetPhaseMask());
         ObjectGuid::LowType spawnId = object->GetSpawnId();
-
+		
         // delete the old object and do a clean load from DB with a fresh new GameObject instance.
         // this is required to avoid weird behavior and memory leaks
         delete object;

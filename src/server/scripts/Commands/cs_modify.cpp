@@ -1034,6 +1034,16 @@ public:
         else if (target->GetTypeId() == TYPEID_PLAYER && handler->HasLowerSecurity(target->ToPlayer(), ObjectGuid::Empty))
             return false;
 
+		//no morph if creature outfit
+		if (Creature* crea = target->ToCreature())
+		{
+			if (crea->GetOutfit() < 0)
+			{
+				handler->SendSysMessage(LANG_MORPH_DRESSNPC);
+				return false;
+			}
+		}
+
         target->SetDisplayId(display_id);
         target->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
         if (Creature* crea = target->ToCreature())
@@ -1151,6 +1161,16 @@ public:
         // check online security
         else if (target->GetTypeId() == TYPEID_PLAYER && handler->HasLowerSecurity(target->ToPlayer(), ObjectGuid::Empty))
             return false;
+
+		//no morph if creature outfit
+		if (Creature* crea = target->ToCreature())
+		{
+			if (crea->GetOutfit() < 0)
+			{
+				handler->SendSysMessage(LANG_MORPH_DRESSNPC);
+				return false;
+			}
+		}
 
         target->DeMorph();
 
