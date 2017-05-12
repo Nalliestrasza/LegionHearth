@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "DB2Stores.h"
 #include "Chat.h"
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
@@ -41,6 +42,11 @@
 #include "Transport.h"
 #include "MapManager.h"
 #include "ItemTemplate.h"
+
+ // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
+#ifdef GetClassName
+#undef GetClassName
+#endif
 
 class misc_commandscript : public CommandScript
 {
