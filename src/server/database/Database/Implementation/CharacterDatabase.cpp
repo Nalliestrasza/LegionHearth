@@ -16,6 +16,7 @@
  */
 
 #include "CharacterDatabase.h"
+#include "PreparedStatement.h"
 
 void CharacterDatabaseConnection::DoPrepareStatements()
 {
@@ -739,4 +740,16 @@ void CharacterDatabaseConnection::DoPrepareStatements()
 	PrepareStatement(CHAR_SEL_CHARSINFO, "SELECT skin, face, hairStyle, hairColor, facialStyle,customDisplay1, customDisplay2, customDisplay3 FROM characters WHERE guid = ?", CONNECTION_SYNCH);
 	
 
+}
+
+CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
+{
+}
+
+CharacterDatabaseConnection::CharacterDatabaseConnection(ProducerConsumerQueue<SQLOperation*>* q, MySQLConnectionInfo& connInfo) : MySQLConnection(q, connInfo)
+{
+}
+
+CharacterDatabaseConnection::~CharacterDatabaseConnection()
+{
 }

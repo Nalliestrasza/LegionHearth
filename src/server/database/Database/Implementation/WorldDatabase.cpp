@@ -16,6 +16,7 @@
  */
 
 #include "WorldDatabase.h"
+#include "PreparedStatement.h"
 
 void WorldDatabaseConnection::DoPrepareStatements()
 {
@@ -106,4 +107,16 @@ void WorldDatabaseConnection::DoPrepareStatements()
 	PrepareStatement(WORLD_INS_SET_MOUNT, "INSERT INTO creature_addon(guid, mount) VALUES (?, ?)", CONNECTION_ASYNC);
 	PrepareStatement(WORLD_SEL_GAMEOBJECT_TELE, "SELECT pos_x,pos_y,pos_z,mapid,orientation FROM gameobject_tele WHERE entry = ?", CONNECTION_SYNCH);
 	PrepareStatement(WORLD_SEL_GAMEOBJECT_DOOR, "SELECT id_item FROM gameobject_door WHERE entry = ?", CONNECTION_SYNCH);
+}
+
+WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
+{
+}
+
+WorldDatabaseConnection::WorldDatabaseConnection(ProducerConsumerQueue<SQLOperation*>* q, MySQLConnectionInfo& connInfo) : MySQLConnection(q, connInfo)
+{
+}
+
+WorldDatabaseConnection::~WorldDatabaseConnection()
+{
 }
