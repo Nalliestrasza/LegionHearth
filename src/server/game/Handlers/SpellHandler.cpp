@@ -526,7 +526,7 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
                     mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
 
 				// CUSTOM GUILD SCRIPT
-				boolean isGuild = (sGuildMgr->GetGuildById(outfit.guild) ? true : false);
+				bool isGuild = (sGuildMgr->GetGuildById(outfit.guild) ? true : false);
 
 				if (isGuild)
 				{
