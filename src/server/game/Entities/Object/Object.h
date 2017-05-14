@@ -75,12 +75,15 @@ enum NotifyFlags
     NOTIFY_ALL                      = 0xFF
 };
 
+class AreaTrigger;
+class Conversation;
 class Corpse;
 class Creature;
 class CreatureAI;
 class DynamicObject;
 class GameObject;
 class InstanceScript;
+class Map;
 class Player;
 class Scenario;
 class TempSummon;
@@ -90,6 +93,11 @@ class UpdateData;
 class WorldObject;
 class WorldPacket;
 class ZoneScript;
+
+namespace G3D
+{
+    class Quat;
+}
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
@@ -314,6 +322,9 @@ class TC_GAME_API Object
 
         AreaTrigger* ToAreaTrigger() { if (GetTypeId() == TYPEID_AREATRIGGER) return reinterpret_cast<AreaTrigger*>(this); else return NULL; }
         AreaTrigger const* ToAreaTrigger() const { if (GetTypeId() == TYPEID_AREATRIGGER) return reinterpret_cast<AreaTrigger const*>(this); else return NULL; }
+
+        Conversation* ToConversation() { if (GetTypeId() == TYPEID_CONVERSATION) return reinterpret_cast<Conversation*>(this); else return NULL; }
+        Conversation const* ToConversation() const { if (GetTypeId() == TYPEID_CONVERSATION) return reinterpret_cast<Conversation const*>(this); else return NULL; }
 
     protected:
         Object();
