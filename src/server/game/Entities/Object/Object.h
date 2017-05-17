@@ -20,15 +20,15 @@
 #define _OBJECT_H
 
 #include "Common.h"
-#include "Position.h"
 #include "GridReference.h"
-#include "ObjectDefines.h"
-#include "Map.h"
+#include "GridRefManager.h"
+#include "ObjectGuid.h"
+#include "Position.h"
+#include "SharedDefines.h"
 #include "UpdateFields.h"
-
+#include <list>
 #include <set>
-#include <string>
-#include <sstream>
+#include <unordered_map>
 
 #define CONTACT_DISTANCE            0.5f
 #define INTERACTION_DISTANCE        5.0f
@@ -75,12 +75,15 @@ enum NotifyFlags
     NOTIFY_ALL                      = 0xFF
 };
 
+class AreaTrigger;
+class Conversation;
 class Corpse;
 class Creature;
 class CreatureAI;
 class DynamicObject;
 class GameObject;
 class InstanceScript;
+class Map;
 class Player;
 class Scenario;
 class TempSummon;
@@ -90,6 +93,11 @@ class UpdateData;
 class WorldObject;
 class WorldPacket;
 class ZoneScript;
+
+namespace G3D
+{
+    class Quat;
+}
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
@@ -315,6 +323,9 @@ class TC_GAME_API Object
         AreaTrigger* ToAreaTrigger() { if (GetTypeId() == TYPEID_AREATRIGGER) return reinterpret_cast<AreaTrigger*>(this); else return NULL; }
         AreaTrigger const* ToAreaTrigger() const { if (GetTypeId() == TYPEID_AREATRIGGER) return reinterpret_cast<AreaTrigger const*>(this); else return NULL; }
 
+        Conversation* ToConversation() { if (GetTypeId() == TYPEID_CONVERSATION) return reinterpret_cast<Conversation*>(this); else return NULL; }
+        Conversation const* ToConversation() const { if (GetTypeId() == TYPEID_CONVERSATION) return reinterpret_cast<Conversation const*>(this); else return NULL; }
+
     protected:
         Object();
 
@@ -476,7 +487,7 @@ class FlaggedValuesArray32
     public:
         FlaggedValuesArray32()
         {
-            memset(&m_values, 0x00, sizeof(T_VALUES) * ARRAY_SIZE);
+            memset(&m_values[0], 0x00, sizeof(T_VALUES) * ARRAY_SIZE);
             m_flags = 0;
         }
 
@@ -492,38 +503,6 @@ class FlaggedValuesArray32
     private:
         T_VALUES m_values[ARRAY_SIZE];
         T_FLAGS m_flags;
-};
-
-enum MapObjectCellMoveState
-{
-    MAP_OBJECT_CELL_MOVE_NONE, //not in move list
-    MAP_OBJECT_CELL_MOVE_ACTIVE, //in move list
-    MAP_OBJECT_CELL_MOVE_INACTIVE, //in move list but should not move
-};
-
-class TC_GAME_API MapObject
-{
-        friend class Map; //map for moving creatures
-        friend class ObjectGridLoader; //grid loader for loading creatures
-
-    protected:
-        MapObject() : _moveState(MAP_OBJECT_CELL_MOVE_NONE)
-        {
-            _newPosition.Relocate(0.0f, 0.0f, 0.0f, 0.0f);
-        }
-
-    private:
-        Cell _currentCell;
-        Cell const& GetCurrentCell() const { return _currentCell; }
-        void SetCurrentCell(Cell const& cell) { _currentCell = cell; }
-
-        MapObjectCellMoveState _moveState;
-        Position _newPosition;
-        void SetNewCellPosition(float x, float y, float z, float o)
-        {
-            _moveState = MAP_OBJECT_CELL_MOVE_ACTIVE;
-            _newPosition.Relocate(x, y, z, o);
-        }
 };
 
 class TC_GAME_API WorldObject : public Object, public WorldLocation
@@ -708,6 +687,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         float GetTransOffsetY() const { return m_movementInfo.transport.pos.GetPositionY(); }
         float GetTransOffsetZ() const { return m_movementInfo.transport.pos.GetPositionZ(); }
         float GetTransOffsetO() const { return m_movementInfo.transport.pos.GetOrientation(); }
+        Position const& GetTransOffset() const { return m_movementInfo.transport.pos; }
         uint32 GetTransTime()   const { return m_movementInfo.transport.time; }
         int8 GetTransSeat()     const { return m_movementInfo.transport.seat; }
         virtual ObjectGuid GetTransGUID() const;

@@ -182,6 +182,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
         case HighGuid::Corpse:
         case HighGuid::DynamicObject:
         case HighGuid::AreaTrigger:
+        case HighGuid::Conversation:
             updateType = UPDATETYPE_CREATE_OBJECT2;
             break;
         case HighGuid::Creature:
@@ -518,7 +519,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint32 flags) const
 
         *data << uint32(areaTrigger->GetTimeSinceCreated());
 
-        *data << areaTrigger->GetRollPitchYaw();
+        *data << areaTrigger->GetRollPitchYaw().PositionXYZStream();
 
         bool hasAbsoluteOrientation = areaTriggerTemplate->HasFlag(AREATRIGGER_FLAG_HAS_ABSOLUTE_ORIENTATION);
         bool hasDynamicShape        = areaTriggerTemplate->HasFlag(AREATRIGGER_FLAG_HAS_DYNAMIC_SHAPE);
@@ -577,11 +578,11 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint32 flags) const
             data->WriteBits(splinePoints.size(), 16);
 
             for (G3D::Vector3 const& spline : splinePoints)
-                *data << spline;
+                *data << spline.x << spline.y << spline.z;
         }
 
         if (hasTargetRollPitchYaw)
-            *data << areaTrigger->GetTargetRollPitchYaw();
+            *data << areaTrigger->GetTargetRollPitchYaw().PositionXYZStream();
 
         if (hasScaleCurveID)
             *data << uint32(areaTriggerMiscTemplate->ScaleCurveId);
@@ -625,10 +626,10 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint32 flags) const
             *data << float(areaTriggerTemplate->PolygonDatas.HeightTarget);
 
             for (G3D::Vector2 const& vertice : areaTriggerTemplate->PolygonVertices)
-                *data << vertice;
+                *data << vertice.x << vertice.y;
 
             for (G3D::Vector2 const& vertice : areaTriggerTemplate->PolygonVerticesTarget)
-                *data << vertice;
+                *data << vertice.x << vertice.y;
         }
 
         if (hasAreaTriggerCylinder)
@@ -1012,6 +1013,9 @@ uint32 Object::GetDynamicUpdateFieldData(Player const* target, uint32*& flags) c
             break;
         case TYPEID_CONVERSATION:
             flags = ConversationDynamicUpdateFieldFlags;
+
+            if (ToConversation()->GetCreatorGuid() == target->GetGUID())
+                visibleFlag |= UF_FLAG_0x100;
             break;
         default:
             flags = nullptr;

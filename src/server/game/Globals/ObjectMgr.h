@@ -24,6 +24,7 @@
 #include "Bag.h"
 #include "Creature.h"
 #include "DynamicObject.h"
+#include "Conversation.h"
 #include "GameObject.h"
 #include "TemporarySummon.h"
 #include "Corpse.h"
@@ -534,7 +535,7 @@ struct RepSpilloverTemplate
 struct PointOfInterest
 {
     uint32 ID;
-    G3D::Vector2 Pos;
+    Position Pos;
     uint32 Icon;
     uint32 Flags;
     uint32 Importance;
