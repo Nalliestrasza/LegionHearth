@@ -1846,7 +1846,8 @@ void ObjectMgr::LoadCreatures()
     QueryResult result = WorldDatabase.Query("SELECT creature.guid, id, map, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, "
     //   11               12         13       14            15         16          17          18                19                   20                     21
         "currentwaypoint, curhealth, curmana, MovementType, spawnMask, eventEntry, pool_entry, creature.npcflag, creature.unit_flags, creature.dynamicflags, creature.phaseid, "
-    //   22                   23                     24
+    //   22                   23                   24
+
         "creature.phasegroup, creature.ScriptName, creature.size "
         "FROM creature "
         "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
@@ -1905,6 +1906,7 @@ void ObjectMgr::LoadCreatures()
         data.phaseid        = fields[21].GetUInt32();
         data.phaseGroup     = fields[22].GetUInt32();
         data.ScriptId       = GetScriptId(fields[23].GetString());
+        data.size           = fields[24].GetFloat();
         if (!data.ScriptId)
             data.ScriptId = cInfo->ScriptID;
 		data.size = fields[24].GetFloat();
@@ -2182,7 +2184,9 @@ void ObjectMgr::LoadGameobjects()
     //   7          8          9          10         11             12            13     14         15          16
         "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnMask, eventEntry, pool_entry, "
     //   17       18          19          20
-        "phaseid, phasegroup, ScriptName, size  "
+
+        "phaseid, phasegroup, ScriptName, size "
+
         "FROM gameobject LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
         "LEFT OUTER JOIN pool_gameobject ON gameobject.guid = pool_gameobject.guid");
 
@@ -2298,7 +2302,7 @@ void ObjectMgr::LoadGameobjects()
         uint32 PoolId       = fields[16].GetUInt32();
         data.phaseid        = fields[17].GetUInt32();
         data.phaseGroup     = fields[18].GetUInt32();
-        data.size           = fields[19].GetFloat();
+        data.size           = fields[20].GetFloat();
 
         if (data.phaseGroup && data.phaseid)
         {

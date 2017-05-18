@@ -679,15 +679,11 @@ public:
         if (!id)
             return false;
 
-        uint32 guidLow = atoi(id);
+        ObjectGuid::LowType guidLow = atoull(id);
         if (!guidLow)
             return false;
 
-        GameObject* object = NULL;
-
-        if (GameObjectData const* gameObjectData = sObjectMgr->GetGOData(guidLow))
-            object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
-
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
         if (!object)
         {
             handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
@@ -720,6 +716,7 @@ public:
         object->UpdateObjectVisibility();
         object->SaveToDB();
 
+<<<<<<< HEAD
 		//Geoffrey, the son of a bitch.
 		Player* _caller = handler->GetSession()->GetPlayer();
 		Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
@@ -727,6 +724,8 @@ public:
 			if (Player* _player = itr->GetSource())
 				_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
 
+=======
+>>>>>>> ec6b3c4abe8bfc8cf15521049525179ce00006b6
         handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
     }

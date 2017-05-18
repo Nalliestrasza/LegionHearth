@@ -179,8 +179,8 @@ void GameObject::RemoveFromWorld()
     }
 }
 
+bool GameObject::Create(uint32 name_id, Map* map, uint32 /*phaseMask*/, Position const& pos, G3D::Quat const& rotation, uint32 animprogress, GOState go_state, uint32 artKit /*= 0*/, float size /*= -1*/)
 
-bool GameObject::Create(uint32 name_id, Map* map, uint32 /*phaseMask*/, Position const& pos, G3D::Quat const& rotation, uint32 animprogress, GOState go_state, uint32 artKit, float size /*= 0*/)
 {
     ASSERT(map);
     SetMap(map);
