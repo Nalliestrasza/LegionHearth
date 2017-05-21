@@ -40,12 +40,14 @@ public:
     {
         static std::vector<ChatCommand> modifyspeedCommandTable =
         {
+			{ "npc",      rbac::RBAC_PERM_COMMAND_KICK,					 false, &HandleModifyNpcSpeedCommand, "" },
             { "all",      rbac::RBAC_PERM_COMMAND_MODIFY_SPEED_ALL,      false, &HandleModifyASpeedCommand, "" },
             { "backwalk", rbac::RBAC_PERM_COMMAND_MODIFY_SPEED_BACKWALK, false, &HandleModifyBWalkCommand,  "" },
             { "fly",      rbac::RBAC_PERM_COMMAND_MODIFY_SPEED_FLY,      false, &HandleModifyFlyCommand,    "" },
             { "walk",     rbac::RBAC_PERM_COMMAND_MODIFY_SPEED_WALK,     false, &HandleModifySpeedCommand,  "" },
             { "swim",     rbac::RBAC_PERM_COMMAND_MODIFY_SPEED_SWIM,     false, &HandleModifySwimCommand,   "" },
             { "",         rbac::RBAC_PERM_COMMAND_MODIFY_SPEED,          false, &HandleModifyASpeedCommand, "" },
+			
         };
         static std::vector<ChatCommand> modifyCommandTable =
         {
@@ -1233,7 +1235,25 @@ public:
         // we can run the command
         target->GiveXP(xp, nullptr);
         return true;
+
     }
+
+	static bool HandleModifyNpcSpeedCommand(ChatHandler* handler, const char* args)
+	{
+		float allSpeed;
+		Creature* target = handler->getSelectedCreature();
+		if (CheckModifySpeed(handler, args, target, allSpeed, 0.1f, 10000.0f))
+		{
+			NotifyModification(handler, target, LANG_YOU_CHANGE_ASPEED, LANG_YOURS_ASPEED_CHANGED, allSpeed);
+			target->SetSpeedRate(MOVE_WALK, allSpeed);
+			target->SetSpeedRate(MOVE_RUN, allSpeed);
+			target->SetSpeedRate(MOVE_SWIM, allSpeed);
+			target->SetSpeedRate(MOVE_FLIGHT, allSpeed);
+			return true;
+		}
+		return false;
+	}
+	
 };
 
 void AddSC_modify_commandscript()
