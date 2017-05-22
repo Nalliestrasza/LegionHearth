@@ -1804,8 +1804,7 @@ public:
 			if (spellId != 0)
 			{
 				Field* fsheat = guidSql->Fetch();
-				std::string auras = fsheat[0].GetString();
-				auras = auras + ' ' + auraString;
+				auras = fsheat[0].GetString() + ' ' + auraString;
 			}
 
 			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
