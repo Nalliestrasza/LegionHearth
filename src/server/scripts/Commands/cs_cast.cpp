@@ -26,6 +26,7 @@ EndScriptData */
 #include "Chat.h"
 #include "Creature.h"
 #include "Language.h"
+#include "Log.h"
 #include "Player.h"
 #include "RBAC.h"
 
