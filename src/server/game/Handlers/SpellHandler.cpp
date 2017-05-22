@@ -19,9 +19,10 @@
 #include "WorldSession.h"
 #include "CollectionMgr.h"
 #include "Common.h"
-#include "Config.h"
+#include "DatabaseEnv.h"
 #include "GameObjectAI.h"
 #include "GameObjectPackets.h"
+#include "Guild.h"
 #include "GuildMgr.h"
 #include "Log.h"
 #include "Player.h"
@@ -34,6 +35,7 @@
 #include "Totem.h"
 #include "TotemPackets.h"
 #include "GuildPackets.h"
+#include "World.h"
 
 void WorldSession::HandleUseItemOpcode(WorldPackets::Spells::UseItem& packet)
 {

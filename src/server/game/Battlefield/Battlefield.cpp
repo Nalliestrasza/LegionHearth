@@ -18,18 +18,20 @@
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
 #include "Battleground.h"
+#include "BattlegroundPackets.h"
 #include "CellImpl.h"
 #include "CreatureTextMgr.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
 #include "GroupMgr.h"
+#include "Log.h"
 #include "Map.h"
 #include "MapManager.h"
+#include "MiscPackets.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
-#include "WorldPacket.h"
-#include "MiscPackets.h"
+#include "WorldStatePackets.h"
 
 Battlefield::Battlefield()
 {
@@ -250,6 +252,11 @@ void Battlefield::InvitePlayersInZoneToWar()
             }
         }
     }
+}
+
+uint64 Battlefield::GetQueueId() const
+{
+    return MAKE_PAIR64(m_BattleId | 0x20000, 0x1F100000);
 }
 
 void Battlefield::InvitePlayerToWar(Player* player)

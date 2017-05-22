@@ -28,17 +28,19 @@
 #include "GridRefManager.h"
 #include "MapRefManager.h"
 #include "DynamicTree.h"
-#include "GameObjectModel.h"
 #include "ObjectGuid.h"
 
 #include <bitset>
 #include <list>
 #include <memory>
 #include <mutex>
+#include <set>
+#include <unordered_set>
 
 class Battleground;
 class BattlegroundMap;
 class CreatureGroup;
+class GameObjectModel;
 class Group;
 class InstanceMap;
 class InstanceSave;
