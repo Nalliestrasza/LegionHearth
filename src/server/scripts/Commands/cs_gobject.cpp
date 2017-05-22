@@ -23,14 +23,17 @@ Category: commandscripts
 EndScriptData */
 
 #include "ScriptMgr.h"
-#include "GameEventMgr.h"
-#include "ObjectMgr.h"
-#include "PoolMgr.h"
-#include "MapManager.h"
 #include "Chat.h"
+#include "DatabaseEnv.h"
+#include "GameEventMgr.h"
 #include "Language.h"
-#include "Player.h"
+#include "Log.h"
+#include "MapManager.h"
+#include "ObjectMgr.h"
 #include "Opcodes.h"
+#include "Player.h"
+#include "PoolMgr.h"
+#include "RBAC.h"
 
 class gobject_commandscript : public CommandScript
 {

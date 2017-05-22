@@ -18,11 +18,13 @@
 #ifndef TRINITY_DB2STRUCTURE_H
 #define TRINITY_DB2STRUCTURE_H
 
-#include "Common.h"
+#include "Define.h"
 #include "DBCEnums.h"
 #include "Util.h"
 
 #pragma pack(push, 1)
+
+struct LocalizedString;
 
 struct AchievementEntry
 {
@@ -2362,9 +2364,6 @@ struct SpellEffectEntry
     float PvPMultiplier;
 };
 
-#define MAX_SPELL_EFFECTS 32
-#define MAX_EFFECT_MASK 0xFFFFFFFF
-
 struct SpellEffectScalingEntry
 {
     uint32 ID;
@@ -2648,9 +2647,6 @@ struct TactKeyEntry
     uint32 ID;
     uint8 Key[TACTKEY_SIZE];
 };
-
-#define MAX_TALENT_TIERS 7
-#define MAX_TALENT_COLUMNS 3
 
 struct TalentEntry
 {

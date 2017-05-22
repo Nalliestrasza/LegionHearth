@@ -23,8 +23,8 @@
 #include "Duration.h"
 #include "Unit.h"
 #include "ItemTemplate.h"
-#include "LootMgr.h"
-#include "DatabaseEnv.h"
+#include "Loot.h"
+#include "DatabaseEnvFwd.h"
 #include "MapObject.h"
 
 #include <list>
@@ -334,6 +334,7 @@ struct TC_GAME_API CreatureTemplate
     uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
     uint32  unit_flags;                                     // enum UnitFlags mask values
     uint32  unit_flags2;                                    // enum UnitFlags2 mask values
+    uint32  unit_flags3;                                    // enum UnitFlags3 mask values
     uint32  dynamicflags;
     CreatureFamily  family;                                 // enum CreatureFamily values (optional)
     uint32  trainer_type;
@@ -489,17 +490,6 @@ struct CreatureLocale
     std::vector<std::string> TitleAlt;
 };
 
-struct GossipMenuItemsLocale
-{
-    std::vector<std::string> OptionText;
-    std::vector<std::string> BoxText;
-};
-
-struct PointOfInterestLocale
-{
-    std::vector<std::string> Name;
-};
-
 struct EquipmentItem
 {
     uint32 ItemId = 0;
@@ -522,7 +512,8 @@ struct CreatureData
     CreatureData() : id(0), mapid(0), phaseMask(0), displayid(0), equipmentId(0),
                      posX(0.0f), posY(0.0f), posZ(0.0f), orientation(0.0f), spawntimesecs(0),
                      spawndist(0.0f), currentwaypoint(0), curhealth(0), curmana(0), movementType(0),
-                     spawnMask(0), npcflag(0), unit_flags(0), dynamicflags(0), phaseid(0), phaseGroup(0), dbData(true), size(0.0f) { }
+                     spawnMask(0), npcflag(0), unit_flags(0), unit_flags2(0), unit_flags3(0), dynamicflags(0),
+                     phaseid(0), phaseGroup(0), dbData(true), size(0.0f) { }
     uint32 id;                                              // entry in creature_template
     uint16 mapid;
     uint32 phaseMask;
@@ -541,6 +532,8 @@ struct CreatureData
     uint32 spawnMask;
     uint64 npcflag;
     uint32 unit_flags;                                      // enum UnitFlags mask values
+    uint32 unit_flags2;                                     // enum UnitFlags2 mask values
+    uint32 unit_flags3;                                     // enum UnitFlags3 mask values
     uint32 dynamicflags;
     uint32 phaseid;
     uint32 phaseGroup;
@@ -568,19 +561,6 @@ enum InhabitTypeValues
     INHABIT_AIR    = 4,
     INHABIT_ROOT   = 8,
     INHABIT_ANYWHERE = INHABIT_GROUND | INHABIT_WATER | INHABIT_AIR | INHABIT_ROOT
-};
-
-// Enums used by StringTextData::Type (CreatureEventAI)
-enum ChatType
-{
-    CHAT_TYPE_SAY               = 0,
-    CHAT_TYPE_YELL              = 1,
-    CHAT_TYPE_TEXT_EMOTE        = 2,
-    CHAT_TYPE_BOSS_EMOTE        = 3,
-    CHAT_TYPE_WHISPER           = 4,
-    CHAT_TYPE_BOSS_WHISPER      = 5,
-    CHAT_TYPE_ZONE_YELL         = 6,
-    CHAT_TYPE_END               = 255
 };
 
 #pragma pack(pop)

@@ -15,32 +15,38 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "DB2Stores.h"
-#include "Chat.h"
-#include "ScriptMgr.h"
 #include "AccountMgr.h"
 #include "ArenaTeamMgr.h"
 #include "CellImpl.h"
+#include "Chat.h"
+#include "DatabaseEnv.h"
+#include "DB2Stores.h"
+#include "DisableMgr.h"
 #include "GridNotifiers.h"
 #include "Group.h"
+#include "GroupMgr.h"
 #include "InstanceSaveMgr.h"
 #include "Language.h"
+#include "LFG.h"
+#include "Log.h"
+#include "MapManager.h"
+#include "MiscPackets.h"
+#include "MMapFactory.h"
 #include "MovementGenerator.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Opcodes.h"
-#include "SpellAuras.h"
-#include "TargetedMovementGenerator.h"
-#include "WeatherMgr.h"
-#include "Player.h"
 #include "Pet.h"
-#include "LFG.h"
-#include "GroupMgr.h"
-#include "MMapFactory.h"
-#include "DisableMgr.h"
+#include "Player.h"
+#include "Realm.h"
+#include "ScriptMgr.h"
+#include "SpellAuras.h"
 #include "SpellHistory.h"
-#include "MiscPackets.h"
+#include "TargetedMovementGenerator.h"
 #include "Transport.h"
-#include "MapManager.h"
+#include "Weather.h"
+#include "WeatherMgr.h"
+#include "World.h"
 #include <boost/asio/ip/address_v4.hpp>
 #include "ItemTemplate.h"
 
@@ -217,7 +223,7 @@ public:
             {
                 case HighGuid::Player:
                 {
-                    object = sObjectMgr->GetPlayerByLowGUID(guidLow);
+                    object = ObjectAccessor::FindConnectedPlayer(ObjectGuid::Create<HighGuid::Player>(guidLow));
                     if (!object)
                     {
                         handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -854,7 +860,7 @@ public:
             {
                 case HighGuid::Player:
                 {
-                    object = sObjectMgr->GetPlayerByLowGUID(guidLow);
+                    object = ObjectAccessor::GetPlayer(*handler->GetSession()->GetPlayer(), ObjectGuid::Create<HighGuid::Player>(guidLow));
                     if (!object)
                     {
                         handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -1426,8 +1432,7 @@ public:
 			return false;
 		}
 
-        Item* item = playerTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId), GuidSet(), 0, bonusListIDs, false, transmogId, enchantId);
-
+        Item* item = playerTarget->StoreNewItem(dest, itemId, true, GenerateItemRandomPropertyId(itemId), GuidSet(), 0, bonusListIDs, false, transmogId, enchantId);
 
         // remove binding (let GM give it to another player later)
         if (player == playerTarget)

@@ -16,25 +16,29 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "GameObjectAI.h"
+#include "GameObject.h"
+#include "ArtifactPackets.h"
 #include "Battleground.h"
 #include "CellImpl.h"
 #include "CreatureAISelector.h"
+#include "DatabaseEnv.h"
+#include "GameObjectAI.h"
 #include "GameObjectModel.h"
 #include "GameObjectPackets.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
 #include "GroupMgr.h"
-#include "ArtifactPackets.h"
+#include "Log.h"
+#include "LootMgr.h"
 #include "MiscPackets.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
 #include "PoolMgr.h"
 #include "ScriptMgr.h"
 #include "SpellMgr.h"
+#include "Transport.h"
 #include "UpdateFieldFlags.h"
 #include "World.h"
-#include "Transport.h"
 
 GameObject::GameObject() : WorldObject(false), MapObject(),
     m_model(nullptr), m_goValue(), m_AI(nullptr), _animKitId(0)
@@ -1117,6 +1121,14 @@ bool GameObject::IsInvisibleDueToDespawn() const
         return true;
 
     return false;
+}
+
+uint8 GameObject::getLevelForTarget(WorldObject const* target) const
+{
+    if (Unit* owner = GetOwner())
+        return owner->getLevelForTarget(target);
+
+    return 1;
 }
 
 void GameObject::Respawn()
