@@ -137,8 +137,7 @@ public:
 			{ "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
-			{ "debugsync",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleDebugSyncCommand,        "" },
-			
+			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
         };
         return commandTable;
     }
@@ -3784,6 +3783,59 @@ public:
 		sprintf(msg, "%s obtient un %u (%u-%u)", playerName.c_str(), roll, min, max);
 		(msg, CHAT_MSG_PARTY, CHAT_MSG_RAID,LANG_UNIVERSAL, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), nullptr);
 		return true;
+	}
+
+	static bool HandleDebugDatabase(ChatHandler* handler, char const* args) // party
+	{
+		if (!*args)
+			return false;
+
+		char* temp = (char*)args;
+		char* min = strtok(temp, "-");
+		char* max = strtok(NULL, ";");
+		char* rollBaby = strtok(NULL, "\0");
+		if (!min || !max || !rollBaby)
+			return false;
+
+
+		int intminimum = atoi(min);
+		int intmaximum = atoi(max);
+		int introll = atoi(rollBaby);
+		uint32 minimum = (uint32)intminimum;
+		uint32 maximum = (uint32)intmaximum;
+		uint32 roll = (uint32)introll;
+
+		Player* p = handler->GetSession()->GetPlayer();
+
+		if (minimum > maximum || maximum > 10000)
+			return false;
+
+		if (roll > maximum || roll < minimum)
+			return false;
+
+		char* rollChar;
+		sprintf(rollChar, "%s obtient un %u (%u-%u).", p->GetName().c_str(), roll, minimum, maximum);
+		std::string rollStr(rollChar);
+		if (p->GetGroup())
+		{
+			WorldPackets::Chat::Chat packet;
+			packet.Initialize(ChatMsg(CHAT_MSG_SYSTEM), Language(LANG_UNIVERSAL), p, nullptr, rollStr);
+			p->GetGroup()->BroadcastPacket(packet.Write(), false);
+		}
+		else
+		{
+			handler->SendSysMessage("%s", rollChar);
+		}
+
+		/*WorldPackets::Misc::RandomRoll const randomRoll;
+		randomRoll.Min = minimum;
+		randomRoll.Max = maximum;
+		randomRoll.Result = roll;
+		randomRoll.Roller = p->GetGUID();
+		randomRoll.RollerWowAccount = handler->GetSession()->GetAccountGUID();*/
+
+		return true;
+
 	}
 };
 
