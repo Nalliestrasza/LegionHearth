@@ -1799,13 +1799,13 @@ public:
 		}
 		else
 		{
-			Field* fsheat = guidSql->Fetch();
-			std::string auras = fsheat[0].GetString();
-			auras = auras + ' ' + auraString;
+			std::string auras = "";
 
-			if (spellId == 0)
+			if (spellId != 0)
 			{
-				auras = "";
+				Field* fsheat = guidSql->Fetch();
+				std::string auras = fsheat[0].GetString();
+				auras = auras + ' ' + auraString;
 			}
 
 			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
