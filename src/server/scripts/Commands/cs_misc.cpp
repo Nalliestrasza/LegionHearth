@@ -48,6 +48,7 @@
 #include "WeatherMgr.h"
 #include "World.h"
 #include <boost/asio/ip/address_v4.hpp>
+#include <G3D/Quat.h>
 #include "ItemTemplate.h"
 
 
@@ -143,6 +144,7 @@ public:
 			{ "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
+			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
         };
         return commandTable;
     }
@@ -2873,6 +2875,50 @@ public:
         return true;
     }
 
+	/*
+	static bool HandleDebugDatabase(ChatHandler* handler, char const* args) // party
+	{
+		if (!*args)
+			return false;
+
+		char* temp = (char*)args;
+		char* min = strtok(temp, "-");
+		char* max = strtok(NULL, ";");
+		char* rollBaby = strtok(NULL, "\0");
+		if (!min || !max || !rollBaby)
+			return false;
+
+
+		int intminimum = atoi(min);
+		int intmaximum = atoi(max);
+		int introll = atoi(rollBaby);
+		uint32 minimum = (uint32)intminimum;
+		uint32 maximum = (uint32)intmaximum;
+		uint32 roll = (uint32)introll;
+
+		Player* p = handler->GetSession()->GetPlayer();
+
+		if (minimum > maximum || maximum > 10000)
+			return false;
+
+		if (roll > maximum || roll < minimum)
+			return false;
+
+		WorldPackets::Misc::RandomRoll randomRoll;
+		randomRoll.Min = minimum;
+		randomRoll.Max = maximum;
+		randomRoll.Result = roll;
+		randomRoll.Roller = p->GetGUID();
+		randomRoll.RollerWowAccount = handler->GetSession()->GetAccountGUID();
+		if (p->GetGroup())
+			p->GetGroup()->BroadcastPacket(randomRoll.Write(), false);
+		else
+			handler->GetSession()->SendPacket(randomRoll.Write());
+
+		return true;
+
+	}
+	*/
 
 	static bool HandleModelCommand(ChatHandler* handler, char const* args)
 	{
@@ -2935,9 +2981,9 @@ public:
 		// Maintenant la commande a besoin d'une variable quaternion au lieu de 4 valeurs.
 		G3D::Quat rotation = G3D::Matrix3::fromEulerAnglesZYX(player->GetOrientation(), 0.f, 0.f);
 
-		GameObject* object = player->SummonGameObject(objectId, x, y, z, ang, rotation, spawntm);
+		GameObject* object = player->SummonGameObject(objectId, x, y, z, ang, QuaternionData(rotation.x, rotation.y, rotation.z, rotation.w), spawntm);
 
-		player->SummonGameObject(objectId, x, y, z, ang, rotation, spawntm);
+		player->SummonGameObject(objectId, x, y, z, ang, QuaternionData(rotation.x, rotation.y, rotation.z, rotation.w), spawntm);
 
 		object->DestroyForNearbyPlayers();
 		object->UpdateObjectVisibility();
@@ -3649,7 +3695,6 @@ public:
 
 		return true;
 	}
-
 	static bool HandleForgeInfoCommand(ChatHandler* handler, char const* args)
 	{
 
@@ -3693,8 +3738,114 @@ public:
 
 		return true;	
 	}
-};
 
+	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
+	{
+		char* temp = (char*)args;
+		char* str1 = strtok(temp, "-");
+		char* str2 = strtok(NULL, ";");
+		char* str3 = strtok(NULL, "\0");
+		int minStr = 1;
+		int maxStr = 100;
+		int master = 0;
+		if (str1 != NULL)
+		{
+			minStr = atoi(str1);
+		}
+		if (str2 != NULL)
+		{
+			maxStr = atoi(str2);
+		}
+		else
+		{
+			maxStr = minStr;
+			minStr = 1;
+		}
+		if (str3 != NULL && handler->GetSession()->GetSecurity() >= 3)
+		{
+			master = atoi(str3);
+		}
+
+		if (minStr <= 0 || minStr > maxStr || maxStr > 9999 || master > maxStr)
+		{
+			handler->SendSysMessage("Entrees non valides");
+			return false;
+		}
+		uint32 min = (uint32)minStr;
+		uint32 max = (uint32)maxStr;
+		uint32 roll;
+		if (master == 0)
+		{
+			roll = urand(min, max);
+		}
+		else
+		{
+			roll = (uint32)master;
+		}
+
+		Player* player = handler->GetSession()->GetPlayer();
+		std::string playerName = player->GetName();
+		char msg[255];
+		sprintf(msg, "%s obtient un %u (%u-%u)", playerName.c_str(), roll, min, max);
+		(msg, CHAT_MSG_PARTY, CHAT_MSG_RAID,LANG_UNIVERSAL, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), nullptr);
+		return true;
+	}
+
+	static bool HandleDebugDatabase(ChatHandler* handler, char const* args) // party
+	{
+		if (!*args)
+			return false;
+
+		char* temp = (char*)args;
+		char* min = strtok(temp, "-");
+		char* max = strtok(NULL, ";");
+		char* rollBaby = strtok(NULL, "\0");
+		if (!min || !max || !rollBaby)
+			return false;
+
+
+		int intminimum = atoi(min);
+		int intmaximum = atoi(max);
+		int introll = atoi(rollBaby);
+		uint32 minimum = (uint32)intminimum;
+		uint32 maximum = (uint32)intmaximum;
+		uint32 roll = (uint32)introll;
+
+		Player* p = handler->GetSession()->GetPlayer();
+
+		if (minimum > maximum || maximum > 10000)
+			return false;
+
+		if (roll > maximum || roll < minimum)
+			return false;
+
+		/*
+		char* rollChar;
+		sprintf(rollChar, "%s obtient un %u (%u-%u).", p->GetName().c_str(), roll, minimum, maximum);
+		std::string rollStr(rollChar);
+		if (p->GetGroup())
+		{
+			WorldPackets::Chat::Chat packet;
+			packet.Initialize(ChatMsg(CHAT_MSG_SYSTEM), Language(LANG_UNIVERSAL), p, nullptr, rollStr);
+			p->GetGroup()->BroadcastPacket(packet.Write(), false);
+		}
+		else
+		{
+			handler->SendSysMessage("%s", rollChar);
+		}
+		*/
+
+		/*WorldPackets::Misc::RandomRoll const randomRoll;
+		randomRoll.Min = minimum;
+		randomRoll.Max = maximum;
+		randomRoll.Result = roll;
+		randomRoll.Roller = p->GetGUID();
+		randomRoll.RollerWowAccount = handler->GetSession()->GetAccountGUID();*/
+
+		return true;
+
+	}
+};
 
 void AddSC_misc_commandscript()
 {
