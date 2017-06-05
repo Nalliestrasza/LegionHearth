@@ -29,6 +29,8 @@ EndScriptData */
 #include "DatabaseEnv.h"
 #include "Language.h"
 #include "Log.h"
+#include "Map.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Pet.h"
 #include "SpellAuras.h"
@@ -37,6 +39,7 @@ EndScriptData */
 #include "TargetedMovementGenerator.h"                      // for HandleNpcUnFollowCommand
 #include "Transport.h"
 #include "World.h"
+#include "WorldSession.h"
 
 template<typename E, typename T = char const*>
 struct EnumName
