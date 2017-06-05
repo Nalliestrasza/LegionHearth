@@ -1267,6 +1267,20 @@ enum TrinityStrings
 	LANG_CUST_CHARINFOS_DH02                      = 65106, // PLAYER HORNS
 	LANG_CUST_CHARINFOS_DH03                      = 65107, // PLAYER EYES
 	LANG_CUST_CHARINFOS_TEXT                      = 65108, // PLAYER INFOS TEXT
+	LANG_CUST_SEPARATOR						      = 65109, // --- EQUIPMENT ---
+	LANG_CUST_HEAD								  = 65110, // PLAYER HEAD
+	LANG_CUST_SHOULDERS                           = 65111, // PLAYER SHOULDERS
+    LANG_CUST_BODY                                = 65112, // PLAYER BODY
+	LANG_CUST_CHEST								  = 65113, // PLAYER CHEST
+    LANG_CUST_WAIST								  = 65114, // PLAYER WAIST
+	LANG_CUST_LEGS								  = 65115, // PLAYER LEGS
+	LANG_CUST_FEET                                = 65116, // PLAYER FEET
+	LANG_CUST_WRISTS                              = 65117, // PLAYER WRISTS
+	LANG_CUST_HANDS                               = 65118, // PLAYERS HANDS
+	LANG_CUST_BACK                                = 65119, // PLAYERS BACK
+	LANG_CUST_TABARD                              = 65120, // PLAYER TABARD
+	LANG_CUST_MAINHAND                            = 65121, // PLAYER MAINHAND
+	LANG_CUST_OFFHAND                             = 65122, // PLAYER OFFHAND
 
 
 };

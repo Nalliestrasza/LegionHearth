@@ -3697,7 +3697,7 @@ public:
 	}
 	static bool HandleForgeInfoCommand(ChatHandler* handler, char const* args)
 	{
-
+		// Get Textures
 		if (!handler->GetSession()->GetPlayer())
 		{
 			handler->SendSysMessage(LANG_NO_PLAYERS_FOUND);
@@ -3726,6 +3726,52 @@ public:
 		uint8 cust2 = fields[6].GetUInt8();
 		uint8 cust3 = fields[7].GetUInt8();
 
+		//Get Equipment		
+		Player* player = handler->GetSession()->GetPlayer();
+		static EquipmentSlots const itemSlots[] =
+		{
+			EQUIPMENT_SLOT_HEAD,
+			EQUIPMENT_SLOT_SHOULDERS,
+			EQUIPMENT_SLOT_BODY,
+			EQUIPMENT_SLOT_CHEST,
+			EQUIPMENT_SLOT_WAIST,
+			EQUIPMENT_SLOT_LEGS,
+			EQUIPMENT_SLOT_FEET,
+			EQUIPMENT_SLOT_WRISTS,
+			EQUIPMENT_SLOT_HANDS,
+			EQUIPMENT_SLOT_BACK,
+			EQUIPMENT_SLOT_TABARD,
+			EQUIPMENT_SLOT_MAINHAND,
+			EQUIPMENT_SLOT_OFFHAND,
+		};
+
+		std::vector<uint32> eqqList = std::vector<uint32>();
+
+		// Stolen code from SpellHandler
+		for (EquipmentSlots slot : itemSlots)
+		{
+			uint32 itemDisplayId;
+			if ((slot == EQUIPMENT_SLOT_HEAD && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM)) ||
+				(slot == EQUIPMENT_SLOT_BACK && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK)))
+				itemDisplayId = 0;
+			else if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+			{
+				itemDisplayId = item->GetDisplayId(player);
+
+
+				if (slot == EQUIPMENT_SLOT_MAINHAND || slot == EQUIPMENT_SLOT_OFFHAND)
+					itemDisplayId = item->GetEntry();
+			}
+			else
+				itemDisplayId = 0;
+
+
+			eqqList.push_back(itemDisplayId);
+		}
+
+
+
+		// TEXTURES
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_TEXT);
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_SKIN, skin);
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_FACE, face);
@@ -3735,6 +3781,25 @@ public:
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH01, cust1);
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
 		handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
+
+		// EQUIPMENTS
+		handler->PSendSysMessage(LANG_CUST_SEPARATOR);
+		handler->PSendSysMessage(LANG_CUST_HEAD, eqqList[0]);
+		handler->PSendSysMessage(LANG_CUST_SHOULDERS, eqqList[1]);
+		handler->PSendSysMessage(LANG_CUST_BODY, eqqList[2]);
+		handler->PSendSysMessage(LANG_CUST_CHEST, eqqList[3]);
+		handler->PSendSysMessage(LANG_CUST_WAIST, eqqList[4]);
+		handler->PSendSysMessage(LANG_CUST_LEGS, eqqList[5]);
+		handler->PSendSysMessage(LANG_CUST_FEET, eqqList[6]);
+		handler->PSendSysMessage(LANG_CUST_WRISTS, eqqList[7]);
+		handler->PSendSysMessage(LANG_CUST_HANDS, eqqList[8]);
+		handler->PSendSysMessage(LANG_CUST_BACK, eqqList[9]);
+		handler->PSendSysMessage(LANG_CUST_TABARD, eqqList[10]);
+		handler->PSendSysMessage(LANG_CUST_MAINHAND, eqqList[11]);
+		handler->PSendSysMessage(LANG_CUST_OFFHAND, eqqList[12]);
+		
+
+		// WEAPONS
 
 		return true;	
 	}
