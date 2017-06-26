@@ -27,6 +27,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "Conversation.h"
 #include "RBAC.h"
 #include "WorldSession.h"
 
@@ -45,7 +46,8 @@ public:
             { "join",    rbac::RBAC_PERM_COMMAND_GROUP_JOIN,    false, &HandleGroupJoinCommand,    "" },
             { "list",    rbac::RBAC_PERM_COMMAND_GROUP_LIST,    false, &HandleGroupListCommand,    "" },
             { "summon",  rbac::RBAC_PERM_COMMAND_GROUP_SUMMON,  false, &HandleGroupSummonCommand,  "" },
-        };
+			{ "conversation",  rbac::RBAC_PERM_COMMAND_DEBUG_CONVERSATION,  false, &HandleGroupConversationCommand,  "" },
+		};
 
         static std::vector<ChatCommand> commandTable =
         {
@@ -379,6 +381,120 @@ public:
         // And finish after every iterator is done.
         return true;
     }
+
+	// Summon group of player
+	static bool HandleGroupConversationCommand(ChatHandler* handler, char const* args)
+	{
+
+		if (!*args)
+			return false;
+
+		char const* conversationEntryStr = strtok((char*)args, " ");
+
+		if (!conversationEntryStr)
+			return false;
+
+		uint32 conversationEntry = atoi(conversationEntryStr);
+		
+		Player* target = handler->GetSession()->GetPlayer();
+
+		/*
+		// check online security
+		if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+			return false;
+		*/
+
+		Group* group = target->GetGroup();
+
+		std::string nameLink = handler->GetNameLink(target);
+
+		if (!group)
+		{
+			handler->PSendSysMessage(LANG_NOT_IN_GROUP, nameLink.c_str());
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+
+		/*
+		Player* gmPlayer = handler->GetSession()->GetPlayer();
+		Group* gmGroup = gmPlayer->GetGroup();
+		Map* gmMap = gmPlayer->GetMap();
+		bool toInstance = gmMap->Instanceable();
+
+		// we are in instance, and can summon only player in our group with us as lead
+		if (toInstance && (
+			!gmGroup || group->GetLeaderGUID() != gmPlayer->GetGUID() ||
+			gmGroup->GetLeaderGUID() != gmPlayer->GetGUID()))
+			// the last check is a bit excessive, but let it be, just in case
+		{
+			handler->SendSysMessage(LANG_CANNOT_SUMMON_TO_INST);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
+		*/
+
+		for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+		{
+			Player* player = itr->GetSource();
+
+			if (!player || !player->GetSession())
+			{
+				continue;
+			}
+
+			return Conversation::CreateConversation(conversationEntry, player, *player, { player->GetGUID() }) != nullptr;
+
+			// check online security
+			/*
+			if (handler->HasLowerSecurity(player, ObjectGuid::Empty))
+				return false;
+
+			std::string plNameLink = handler->GetNameLink(player);
+
+			
+			if (player->IsBeingTeleported())
+			{
+				handler->PSendSysMessage(LANG_IS_TELEPORTED, plNameLink.c_str());
+				handler->SetSentErrorMessage(true);
+				return false;
+			}
+			
+			if (toInstance)
+			{
+				Map* playerMap = player->GetMap();
+
+				if (playerMap->Instanceable() && playerMap->GetInstanceId() != gmMap->GetInstanceId())
+				{
+					// cannot summon from instance to instance
+					handler->PSendSysMessage(LANG_CANNOT_SUMMON_TO_INST, plNameLink.c_str());
+					handler->SetSentErrorMessage(true);
+					return false;
+				}
+			}
+
+			handler->PSendSysMessage(LANG_SUMMONING, plNameLink.c_str(), "");
+			if (handler->needReportToTarget(player))
+				ChatHandler(player->GetSession()).PSendSysMessage(LANG_SUMMONED_BY, handler->GetNameLink().c_str());
+
+			// stop flight if need
+			if (player->IsInFlight())
+			{
+				player->GetMotionMaster()->MovementExpired();
+				player->CleanupAfterTaxiFlight();
+			}
+			// save only in non-flight case
+			else
+				player->SaveRecallPosition();
+
+			// before GM
+			float x, y, z;
+			gmPlayer->GetClosePoint(x, y, z, player->GetObjectSize());
+			player->TeleportTo(gmPlayer->GetMapId(), x, y, z, player->GetOrientation());
+			*/
+		}
+
+		return true;
+	}
 };
 
 void AddSC_group_commandscript()
