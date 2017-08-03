@@ -420,9 +420,12 @@ public:
             oz = player->GetOrientation();
         }
 
+		// LegionHearth conversion
+		float toRad = (M_PI / 180);
+
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ());
         object->RelocateStationaryPosition(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-        object->SetWorldRotationAngles(oz, oy, ox);
+        object->SetWorldRotationAngles(oz * toRad, oy * toRad, ox * toRad);
         object->DestroyForNearbyPlayers();
         object->UpdateObjectVisibility();
 
