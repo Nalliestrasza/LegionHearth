@@ -65,7 +65,7 @@ public:
             { "move",     rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      ""       },
             { "near",     rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
             { "target",   rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
-            { "turn",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      ""       },
+            { "rotate",   rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectRotateCommand,      ""       },
             { "add",      rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",      rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
         };
@@ -379,7 +379,7 @@ public:
     }
 
     //turn selected object
-    static bool HandleGameObjectTurnCommand(ChatHandler* handler, char const* args)
+    static bool HandleGameObjectRotateCommand(ChatHandler* handler, char const* args)
     {
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
@@ -427,6 +427,12 @@ public:
         object->UpdateObjectVisibility();
 
         object->SaveToDB();
+
+		Player* _caller = handler->GetSession()->GetPlayer();
+		Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
+		for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+			if (Player* _player = itr->GetSource())
+				_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
 
         handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, object->GetSpawnId(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
 
