@@ -59,7 +59,7 @@ namespace WorldPackets
             ByteBuffer Data;
         };
 
-        class HotfixList final : public ServerPacket
+        class TC_GAME_API HotfixList final : public ServerPacket
         {
         public:
             HotfixList(int32 hotfixCacheVersion, std::map<int32, HotfixData> const& hotfixes)
