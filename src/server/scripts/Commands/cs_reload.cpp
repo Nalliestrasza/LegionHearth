@@ -182,6 +182,7 @@ public:
 			{ "creature_template_addons",      rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureTemplateAddCommand,		   "" },
 			{ "creature_addons",			   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureAddonsCommand,			   "" },
 			{ "creature_equip_template",	   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureEquipTemplateCommand,	   "" },
+			{ "hotfixes",	                   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadHotfixesCommand,				   "" },
 
 
 
