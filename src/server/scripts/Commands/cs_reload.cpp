@@ -1443,8 +1443,8 @@ public:
 
 		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
 		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-
 		itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::HotfixList(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+		
 		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
 		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");
 
