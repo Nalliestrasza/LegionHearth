@@ -63,6 +63,20 @@ EndScriptData */
 #include "WorldSession.h"
 #include "WorldPacket.h"
 #include "WorldSocket.h"
+#include "ObjectAccessor.h"
+#include "Corpse.h"
+#include "Creature.h"
+#include "DynamicObject.h"
+#include "GameObject.h"
+#include "GridNotifiers.h"
+#include "Item.h"
+#include "Map.h"
+#include "ObjectDefines.h"
+#include "Pet.h"
+#include "Player.h"
+#include "Transport.h"
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
 
 class reload_commandscript : public CommandScript
 {
@@ -1425,9 +1439,15 @@ public:
 		sWorldSafeLocsStore.LoadFromDB();
 
 		// Send Packet
-		handler->GetSession()->SendPacket(WorldPackets::Hotfix::HotfixList(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+		boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
+
+		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
+		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+
+		itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::HotfixList(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
 		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
 		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");
+
 		return true;
 	}
 };
