@@ -1364,6 +1364,7 @@ public:
 		sItemSetStore.LoadFromDB();
 		sItemSetSpellStore.LoadFromDB();
 		sItemSparseStore.LoadFromDB();
+		sItemSparseStore.LoadStringsFromDB(2); // locale frFR
 		sItemSpecStore.LoadFromDB();
 		sItemSpecOverrideStore.LoadFromDB();
 		sItemUpgradeStore.LoadFromDB();
@@ -1442,7 +1443,7 @@ public:
 		sObjectMgr->LoadItemTemplates();
 		sObjectMgr->LoadItemTemplateAddon();
 		sObjectMgr->LoadItemScriptNames();
-		sItemSparseStore.LoadStringsFromDB(2); // locale frFR
+
 
 		// Send Packet
 		boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
