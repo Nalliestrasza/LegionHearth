@@ -1438,6 +1438,12 @@ public:
 		sWorldMapOverlayStore.LoadFromDB();
 		sWorldSafeLocsStore.LoadFromDB();
 
+		// For items.
+		sObjectMgr->LoadItemTemplates();
+		sObjectMgr->LoadItemTemplateAddon();
+		sObjectMgr->LoadItemScriptNames();
+		sItemSparseStore.LoadStringsFromDB(2); // locale frFR
+
 		// Send Packet
 		boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
 
