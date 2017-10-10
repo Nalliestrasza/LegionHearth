@@ -435,7 +435,12 @@ public:
 		Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
 		for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
 			if (Player* _player = itr->GetSource())
-				_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
+			{
+				if (_player->GetDistance2d(object) < (1600 / 3) && !_player->GetVehicle())
+				{
+					_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
+				}
+			}
 
         handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, object->GetSpawnId(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
 
@@ -735,7 +740,13 @@ public:
 		Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
 		for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
 			if (Player* _player = itr->GetSource())
-				_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
+			{ 
+				// fix and fdp de meunier
+				if (_player->GetDistance2d(object) < (1600 / 3) && !_player->GetVehicle())
+				{
+					_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
+				}
+			}
 
         handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
