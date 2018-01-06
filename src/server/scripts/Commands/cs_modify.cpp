@@ -260,11 +260,8 @@ public:
             return false;
         }
 
-<<<<<<< HEAD
-=======
         handler->PSendSysMessage(LANG_YOU_CHANGE_FACTION, target->GetGUID().ToString().c_str(), factionid, flag, std::to_string(npcflag).c_str(), dyflag);
 
->>>>>>> 8668fb924ae0a92debd64316440778b485271876
         target->setFaction(factionid);
         target->SetUInt32Value(UNIT_FIELD_FLAGS, flag);
         target->SetUInt64Value(UNIT_NPC_FLAGS, npcflag);
