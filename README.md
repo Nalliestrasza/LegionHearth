@@ -73,7 +73,7 @@ Read file [THANKS](THANKS).
 
 ## Links
 
-<<<<<<< HEAD
+
 [Site](http://www.trinitycore.org)
 
 [Wiki](http://trinitycore.info)
@@ -83,8 +83,4 @@ Read file [THANKS](THANKS).
 [Forums](http://www.trinitycore.org/f/)
 
 [Undo commits] (https://www.youtube.com/watch?v=B5Ss4xNYWDY)
-=======
-* [Website](https://www.trinitycore.org)
-* [Wiki](https://www.trinitycore.info)
-* [Forums](https://community.trinitycore.org)
->>>>>>> 15b1aaff4189df291fc28e3607ed2b0e4d297341
+
