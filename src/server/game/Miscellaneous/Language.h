@@ -1245,7 +1245,7 @@ enum TrinityStrings
     LANG_INSTANCE_BIND_MISMATCH                   = 11014,
     LANG_CREATURE_NOT_AI_ENABLED                  = 11015,
     LANG_SELECT_PLAYER_OR_PET                     = 11016,
-<<<<<<< HEAD
+
 	LANG_SHUTDOWN_DELAYED                         = 11017,
 	LANG_SHUTDOWN_CANCELLED                       = 11018,
 
