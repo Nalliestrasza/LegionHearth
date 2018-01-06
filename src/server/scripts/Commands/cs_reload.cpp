@@ -1276,7 +1276,6 @@ public:
 		sArtifactPowerPickerStore.LoadFromDB();
 		sAuctionHouseStore.LoadFromDB();
 		sBankBagSlotPricesStore.LoadFromDB();
-		sBannedAddOnsStore.LoadFromDB();
 		sBarberShopStyleStore.LoadFromDB();
 		sBattlePetBreedQualityStore.LoadFromDB();
 		sBattlePetBreedStateStore.LoadFromDB();
@@ -1362,7 +1361,7 @@ public:
 		sItemSpecStore.LoadFromDB();
 		sItemSpecOverrideStore.LoadFromDB();
 		sItemUpgradeStore.LoadFromDB();
-		sLfgDungeonsStore.LoadFromDB();
+		sLFGDungeonsStore.LoadFromDB();
 		sLiquidTypeStore.LoadFromDB();
 		sLockStore.LoadFromDB();
 		sMailTemplateStore.LoadFromDB();
@@ -1444,7 +1443,7 @@ public:
 
 		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
 		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-		itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::HotfixList(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+		itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
 		
 		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
 		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");

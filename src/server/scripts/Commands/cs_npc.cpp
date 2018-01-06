@@ -35,6 +35,7 @@ EndScriptData */
 #include "Pet.h"
 #include "SpellAuras.h"
 #include "SpellMgr.h"
+#include "Spell.h"
 #include "Player.h"
 #include "RBAC.h"
 #include "TargetedMovementGenerator.h"                      // for HandleNpcUnFollowCommand
