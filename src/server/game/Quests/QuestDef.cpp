@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -21,6 +21,7 @@
 #include "Field.h"
 #include "GameTables.h"
 #include "Log.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "QuestPackets.h"
 #include "World.h"
@@ -212,6 +213,7 @@ void Quest::LoadQuestTemplateAddon(Field* fields)
     SourceItemIdCount = fields[15].GetUInt8();
     RewardMailSenderEntry = fields[16].GetUInt32();
     SpecialFlags = fields[17].GetUInt8();
+    ScriptId = sObjectMgr->GetScriptId(fields[18].GetString());
 
     if (SpecialFlags & QUEST_SPECIAL_FLAGS_AUTO_ACCEPT)
         Flags |= QUEST_FLAGS_AUTO_ACCEPT;

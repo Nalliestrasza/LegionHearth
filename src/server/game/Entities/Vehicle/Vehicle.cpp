@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -77,9 +77,9 @@ void Vehicle::Install()
     if (_me->GetTypeId() == TYPEID_UNIT)
     {
         if (PowerDisplayEntry const* powerDisplay = sPowerDisplayStore.LookupEntry(_vehicleInfo->PowerDisplayID[0]))
-            _me->setPowerType(Powers(powerDisplay->PowerType));
+            _me->SetPowerType(Powers(powerDisplay->PowerType));
         else if (_me->getClass() == CLASS_ROGUE)
-            _me->setPowerType(POWER_ENERGY);
+            _me->SetPowerType(POWER_ENERGY);
     }
 
     _status = STATUS_INSTALLED;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -548,7 +548,6 @@ void Garrison::SendInfo()
     garrison.GarrSiteID = _siteLevel->SiteID;
     garrison.GarrSiteLevelID = _siteLevel->ID;
     garrison.NumFollowerActivationsRemaining = _followerActivationsRemainingToday;
-    garrison.FollowerSoftCap = 20;
     for (auto& p : _plots)
     {
         Plot& plot = p.second;

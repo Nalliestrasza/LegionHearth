@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -192,8 +192,8 @@ WorldPacket const* WorldPackets::CombatLog::SpellInterruptLog::Write()
 
 WorldPacket const* WorldPackets::CombatLog::SpellEnergizeLog::Write()
 {
-    *this << CasterGUID;
     *this << TargetGUID;
+    *this << CasterGUID;
 
     *this << int32(SpellID);
     *this << int32(Type);

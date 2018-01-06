@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -67,8 +67,8 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            std::array<uint8, 16> Challenge;
-            uint32 DosChallenge[8]; ///< Encryption seeds
+            std::array<uint8, 16> Challenge = { };
+            uint32 DosChallenge[8] = { }; ///< Encryption seeds
             uint8 DosZeroBits = 0;
         };
 
@@ -205,6 +205,8 @@ namespace WorldPackets
             static uint8 const PiDigits[130];
 
         public:
+            static bool InitializeEncryption();
+
             enum AddressType : uint8
             {
                 IPv4 = 1,
@@ -221,7 +223,6 @@ namespace WorldPackets
                 uint8 PanamaKey[32];
             };
 
-        public:
             ConnectTo();
 
             WorldPacket const* Write() override;

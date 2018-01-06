@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -103,7 +103,7 @@ struct GtCombatRatingsMultByILvl
     float JewelryMultiplier = 0.0f;
 };
 
-uint8 constexpr PRESTIGE_COLUMN_COUNT = 16;
+uint8 constexpr PRESTIGE_COLUMN_COUNT = 33;
 struct GtHonorLevelEntry
 {
     float Prestige[PRESTIGE_COLUMN_COUNT] = { };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -465,6 +465,7 @@ void MotionMaster::MoveSmoothPath(uint32 pointId, Position const* pathPoints, si
     {
         init.SetFly();
         init.SetUncompressed();
+        init.SetSmooth();
     }
 
     Movement::PointsArray path;
@@ -474,7 +475,6 @@ void MotionMaster::MoveSmoothPath(uint32 pointId, Position const* pathPoints, si
         return G3D::Vector3(point.GetPositionX(), point.GetPositionY(), point.GetPositionZ());
     });
     init.MovebyPath(path);
-    init.SetSmooth();
     init.SetWalk(walk);
     init.Launch();
 

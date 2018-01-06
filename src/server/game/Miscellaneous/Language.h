@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -152,7 +152,7 @@ enum TrinityStrings
     LANG_YOU_CHANGE_ENERGY              = 122,
     LANG_YOURS_ENERGY_CHANGED           = 123,
 
-    LANG_CURRENT_ENERGY                 = 124,              //log
+    LANG_CURRENT_ENERGY                 = 124,
     LANG_YOU_CHANGE_RAGE                = 125,
     LANG_YOURS_RAGE_CHANGED             = 126,
     LANG_YOU_CHANGE_LVL                 = 127,
@@ -1245,6 +1245,7 @@ enum TrinityStrings
     LANG_INSTANCE_BIND_MISMATCH                   = 11014,
     LANG_CREATURE_NOT_AI_ENABLED                  = 11015,
     LANG_SELECT_PLAYER_OR_PET                     = 11016,
+<<<<<<< HEAD
 	LANG_SHUTDOWN_DELAYED                         = 11017,
 	LANG_SHUTDOWN_CANCELLED                       = 11018,
 
@@ -1282,6 +1283,11 @@ enum TrinityStrings
 	LANG_CUST_MAINHAND                            = 65121, // PLAYER MAINHAND
 	LANG_CUST_OFFHAND                             = 65122, // PLAYER OFFHAND
 
+    LANG_SHUTDOWN_DELAYED                         = 11017,
+    LANG_SHUTDOWN_CANCELLED                       = 11018,
+    LANG_YOU_CHANGE_POWER                         = 11019,
+    LANG_YOUR_POWER_CHANGED                       = 11020,
+    LANG_INVALID_POWER_NAME                       = 11021
 
 };
 #endif

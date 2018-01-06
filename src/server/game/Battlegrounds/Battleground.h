@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -19,7 +19,6 @@
 #ifndef __BATTLEGROUND_H
 #define __BATTLEGROUND_H
 
-#include "ArenaScore.h"
 #include "DBCEnums.h"
 #include "ObjectGuid.h"
 #include "Position.h"
@@ -36,7 +35,7 @@ class Unit;
 class WorldObject;
 class WorldPacket;
 struct BattlegroundScore;
-struct PvpDifficultyEntry;
+struct PVPDifficultyEntry;
 struct WorldSafeLocsEntry;
 
 namespace WorldPackets
@@ -116,6 +115,7 @@ enum BattlegroundSpells
 {
     SPELL_WAITING_FOR_RESURRECT     = 2584,                 // Waiting to Resurrect
     SPELL_SPIRIT_HEAL_CHANNEL       = 22011,                // Spirit Heal Channel
+    VISUAL_SPIRIT_HEAL_CHANNEL      = 3060,
     SPELL_SPIRIT_HEAL               = 22012,                // Spirit Heal
     SPELL_RESURRECTION_VISUAL       = 24171,                // Resurrection Impact Visual
     SPELL_ARENA_PREPARATION         = 32727,                // use this one, 32728 not correct
@@ -301,7 +301,7 @@ class TC_GAME_API Battleground
         void SetTypeID(BattlegroundTypeId TypeID) { m_TypeID = TypeID; }
         void SetRandomTypeID(BattlegroundTypeId TypeID) { m_RandomTypeID = TypeID; }
         //here we can count minlevel and maxlevel for players
-        void SetBracket(PvpDifficultyEntry const* bracketEntry);
+        void SetBracket(PVPDifficultyEntry const* bracketEntry);
         void SetInstanceID(uint32 InstanceID) { m_InstanceID = InstanceID; }
         void SetStatus(BattlegroundStatus Status) { m_Status = Status; }
         void SetClientInstanceID(uint32 InstanceID) { m_ClientInstanceID = InstanceID; }
@@ -364,7 +364,7 @@ class TC_GAME_API Battleground
 
         // Map pointers
         void SetBgMap(BattlegroundMap* map) { m_Map = map; }
-        BattlegroundMap* GetBgMap() const { ASSERT(m_Map); return m_Map; }
+        BattlegroundMap* GetBgMap() const;
         BattlegroundMap* FindBgMap() const { return m_Map; }
 
         void SetTeamStartPosition(TeamId teamId, Position const& pos);
@@ -404,7 +404,7 @@ class TC_GAME_API Battleground
         Group* GetBgRaid(uint32 TeamID) const { return TeamID == ALLIANCE ? m_BgRaids[TEAM_ALLIANCE] : m_BgRaids[TEAM_HORDE]; }
         void SetBgRaid(uint32 TeamID, Group* bg_raid);
 
-        void BuildPvPLogDataPacket(WorldPackets::Battleground::PVPLogData& pvpLogData);
+        virtual void BuildPvPLogDataPacket(WorldPackets::Battleground::PVPLogData& pvpLogData) const;
         virtual bool UpdatePlayerScore(Player* player, uint32 type, uint32 value, bool doAddHonor = true);
 
         static TeamId GetTeamIndexByTeamId(uint32 Team) { return Team == ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE; }
@@ -575,8 +575,6 @@ class TC_GAME_API Battleground
 
         BGHonorMode m_HonorMode;
         int32 m_TeamScores[BG_TEAMS_COUNT];
-
-        ArenaTeamScore _arenaTeamScores[BG_TEAMS_COUNT];
 
     private:
         // Battleground

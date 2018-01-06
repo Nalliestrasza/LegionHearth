@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -90,6 +90,10 @@ enum HotfixDatabaseStatements : uint32
 
     HOTFIX_SEL_BROADCAST_TEXT,
     HOTFIX_SEL_BROADCAST_TEXT_LOCALE,
+
+    HOTFIX_SEL_CHARACTER_FACIAL_HAIR_STYLES,
+
+    HOTFIX_SEL_CHAR_BASE_SECTION,
 
     HOTFIX_SEL_CHAR_SECTIONS,
 
@@ -270,6 +274,12 @@ enum HotfixDatabaseStatements : uint32
 
     HOTFIX_SEL_ITEM_EXTENDED_COST,
 
+    HOTFIX_SEL_ITEM_LEVEL_SELECTOR,
+
+    HOTFIX_SEL_ITEM_LEVEL_SELECTOR_QUALITY,
+
+    HOTFIX_SEL_ITEM_LEVEL_SELECTOR_QUALITY_SET,
+
     HOTFIX_SEL_ITEM_LIMIT_CATEGORY,
     HOTFIX_SEL_ITEM_LIMIT_CATEGORY_LOCALE,
 
@@ -302,7 +312,7 @@ enum HotfixDatabaseStatements : uint32
 
     HOTFIX_SEL_ITEM_X_BONUS_TREE,
 
-    HOTFIX_SEL_KEY_CHAIN,
+    HOTFIX_SEL_KEYCHAIN,
 
     HOTFIX_SEL_LFG_DUNGEONS,
     HOTFIX_SEL_LFG_DUNGEONS_LOCALE,
@@ -406,7 +416,6 @@ enum HotfixDatabaseStatements : uint32
     HOTFIX_SEL_SKILL_RACE_CLASS_INFO,
 
     HOTFIX_SEL_SOUND_KIT,
-    HOTFIX_SEL_SOUND_KIT_LOCALE,
 
     HOTFIX_SEL_SPECIALIZATION_SPELLS,
     HOTFIX_SEL_SPECIALIZATION_SPELLS_LOCALE,
@@ -503,6 +512,16 @@ enum HotfixDatabaseStatements : uint32
     HOTFIX_SEL_TOY,
     HOTFIX_SEL_TOY_LOCALE,
 
+    HOTFIX_SEL_TRANSMOG_HOLIDAY,
+
+    HOTFIX_SEL_TRANSMOG_SET,
+    HOTFIX_SEL_TRANSMOG_SET_LOCALE,
+
+    HOTFIX_SEL_TRANSMOG_SET_GROUP,
+    HOTFIX_SEL_TRANSMOG_SET_GROUP_LOCALE,
+
+    HOTFIX_SEL_TRANSMOG_SET_ITEM,
+
     HOTFIX_SEL_TRANSPORT_ANIMATION,
 
     HOTFIX_SEL_TRANSPORT_ROTATION,
@@ -516,6 +535,8 @@ enum HotfixDatabaseStatements : uint32
 
     HOTFIX_SEL_WMO_AREA_TABLE,
     HOTFIX_SEL_WMO_AREA_TABLE_LOCALE,
+
+    HOTFIX_SEL_WORLD_EFFECT,
 
     HOTFIX_SEL_WORLD_MAP_AREA,
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -44,36 +44,36 @@ WorldPacket const* WorldPackets::Hotfix::DBReply::Write()
     return &_worldPacket;
 }
 
-WorldPacket const* WorldPackets::Hotfix::HotfixList::Write()
+WorldPacket const* WorldPackets::Hotfix::AvailableHotfixes::Write()
 {
     _worldPacket << int32(HotfixCacheVersion);
     _worldPacket << uint32(Hotfixes.size());
     for (auto const& hotfixEntry : Hotfixes)
-        _worldPacket << int32(hotfixEntry.first);
+        _worldPacket << uint64(hotfixEntry.first);
 
     return &_worldPacket;
 }
 
-void WorldPackets::Hotfix::HotfixQuery::Read()
+void WorldPackets::Hotfix::HotfixRequest::Read()
 {
     uint32 hotfixCount = _worldPacket.read<uint32>();
     if (hotfixCount > sDB2Manager.GetHotfixData().size())
         throw PacketArrayMaxCapacityException(hotfixCount, sDB2Manager.GetHotfixData().size());
 
     Hotfixes.resize(hotfixCount);
-    for (int32& hotfixId : Hotfixes)
+    for (uint64& hotfixId : Hotfixes)
         _worldPacket >> hotfixId;
 }
 
-ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Hotfix::HotfixQueryResponse::HotfixRecord const& hotfixRecord)
+ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Hotfix::HotfixResponse::HotfixData const& hotfixData)
 {
-    data << uint32(hotfixRecord.TableHash);
-    data << int32(hotfixRecord.RecordID);
-    data.WriteBit(hotfixRecord.HotfixData.is_initialized());
-    if (hotfixRecord.HotfixData)
+    data << uint64(hotfixData.ID);
+    data << int32(hotfixData.RecordID);
+    data.WriteBit(hotfixData.Data.is_initialized());
+    if (hotfixData.Data)
     {
-        data << uint32(hotfixRecord.HotfixData->size());
-        data.append(*hotfixRecord.HotfixData);
+        data << uint32(hotfixData.Data->size());
+        data.append(*hotfixData.Data);
     }
     else
         data << uint32(0);
@@ -81,17 +81,7 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Hotfix::HotfixQueryRespon
     return data;
 }
 
-ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Hotfix::HotfixQueryResponse::HotfixData const& hotfixData)
-{
-    data << int32(hotfixData.ID);
-    data << uint32(hotfixData.Records.size());
-    for (WorldPackets::Hotfix::HotfixQueryResponse::HotfixRecord const& hotfixRecord : hotfixData.Records)
-        data << hotfixRecord;
-
-    return data;
-}
-
-WorldPacket const* WorldPackets::Hotfix::HotfixQueryResponse::Write()
+WorldPacket const* WorldPackets::Hotfix::HotfixResponse::Write()
 {
     _worldPacket << uint32(Hotfixes.size());
     for (HotfixData const& hotfix : Hotfixes)

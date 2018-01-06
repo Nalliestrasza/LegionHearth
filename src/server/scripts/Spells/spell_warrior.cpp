@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -26,6 +26,7 @@
 #include "MoveSpline.h"
 #include "PathGenerator.h"
 #include "Player.h"
+#include "SpellMgr.h"
 #include "SpellAuraEffects.h"
 #include "SpellHistory.h"
 #include "SpellScript.h"
@@ -40,7 +41,8 @@ enum WarriorSpells
     SPELL_WARRIOR_CHARGE_PAUSE_RAGE_DECAY           = 109128,
     SPELL_WARRIOR_CHARGE_ROOT_EFFECT                = 105771,
     SPELL_WARRIOR_CHARGE_SLOW_EFFECT                = 236027,
-    SPELL_WARRIOR_COLOSSUS_SMASH                    = 86346,
+    SPELL_WARRIOR_COLOSSUS_SMASH                    = 167105,
+    SPELL_WARRIOR_COLOSSUS_SMASH_EFFECT             = 208086,
     SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_GLYPH_OF_THE_BLAZING_TRAIL        = 123779,
     SPELL_WARRIOR_GLYPH_OF_HEROIC_LEAP              = 159708,
@@ -53,6 +55,7 @@ enum WarriorSpells
     SPELL_WARRIOR_JUGGERNAUT_CRIT_BONUS_TALENT      = 64976,
     SPELL_WARRIOR_LAST_STAND_TRIGGERED              = 12976,
     SPELL_WARRIOR_MORTAL_STRIKE                     = 12294,
+    SPELL_WARRIOR_MORTAL_WOUNDS                     = 213667,
     SPELL_WARRIOR_RALLYING_CRY                      = 97463,
     SPELL_WARRIOR_REND                              = 94009,
     SPELL_WARRIOR_RETALIATION_DAMAGE                = 22858,
@@ -69,6 +72,7 @@ enum WarriorSpells
     SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK_1   = 12723,
     SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK_2   = 26654,
     SPELL_WARRIOR_TAUNT                             = 355,
+    SPELL_WARRIOR_TRAUMA_EFFECT                     = 215537,
     SPELL_WARRIOR_UNRELENTING_ASSAULT_RANK_1        = 46859,
     SPELL_WARRIOR_UNRELENTING_ASSAULT_RANK_2        = 46860,
     SPELL_WARRIOR_UNRELENTING_ASSAULT_TRIGGER_1     = 64849,
@@ -233,6 +237,39 @@ class spell_warr_charge_effect : public SpellScriptLoader
         SpellScript* GetSpellScript() const override
         {
             return new spell_warr_charge_effect_SpellScript();
+        }
+};
+
+// 167105 - Colossus Smash 7.1.5
+class spell_warr_colossus_smash : public SpellScriptLoader
+{
+    public:
+        spell_warr_colossus_smash() : SpellScriptLoader("spell_warr_colossus_smash") { }
+
+        class spell_warr_colossus_smash_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_colossus_smash_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) override
+            {
+                return ValidateSpellInfo({ SPELL_WARRIOR_COLOSSUS_SMASH_EFFECT });
+            }
+
+            void HandleOnHit()
+            {
+                if (Unit* target = GetHitUnit())
+                    GetCaster()->CastSpell(target, SPELL_WARRIOR_COLOSSUS_SMASH_EFFECT, true);
+            }
+
+            void Register() override
+            {
+                OnHit += SpellHitFn(spell_warr_colossus_smash_SpellScript::HandleOnHit);
+            }
+        };
+
+        SpellScript* GetSpellScript() const override
+        {
+            return new spell_warr_colossus_smash_SpellScript();
         }
 };
 
@@ -588,6 +625,39 @@ class spell_warr_last_stand : public SpellScriptLoader
         SpellScript* GetSpellScript() const override
         {
             return new spell_warr_last_stand_SpellScript();
+        }
+};
+
+// 12294 - Mortal Strike 7.1.5
+class spell_warr_mortal_strike : public SpellScriptLoader
+{
+    public:
+        spell_warr_mortal_strike() : SpellScriptLoader("spell_warr_mortal_strike") { }
+
+        class spell_warr_mortal_strike_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_mortal_strike_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) override
+            {
+                return ValidateSpellInfo({ SPELL_WARRIOR_MORTAL_WOUNDS });
+            }
+
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* target = GetHitUnit())
+                    GetCaster()->CastSpell(target, SPELL_WARRIOR_MORTAL_WOUNDS, true);
+            }
+
+            void Register() override
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_warr_mortal_strike_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const override
+        {
+            return new spell_warr_mortal_strike_SpellScript();
         }
 };
 
@@ -1046,9 +1116,9 @@ class spell_warr_sweeping_strikes : public SpellScriptLoader
             void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
             {
                 PreventDefaultAction();
-                if (eventInfo.GetDamageInfo())
+                if (DamageInfo* damageInfo = eventInfo.GetDamageInfo())
                 {
-                    SpellInfo const* spellInfo = eventInfo.GetDamageInfo()->GetSpellInfo();
+                    SpellInfo const* spellInfo = damageInfo->GetSpellInfo();
                     if (spellInfo && (spellInfo->Id == SPELL_WARRIOR_BLADESTORM_PERIODIC_WHIRLWIND || (spellInfo->Id == SPELL_WARRIOR_EXECUTE && !_procTarget->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))))
                     {
                         // If triggered by Execute (while target is not under 20% hp) or Bladestorm deals normalized weapon damage
@@ -1056,7 +1126,7 @@ class spell_warr_sweeping_strikes : public SpellScriptLoader
                     }
                     else
                     {
-                        int32 damage = eventInfo.GetDamageInfo()->GetDamage();
+                        int32 damage = damageInfo->GetDamage();
                         GetTarget()->CastCustomSpell(SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK_1, SPELLVALUE_BASE_POINT0, damage, _procTarget, true, nullptr, aurEff);
                     }
                 }
@@ -1110,6 +1180,43 @@ class spell_warr_sword_and_board : public SpellScriptLoader
         {
             return new spell_warr_sword_and_board_AuraScript();
         }
+};
+
+// 215538 - Trauma
+class spell_warr_trauma : public SpellScriptLoader
+{
+public:
+    spell_warr_trauma() : SpellScriptLoader("spell_warr_trauma") { }
+
+    class spell_warr_trauma_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_warr_trauma_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ SPELL_WARRIOR_TRAUMA_EFFECT });
+        }
+
+        void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+        {
+            Unit* target = eventInfo.GetActionTarget();
+            //Get the Remaining Damage from the aura (if exist)
+            int32 remainingDamage = target->GetRemainingPeriodicAmount(target->GetGUID(), SPELL_WARRIOR_TRAUMA_EFFECT, SPELL_AURA_PERIODIC_DAMAGE);
+            //Get 25% of damage from the spell casted (Slam & Whirlwind) plus Remaining Damage from Aura
+            int32 damage = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount()) / sSpellMgr->AssertSpellInfo(SPELL_WARRIOR_TRAUMA_EFFECT)->GetMaxTicks(DIFFICULTY_NONE)) + remainingDamage;
+            GetCaster()->CastCustomSpell(SPELL_WARRIOR_TRAUMA_EFFECT, SPELLVALUE_BASE_POINT0, damage, target, true);
+        }
+
+        void Register() override
+        {
+            OnEffectProc += AuraEffectProcFn(spell_warr_trauma_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_warr_trauma_AuraScript();
+    }
 };
 
 // 28845 - Cheat Death
@@ -1328,6 +1435,7 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_charge();
     new spell_warr_charge_drop_fire_periodic();
     new spell_warr_charge_effect();
+    new spell_warr_colossus_smash();
     new spell_warr_concussion_blow();
     new spell_warr_execute();
     new spell_warr_heroic_leap();
@@ -1337,6 +1445,7 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_item_t10_prot_4p_bonus();
     new spell_warr_lambs_to_the_slaughter();
     new spell_warr_last_stand();
+    new spell_warr_mortal_strike();
     new spell_warr_overpower();
     new spell_warr_rallying_cry();
     new spell_warr_rend();
@@ -1350,6 +1459,7 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_sudden_death();
     new spell_warr_sweeping_strikes();
     new spell_warr_sword_and_board();
+    new spell_warr_trauma();
     new spell_warr_t3_prot_8p_bonus();
     new spell_warr_victorious_state();
     new spell_warr_victory_rush();

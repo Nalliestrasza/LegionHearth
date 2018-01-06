@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -107,6 +107,7 @@ public:
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
+        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         handler->GetSession()->GetPlayer()->CastSpell(target, spellId, triggered);
 
         return true;
@@ -138,8 +139,7 @@ public:
                 return false;
         }
 
-        bool triggered = (triggeredStr != NULL);
-
+        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(handler->GetSession()->GetPlayer(), spellId, triggered);
 
         return true;
@@ -173,8 +173,7 @@ public:
                 return false;
         }
 
-        bool triggered = (triggeredStr != NULL);
-
+        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         float x, y, z;
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dist %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
@@ -246,6 +245,7 @@ public:
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast target %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
+        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(caster->GetVictim(), spellId, triggered);
 
         return true;
@@ -292,6 +292,7 @@ public:
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dest %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
+        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(x, y, z, spellId, triggered);
 
         return true;

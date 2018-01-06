@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,6 +20,7 @@
 #include "DB2Stores.h"
 #include "HotfixPackets.h"
 #include "Log.h"
+#include "ObjectDefines.h"
 #include "World.h"
 
 void WorldSession::HandleDBQueryBulk(WorldPackets::Hotfix::DBQueryBulk& dbQuery)
@@ -53,37 +54,29 @@ void WorldSession::HandleDBQueryBulk(WorldPackets::Hotfix::DBQueryBulk& dbQuery)
     }
 }
 
-void WorldSession::SendHotfixList(int32 version)
+void WorldSession::SendAvailableHotfixes(int32 version)
 {
-    SendPacket(WorldPackets::Hotfix::HotfixList(version, sDB2Manager.GetHotfixData()).Write());
+    SendPacket(WorldPackets::Hotfix::AvailableHotfixes(version, sDB2Manager.GetHotfixData()).Write());
 }
 
-void WorldSession::HandleHotfixQuery(WorldPackets::Hotfix::HotfixQuery& hotfixQuery)
+void WorldSession::HandleHotfixRequest(WorldPackets::Hotfix::HotfixRequest& hotfixQuery)
 {
-    std::map<int32, HotfixData> const& hotfixes = sDB2Manager.GetHotfixData();
-    WorldPackets::Hotfix::HotfixQueryResponse hotfixQueryResponse;
+    std::map<uint64, int32> const& hotfixes = sDB2Manager.GetHotfixData();
+    WorldPackets::Hotfix::HotfixResponse hotfixQueryResponse;
     hotfixQueryResponse.Hotfixes.reserve(hotfixQuery.Hotfixes.size());
-    for (int32 hotfixId : hotfixQuery.Hotfixes)
+    for (uint64 hotfixId : hotfixQuery.Hotfixes)
     {
-        if (HotfixData const* hotfix = Trinity::Containers::MapGetValuePtr(hotfixes, hotfixId))
+        if (int32 const* hotfix = Trinity::Containers::MapGetValuePtr(hotfixes, hotfixId))
         {
-            WorldPackets::Hotfix::HotfixQueryResponse::HotfixData hotfixData;
-            hotfixData.ID = hotfix->Id;
+            DB2StorageBase const* storage = sDB2Manager.GetStorage(PAIR64_HIPART(hotfixId));
 
-            for (HotfixRecord const& hotfixRecord : hotfix->Records)
+            WorldPackets::Hotfix::HotfixResponse::HotfixData hotfixData;
+            hotfixData.ID = hotfixId;
+            hotfixData.RecordID = *hotfix;
+            if (storage->HasRecord(hotfixData.RecordID))
             {
-                DB2StorageBase const* storage = sDB2Manager.GetStorage(hotfixRecord.TableHash);
-
-                WorldPackets::Hotfix::HotfixQueryResponse::HotfixRecord record;
-                record.TableHash = hotfixRecord.TableHash;
-                record.RecordID = hotfixRecord.RecordId;
-                if (storage->HasRecord(hotfixRecord.RecordId))
-                {
-                    record.HotfixData = boost::in_place();
-                    storage->WriteRecord(hotfixRecord.RecordId, GetSessionDbcLocale(), *record.HotfixData);
-                }
-
-                hotfixData.Records.emplace_back(std::move(record));
+                hotfixData.Data = boost::in_place();
+                storage->WriteRecord(hotfixData.RecordID, GetSessionDbcLocale(), *hotfixData.Data);
             }
 
             hotfixQueryResponse.Hotfixes.emplace_back(std::move(hotfixData));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2017 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -576,15 +576,6 @@ void WorldPackets::Misc::SetPvP::Read()
     EnablePVP = _worldPacket.ReadBit();
 }
 
-void WorldPackets::Misc::WorldTeleport::Read()
-{
-    _worldPacket >> MapID;
-    _worldPacket >> TransportGUID;
-    _worldPacket >> Pos;
-    _worldPacket >> Facing;
-    _worldPacket >> LfgDungeonID;
-}
-
 WorldPacket const* WorldPackets::Misc::AccountHeirloomUpdate::Write()
 {
     _worldPacket.WriteBit(IsFullUpdate);
@@ -670,4 +661,9 @@ void WorldPackets::Misc::MountSetFavorite::Read()
 {
     _worldPacket >> MountSpellID;
     IsFavorite = _worldPacket.ReadBit();
+}
+
+void WorldPackets::Misc::CloseInteraction::Read()
+{
+    _worldPacket >> SourceGuid;
 }
