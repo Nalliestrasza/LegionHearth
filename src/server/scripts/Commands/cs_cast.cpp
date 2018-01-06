@@ -103,7 +103,6 @@ public:
                 return false;
         }
 
-        bool triggered = (triggeredStr != NULL);
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
@@ -241,7 +240,6 @@ public:
                 return false;
         }
 
-        bool triggered = (triggeredStr != NULL);
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast target %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
@@ -287,8 +285,6 @@ public:
             if (strncmp(triggeredStr, "triggered", l) != 0)
                 return false;
         }
-
-        bool triggered = (triggeredStr != NULL);
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dest %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
 
