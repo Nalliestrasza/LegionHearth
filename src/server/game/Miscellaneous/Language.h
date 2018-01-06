@@ -1283,8 +1283,6 @@ enum TrinityStrings
 	LANG_CUST_MAINHAND                            = 65121, // PLAYER MAINHAND
 	LANG_CUST_OFFHAND                             = 65122, // PLAYER OFFHAND
 
-    LANG_SHUTDOWN_DELAYED                         = 11017,
-    LANG_SHUTDOWN_CANCELLED                       = 11018,
     LANG_YOU_CHANGE_POWER                         = 11019,
     LANG_YOUR_POWER_CHANGED                       = 11020,
     LANG_INVALID_POWER_NAME                       = 11021
