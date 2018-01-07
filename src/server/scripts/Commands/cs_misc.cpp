@@ -1,4 +1,4 @@
-/*
+Ôªø/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -52,8 +52,11 @@
 #include "World.h"
 #include "WorldSession.h"
 #include <boost/asio/ip/address_v4.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
 #include <G3D/Quat.h>
 #include "ItemTemplate.h"
+#include "HotfixPackets.h"
 
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
@@ -67,6 +70,16 @@ public:
 
     std::vector<ChatCommand> GetCommands() const override
     {
+        static std::vector<ChatCommand> phaseCommandTable =
+        {
+            { "create",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseCreateCommand,             "" },
+            { "initialize", rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInitializeCommand,             "" },
+            { "terrain",	rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseTerrainCommand,             "" },
+            { "invite",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInviteCommand,               "" },
+            { "skybox",		rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseSkyboxCommand,				 "" },
+            //{ "join",		rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseJoinCommand,				 ""},
+        };
+
         static std::vector<ChatCommand> commandTable =
         {
             { "additem",          rbac::RBAC_PERM_COMMAND_ADDITEM,          false, &HandleAddItemCommand,          "" },
@@ -148,6 +161,7 @@ public:
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
 			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
+            { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
         };
         return commandTable;
     }
@@ -3104,7 +3118,7 @@ public:
 			else
 				targetName = target->GetName();
 		}
-		//Phase 3 : Calcul des positions et distance en mËtres (‡ deux decimal pres, arrondi ‡ l'infÈrieur )
+		//Phase 3 : Calcul des positions et distance en m√®tres (√† deux decimal pres, arrondi √† l'inf√©rieur )
 		double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
 		double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
 		double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3193,7 +3207,7 @@ public:
 	}
 
 
-	static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+	static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd √† retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -3245,7 +3259,7 @@ public:
 		return true;
 	}
 
-	static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+	static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd √† retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -3292,7 +3306,7 @@ public:
 		Player* player = handler->GetSession()->GetPlayer();
 		std::string playerName = player->GetName();
 		char msg[255];
-		sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÈ]", playerName.c_str(), roll, min, max);
+		sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en priv√©]", playerName.c_str(), roll, min, max);
 		Unit* target = player->GetSelectedUnit();
 		if (!target)
 		{
@@ -3328,7 +3342,7 @@ public:
 			player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
 			player->SaveToDB();
 			player->LearnSpell(108130, false); // Language Pandaren Alliance
-			handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de l'alliance !");
+			handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de l'alliance !");
 		}
 		else if (argstr == "horde")
 		{
@@ -3336,11 +3350,11 @@ public:
 			player->setFactionForRace(RACE_PANDAREN_HORDE);
 			player->SaveToDB();
 			player->LearnSpell(108131, false); // Language Pandaren Horde
-			handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de la horde !");
+			handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de la horde !");
 		}
 		else
 		{
-			handler->PSendSysMessage("ParamËtre incorrect, veuillez entrez horde ou alliance");
+			handler->PSendSysMessage("Param√®tre incorrect, veuillez entrez horde ou alliance");
 		}
 
 		return true;
@@ -3683,7 +3697,7 @@ public:
 		if (argstr == "off")
 		{
 			target->RemoveAura(185394);
-			handler->SendSysMessage("Nuit noire dÈsactivÈe !");
+			handler->SendSysMessage("Nuit noire d√©sactiv√©e !");
 			return true;
 		}
 		else if (argstr == "on")
@@ -3694,7 +3708,7 @@ public:
 				ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
 				Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
 			}
-			handler->SendSysMessage("Nuit noire activÈe ! Tapez .nuit off pour la dÈsactivÈe.");
+			handler->SendSysMessage("Nuit noire activ√©e ! Tapez .nuit off pour la d√©sactiv√©e.");
 			return true;
 		}
 
@@ -3809,7 +3823,7 @@ public:
 		return true;	
 	}
 
-	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd √† retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -3915,6 +3929,233 @@ public:
 		return true;
 
 	}
+
+    static bool HandlePhaseCreateCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        // PLAYER
+        Player* player = handler->GetSession()->GetPlayer();
+
+        // Space
+        char const* mId = strtok((char*)args, " "); // MapID
+        char const* pId = strtok(NULL, " "); // ParentID
+
+        if (!mId || !pId)
+            return false;
+
+        uint32 mapId = uint32(atoi(mId));
+        uint32 parentMap = uint32(atoi(pId));
+
+        QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", mapId);
+        if (!checkSql)
+        {
+            PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
+
+            map->setUInt32(0, mapId);
+            if (mapId < 5000) // Si plus petit 5000 > message.
+                handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
+
+            map->setUInt32(1, parentMap);
+            map->setUInt32(2, parentMap);
+            if (parentMap > 32767) // Si plus grand 32767 > message.
+                handler->PSendSysMessage(LANG_PHASE_CREATED_BADCOPY);
+
+            HotfixDatabase.Execute(map);
+
+            // hotfix_data
+            PreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
+            data->setUInt32(0, mapId);
+            data->setUInt32(1, mapId);
+            HotfixDatabase.Execute(data);
+
+
+            // phase owner - world database
+            ObjectGuid::LowType pGuid = UI64LIT(0);
+            pGuid = handler->GetSession()->GetAccountId();
+
+            PreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
+            owner->setUInt32(0, mapId);
+            owner->setUInt64(1, pGuid);
+            WorldDatabase.Execute(owner);
+
+            //phase allow
+
+            // game_tele
+            std::string pName = player->GetName();
+
+            GameTele tele;
+            tele.position_x = player->GetPositionX();
+            tele.position_y = player->GetPositionY();
+            tele.position_z = player->GetPositionZ();
+            tele.orientation = player->GetOrientation();
+            tele.mapId = mapId;
+            tele.name = pName + std::to_string(mapId);
+            ;
+
+            if (sObjectMgr->AddGameTele(tele))
+            {
+                handler->SendSysMessage(LANG_COMMAND_TP_ADDED);
+            }
+            else
+            {
+                handler->SendSysMessage(LANG_COMMAND_TP_ADDEDERR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            handler->PSendSysMessage(LANG_PHASE_CREATED_SUCCESS);
+            handler->PSendSysMessage(LANG_PHASE_CREATED_FINAL, tele.name);
+
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_PHASE_CREATED_ERROR);
+        }
+
+        return true;
+    }
+
+    static bool HandlePhaseInviteCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char const* phId = strtok((char*)args, " "); // Your Phase
+        char* nameStr = strtok(NULL, " ");
+
+        if (!phId || !nameStr)
+            return false;
+
+        uint32 phaseId = uint32(atoi(phId));
+        std::string pName = nameStr;
+
+        //sql 
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[1].GetUInt32();
+        if (!accId == handler->GetSession()->GetAccountId())
+        {
+            // ajouter
+            PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+            ObjectGuid guid = ObjectMgr::GetPlayerGUIDByName(pName);
+            invit->setUInt32(0, phaseId);
+            invit->setUInt64(1, guid.GetCounter());
+            WorldDatabase.Execute(invit);
+
+            //handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS);
+        }
+
+        else
+
+        {
+            //handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandlePhaseSkyboxCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " ");
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 map = player->GetMapId();
+
+        if (map > 5000) // la valeur que t'a d√©finie pour les nouvelles map cr√©es
+        {
+            QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
+            Field* mapfields = mapresult->Fetch();
+            map = mapfields[0].GetUInt16();
+        }
+
+        QueryResult results = WorldDatabase.PQuery("Select ID, Skybox from light_reference where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+
+        Field* fields = results->Fetch();
+
+        uint32 replaceID = uint32(atoi(pId));
+        uint32 lightId = fields[0].GetUInt32();
+
+        WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+        data << lightId;
+        data << replaceID;
+        data << 200;
+
+        handler->GetSession()->SendPacket(&data, true);
+
+        return true;
+    }
+
+
+    static bool HandlePhaseInitializeCommand(ChatHandler * handler, char const* args)
+    {
+
+        // Refresh Hotfixe
+        sDB2Manager.LoadHotfixData();
+        sMapStore.LoadFromDB();
+        sMapStore.LoadStringsFromDB(2); // locale frFR 
+
+        // Send Packet
+        boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
+
+        HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
+        for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+            itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+
+        return true;
+
+    }
+
+    static bool HandlePhaseTerrainCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " "); // phaseId
+        char const* tId = strtok(NULL, " "); // TerrainId
+
+        if (!pId || !tId)
+            return false;
+
+        uint32 phaseId = uint32(atoi(pId));
+        uint32 terrainMap = uint32(atoi(tId));
+
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[1].GetUInt32();
+
+        if (!accId == handler->GetSession()->GetAccountId())
+        {
+
+            PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
+            swap->setUInt32(0, phaseId);
+            swap->setUInt32(1, terrainMap);
+            WorldDatabase.Execute(swap);
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+            sObjectMgr->LoadTerrainPhaseInfo();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+            sObjectMgr->LoadTerrainSwapDefaults();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+            sObjectMgr->LoadTerrainWorldMaps();
+
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        }
+
+        return true;
+    }
+
 };
 
 void AddSC_misc_commandscript()

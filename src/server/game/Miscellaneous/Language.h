@@ -1249,6 +1249,10 @@ enum TrinityStrings
 	LANG_SHUTDOWN_DELAYED                         = 11017,
 	LANG_SHUTDOWN_CANCELLED                       = 11018,
 
+    LANG_YOU_CHANGE_POWER                         = 11019,
+    LANG_YOUR_POWER_CHANGED                       = 11020,
+    LANG_INVALID_POWER_NAME                       = 11021,
+
 	// LegionHearth Custom Language.h
 	LANG_REMOVE_ARTIFACT						  = 65000,
 	LANG_ADD_ARTIFACT_TO_PLAYER					  = 65001,
@@ -1283,9 +1287,22 @@ enum TrinityStrings
 	LANG_CUST_MAINHAND                            = 65121, // PLAYER MAINHAND
 	LANG_CUST_OFFHAND                             = 65122, // PLAYER OFFHAND
 
-    LANG_YOU_CHANGE_POWER                         = 11019,
-    LANG_YOUR_POWER_CHANGED                       = 11020,
-    LANG_INVALID_POWER_NAME                       = 11021
+    // Phase System
+
+    // PHASE CREATE
+    LANG_PHASE_CREATED_SUCCESS                    = 90000, // Sucess. Your phase is created !
+    LANG_PHASE_CREATED_ERROR                      = 90001, // This PhaseID is already used. Please select another.
+    LANG_PHASE_CREATED_BADID                      = 90002, // Error. You're phase ID must be higher than 5000.
+    LANG_PHASE_CREATED_BADCOPY                    = 90003, // You cannot create a phase if your character is already in a phase. Quit it.
+    LANG_PHASE_CREATED_FINAL                      = 90004, // Use .phase join to teleport on your phase
+
+    // INVITE
+    LANG_PHASE_INVITE_SUCCESS                     = 90005, // Success. Player %s is now a member of your phase.
+    LANG_PHASE_INVITE_ERROR                       = 90006, // You're not the owner of this phase.
+
+    // SKYBOX
+    LANG_PHASE_SKYBOX_SUCCESS                     = 90007, // Sucess. Changed Y per Z
+    LANG_PHASE_SKYBOX_ERROR                       = 90008 // Error. Skybox cannot changed on this zone.
 
 };
 #endif

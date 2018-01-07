@@ -114,6 +114,22 @@ enum WorldDatabaseStatements : uint32
 	WORLD_INS_WP_DELAY,
 	WORLD_UPD_WP_DELAY,
 
+    // phase owner
+    WORLD_INS_PHASE_OWNER,
+
+
+    // phase invite
+    WORLD_INS_PHASE_INVITE,
+
+    // phase teleport
+    WORLD_INS_PHASE_TP,
+
+    // phase terrain
+    WORLD_INS_PHASE_TERRAIN,
+
+    // phase teleport check
+    WORLD_SEL_PHASETP,
+
     MAX_WORLDDATABASE_STATEMENTS
 };
 

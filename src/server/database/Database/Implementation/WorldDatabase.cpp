@@ -107,6 +107,20 @@ void WorldDatabaseConnection::DoPrepareStatements()
 	PrepareStatement(WORLD_INS_SET_MOUNT, "INSERT INTO creature_addon(guid, mount) VALUES (?, ?)", CONNECTION_ASYNC);
 	PrepareStatement(WORLD_SEL_GAMEOBJECT_TELE, "SELECT pos_x,pos_y,pos_z,mapid,orientation FROM gameobject_tele WHERE entry = ?", CONNECTION_SYNCH);
 	PrepareStatement(WORLD_SEL_GAMEOBJECT_DOOR, "SELECT id_item FROM gameobject_door WHERE entry = ?", CONNECTION_SYNCH);
+
+    // PHASE SYSTEMS
+
+    //OWNER
+    PrepareStatement(WORLD_INS_PHASE_OWNER, "INSERT INTO phase_owner (phaseId, accountOwner) VALUES (?, ?)", CONNECTION_ASYNC);
+
+    //INVITE
+    PrepareStatement(WORLD_INS_PHASE_INVITE, "INSERT INTO phase_allow (phaseId, playerId) VALUES (?, ?)", CONNECTION_ASYNC);
+
+    //TERRAIN
+    PrepareStatement(WORLD_INS_PHASE_TERRAIN, "INSERT INTO terrain_swap_defaults (MapId, TerrainSwapMap) VALUES (?,?)", CONNECTION_ASYNC);
+
+    // TP CHECK
+    PrepareStatement(WORLD_SEL_PHASETP, "SELECT playerId from phase_allow WHERE phaseId = ?", CONNECTION_SYNCH);
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
