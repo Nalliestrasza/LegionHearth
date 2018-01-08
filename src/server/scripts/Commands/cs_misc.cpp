@@ -162,6 +162,8 @@ public:
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
 			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
+            { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
+
         };
         return commandTable;
     }
@@ -4154,6 +4156,53 @@ public:
         }
 
         return true;
+    }
+
+    static bool CheckModifyResources(ChatHandler* handler, const char* args, Player* target, int32& res, int8 const multiplier = 1)
+    {
+        if (!*args)
+            return false;
+
+        res = atoi((char*)args) * multiplier;
+
+        if (res < 1)
+        {
+            handler->SendSysMessage(LANG_BAD_VALUE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        return true;
+    }
+
+    static bool HandleHealthCommand(ChatHandler* handler, const char* args)
+    {
+        int32 hp;
+        int32 lp;
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (CheckModifyResources(handler, args, target, hp))
+        {
+            lp = target->GetHealth() + hp;
+            if (lp >= target->GetMaxHealth()) {
+                target->SetHealth(target->GetMaxHealth());
+                return true;
+            }
+            else if (lp <= target->GetMaxHealth()) {
+                target->SetHealth(lp);
+                return true;
+            }
+        }
+        return false;
     }
 
 };
