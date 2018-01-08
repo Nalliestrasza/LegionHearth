@@ -3945,29 +3945,29 @@ public:
         if (!mId || !pId)
             return false;
 
-        uint32 mapId = uint32(atoi(mId));
-        uint32 parentMap = uint32(atoi(pId));
+        uint16 mapId = uint16(atoi(mId));
+        uint16 parentMap = uint16(atoi(pId));
 
         QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", mapId);
         if (!checkSql)
         {
             PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
-            map->setUInt32(0, mapId);
+            map->setUInt16(0, mapId);
             if (mapId < 5000) // Si plus petit 5000 > message.
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
 
-            map->setUInt32(1, parentMap);
-            map->setUInt32(2, parentMap);
-            if (parentMap > 32767) // Si plus grand 32767 > message.
+            map->setUInt16(1, parentMap);
+            map->setUInt16(2, parentMap);
+            if (parentMap > 65535) // Si plus grand 65535 > message.
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADCOPY);
 
             HotfixDatabase.Execute(map);
 
             // hotfix_data
             PreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
-            data->setUInt32(0, mapId);
-            data->setUInt32(1, mapId);
+            data->setUInt16(0, mapId);
+            data->setUInt16(1, mapId);
             HotfixDatabase.Execute(data);
 
 
@@ -3976,7 +3976,7 @@ public:
             pGuid = handler->GetSession()->GetAccountId();
 
             PreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
-            owner->setUInt32(0, mapId);
+            owner->setUInt16(0, mapId);
             owner->setUInt64(1, pGuid);
             WorldDatabase.Execute(owner);
 
