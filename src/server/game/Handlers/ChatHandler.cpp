@@ -252,6 +252,14 @@ void WorldSession::HandleChatMessage(ChatMsg type, uint32 lang, std::string msg,
         }
         case CHAT_MSG_WHISPER:
         {
+            // Back to old version, send normal name instead of extended name (player - realm)
+            // Send 2 receivers if multiple addons problems
+            if (!normalizePlayerName(target))
+                 break;
+
+            Player* receiver = ObjectAccessor::FindPlayerByName(target);
+
+            /*
             /// @todo implement cross realm whispers (someday)
             ExtendedPlayerName extName = ExtractExtendedPlayerName(target);
 
@@ -262,6 +270,8 @@ void WorldSession::HandleChatMessage(ChatMsg type, uint32 lang, std::string msg,
             }
 
             Player* receiver = ObjectAccessor::FindConnectedPlayerByName(extName.Name);
+            */
+
             if (!receiver || (lang != LANG_ADDON && !receiver->isAcceptWhispers() && receiver->GetSession()->HasPermission(rbac::RBAC_PERM_CAN_FILTER_WHISPERS) && !receiver->IsInWhisperWhiteList(sender->GetGUID())))
             {
                 SendChatPlayerNotfoundNotice(target);
