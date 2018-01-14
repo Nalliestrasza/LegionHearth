@@ -1803,7 +1803,7 @@ public:
         if (!*args)
             return false;
 
-        uint32 animkit = atoi((char*)args);
+        uint16 animkit = atoi((char*)args);
 
         Creature* target = handler->getSelectedCreature();
         ObjectGuid::LowType guidLow = UI64LIT(0);
@@ -1823,13 +1823,13 @@ public:
         {
             PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
             stmt->setUInt64(0, guidLow);
-            stmt->setUInt32(1, animkit);
+            stmt->setUInt16(1, animkit);
             WorldDatabase.Execute(stmt);
         }
         else
         {
             PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
-            stmt->setUInt32(0, animkit);
+            stmt->setUInt16(0, animkit);
             stmt->setUInt64(1, guidLow);
             WorldDatabase.Execute(stmt);
         }
