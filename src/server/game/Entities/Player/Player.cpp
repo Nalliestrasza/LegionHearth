@@ -1428,6 +1428,26 @@ uint8 Player::GetChatFlags() const
 
 bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options)
 {
+    // Phase System
+    if (mapid > 5000)
+    {
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u", mapid);
+        if (!checkSql)
+            return;
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[0].GetUInt32();
+
+        if (accId == GetSession()->GetAccountId())
+        {
+            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
+        }
+        else
+        {
+            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
+            return false;
+        }
+    }
+
     if (!MapManager::IsValidMapCoord(mapid, x, y, z, orientation))
     {
         TC_LOG_ERROR("maps", "Player::TeleportTo: Invalid map (%d) or invalid coordinates (X: %f, Y: %f, Z: %f, O: %f) given when teleporting player '%s' (%s, MapID: %d, X: %f, Y: %f, Z: %f, O: %f).",

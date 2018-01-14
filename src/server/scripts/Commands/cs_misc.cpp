@@ -3956,7 +3956,7 @@ public:
             PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
             map->setUInt16(0, mapId);
-            if (mapId < 5000) // Si plus petit 5000 > message.
+            if (mapId < 5000 && mapId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
 
             map->setUInt16(1, parentMap);
@@ -4033,27 +4033,47 @@ public:
         uint32 phaseId = uint32(atoi(phId));
         std::string pName = nameStr;
 
+        if (phaseId < 1)
+            return false;
+
+        Player* target;
+        ObjectGuid targetGuid;
+        std::string targetName;
+
+        // To make sure we get a target, we convert our guid to an omniversal...
+        ObjectGuid parseGUID = ObjectGuid::Create<HighGuid::Player>(strtoull(args, nullptr, 10));
+
+        // ... and make sure we get a target, somehow.
+        if (ObjectMgr::GetPlayerAccountIdByPlayerName(pName))
+        {
+            target = ObjectAccessor::FindPlayer(parseGUID);
+            targetGuid = parseGUID;
+        }
+        // if not, then return false. Which shouldn't happen, now should it ?
+        else if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &targetName))
+            return false;
+
         //sql 
         QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
         Field* field = checkSql->Fetch();
-        uint32 accId = field[1].GetUInt32();
-        if (!accId == handler->GetSession()->GetAccountId())
+        uint32 accId = field[0].GetUInt32();
+
+        if (accId == handler->GetSession()->GetAccountId())
         {
             // ajouter
             PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-            ObjectGuid guid = ObjectMgr::GetPlayerGUIDByName(pName);
             invit->setUInt32(0, phaseId);
-            invit->setUInt64(1, guid.GetCounter());
+            invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName));
             WorldDatabase.Execute(invit);
 
-            //handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS);
+            handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, pName);
         }
 
         else
 
         {
-            //handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            return false;
+
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
         }
 
         return true;
@@ -4109,6 +4129,8 @@ public:
         HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
         for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
             itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+
+        handler->PSendSysMessage(LANG_PHASE_INI);
 
         return true;
 
