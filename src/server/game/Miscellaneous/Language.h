@@ -1302,7 +1302,11 @@ enum TrinityStrings
 
     // SKYBOX
     LANG_PHASE_SKYBOX_SUCCESS                     = 90007, // Sucess. Changed Y per Z
-    LANG_PHASE_SKYBOX_ERROR                       = 90008 // Error. Skybox cannot changed on this zone.
+    LANG_PHASE_SKYBOX_ERROR                       = 90008, // Error. Skybox cannot changed on this zone.
+
+    LANG_PHASETP_SUCCESS                          = 90009, // Success. Player is allowed.
+    LANG_PHASETP_ERROR                            = 90010, // Error. Player not allowed.
+    LANG_PHASE_INI                                = 90011  // Success. Phase is initialized.
 
 };
 #endif
