@@ -1039,7 +1039,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // PHASE SYSTEM
 
     // CREATEPHASE
-    PrepareStatement(HOTFIX_INS_CREATE_PHASE, "INSERT INTO map (ID, Directory, Flags1, Flags2, ParentMapID, CosmeticParentMapID) VALUES (?, 'garrison_alliance_inn_3', 151010909, 24, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(HOTFIX_INS_CREATE_PHASE, "INSERT INTO map (ID, Directory, Flags1, Flags2, ParentMapID, CosmeticParentMapID, MapName) VALUES (?, 'garrison_alliance_inn_3', 151010909, 24, ?, ?, 'MapPhase')", CONNECTION_ASYNC);
     PrepareStatement(HOTFIX_INS_CREATE_DIFFICULTY, "INSERT INTO map_difficulty (ID, Message, MapID) VALUES (?, 'Phase System', ?)", CONNECTION_ASYNC);
 
     // hotfix_data

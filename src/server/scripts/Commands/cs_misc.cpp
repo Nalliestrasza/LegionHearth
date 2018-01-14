@@ -4041,7 +4041,8 @@ public:
         if (phaseId < 1)
             return false;
 
-        Player* target;
+        
+        Player* target = NULL;
         ObjectGuid targetGuid;
         std::string targetName;
 
@@ -4072,6 +4073,7 @@ public:
             WorldDatabase.Execute(invit);
 
             handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, pName);
+            target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
         }
 
         else
@@ -4128,13 +4130,8 @@ public:
         sMapStore.LoadFromDB();
         sMapStore.LoadStringsFromDB(2); // locale frFR 
 
-        // Send Packet
-        boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
-
-        HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
-        for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-            itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
-
+        // Send Packet to the Player
+        handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
         handler->PSendSysMessage(LANG_PHASE_INI);
 
         return true;
