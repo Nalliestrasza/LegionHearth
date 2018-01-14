@@ -551,7 +551,7 @@ enum AuraType : uint32
     SPELL_AURA_479                                          = 479,
     SPELL_AURA_480                                          = 480,
     SPELL_AURA_CONVERT_CONSUMED_RUNE                        = 481,
-    SPELL_AURA_482                                          = 482,
+    SPELL_AURA_PROFIL_CAMERA                                = 482,
     SPELL_AURA_SUPPRESS_TRANSFORMS                          = 483,  // NYI
     SPELL_AURA_484                                          = 484,
     SPELL_AURA_485                                          = 485,

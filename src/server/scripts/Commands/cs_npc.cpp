@@ -252,7 +252,7 @@ public:
 			{ "anim",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimCommand,          "" },
 			{ "aura",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAuraCommand,          "" },
 			{ "mount",      rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetMountCommand,         "" },
-
+            { "animkit",    rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimKitCommand,       "" },
         };
         static std::vector<ChatCommand> npcCommandTable =
         {
@@ -321,7 +321,7 @@ public:
         }
 
         Creature* creature = new Creature();
-        if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, chr->GetPhaseMask(), id, x, y, z, o))
+        if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, id, x, y, z, o))
         {
             delete creature;
             return false;
@@ -1796,6 +1796,46 @@ public:
 
 		return true;
 	}
+
+    // npc set animkit
+    static bool HandleNpcSetAnimKitCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        uint32 animkit = atoi((char*)args);
+
+        Creature* target = handler->getSelectedCreature();
+        ObjectGuid::LowType guidLow = UI64LIT(0);
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        target->SetAIAnimKitId(animkit);
+
+        //Coté SQL
+        guidLow = target->GetSpawnId();
+        QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
+        if (!guidSql)
+        {
+            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
+            stmt->setUInt64(0, guidLow);
+            stmt->setUInt32(1, animkit);
+            WorldDatabase.Execute(stmt);
+        }
+        else
+        {
+            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
+            stmt->setUInt32(0, animkit);
+            stmt->setUInt64(1, guidLow);
+            WorldDatabase.Execute(stmt);
+        }
+
+        return true;
+    }
 
 
 	// npc set aura
