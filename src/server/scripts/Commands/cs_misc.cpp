@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -160,6 +160,8 @@ public:
 			{ "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
+            { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisualCommand,      "" },
+            { "animkit",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAnimKitCommand,          "" },
 			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
@@ -3073,6 +3075,50 @@ public:
 		return true;
 	}
 
+    static bool HandleSpellVisualCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->getSelectedUnit();
+
+        if (!*args)
+            return false;
+
+        if (!target)
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .spellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        const char* entry;
+        entry = strtok((char*)args, " ");
+
+        const uint32 newEntry = uint32(atoi(entry));
+
+        target->SendPlaySpellVisualKit(newEntry, 2, 0);
+
+        return true;
+    }
+
+    static bool HandleAnimKitCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->getSelectedUnit();
+
+        if (!*args)
+            return false;
+
+        if (!target)
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .animkit", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        const char* entry;
+        entry = strtok((char*)args, " ");
+
+        const uint32 newEntry = uint32(atoi(entry));
+
+        target->SetAIAnimKitId(newEntry);
+
+        return true;
+    }
+
 	static bool HandleDistanceCommand(ChatHandler* handler, char const* args)
 	{
 		//Phase 1 : recherche du type de la cible : gob, npc ou player ?
@@ -3120,7 +3166,7 @@ public:
 			else
 				targetName = target->GetName();
 		}
-		//Phase 3 : Calcul des positions et distance en mÃ¨tres (Ã  deux decimal pres, arrondi Ã  l'infÃ©rieur )
+		//Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
 		double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
 		double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
 		double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3209,7 +3255,7 @@ public:
 	}
 
 
-	static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+	static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -3261,7 +3307,7 @@ public:
 		return true;
 	}
 
-	static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+	static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -3308,7 +3354,7 @@ public:
 		Player* player = handler->GetSession()->GetPlayer();
 		std::string playerName = player->GetName();
 		char msg[255];
-		sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÃ©]", playerName.c_str(), roll, min, max);
+		sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé]", playerName.c_str(), roll, min, max);
 		Unit* target = player->GetSelectedUnit();
 		if (!target)
 		{
@@ -3344,7 +3390,7 @@ public:
 			player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
 			player->SaveToDB();
 			player->LearnSpell(108130, false); // Language Pandaren Alliance
-			handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de l'alliance !");
+			handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
 		}
 		else if (argstr == "horde")
 		{
@@ -3352,11 +3398,11 @@ public:
 			player->setFactionForRace(RACE_PANDAREN_HORDE);
 			player->SaveToDB();
 			player->LearnSpell(108131, false); // Language Pandaren Horde
-			handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de la horde !");
+			handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
 		}
 		else
 		{
-			handler->PSendSysMessage("ParamÃ¨tre incorrect, veuillez entrez horde ou alliance");
+			handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
 		}
 
 		return true;
@@ -3699,7 +3745,7 @@ public:
 		if (argstr == "off")
 		{
 			target->RemoveAura(185394);
-			handler->SendSysMessage("Nuit noire dÃ©sactivÃ©e !");
+			handler->SendSysMessage("Nuit noire désactivée !");
 			return true;
 		}
 		else if (argstr == "on")
@@ -3710,7 +3756,7 @@ public:
 				ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
 				Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
 			}
-			handler->SendSysMessage("Nuit noire activÃ©e ! Tapez .nuit off pour la dÃ©sactivÃ©e.");
+			handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
 			return true;
 		}
 
@@ -3825,7 +3871,7 @@ public:
 		return true;	
 	}
 
-	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+	static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
 	{
 		char* temp = (char*)args;
 		char* str1 = strtok(temp, "-");
@@ -4089,7 +4135,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
 
-        if (map > 5000) // la valeur que t'a dÃ©finie pour les nouvelles map crÃ©es
+        if (map > 5000) // la valeur que t'a définie pour les nouvelles map crées
         {
             QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
             Field* mapfields = mapresult->Fetch();

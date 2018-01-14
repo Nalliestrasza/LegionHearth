@@ -1814,6 +1814,7 @@ public:
             handler->SetSentErrorMessage(true);
             return false;
         }
+
         target->SetAIAnimKitId(animkit);
 
         //Coté SQL
