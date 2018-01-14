@@ -3092,6 +3092,7 @@ public:
 
         const uint32 newEntry = uint32(atoi(entry));
 
+
         target->SendPlaySpellVisualKit(newEntry, 2, 0);
 
         return true;
