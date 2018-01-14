@@ -123,6 +123,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
 
     // TP CHECK
     PrepareStatement(WORLD_SEL_PHASETP, "SELECT playerId from phase_allow WHERE phaseId = ?", CONNECTION_SYNCH);
+
+    // ALLOW
+    PrepareStatement(WORLD_INS_PHASE_ALLOW, "INSERT INTO phase_allow (phaseId, playerId) VALUES (?,?)", CONNECTION_ASYNC);
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)

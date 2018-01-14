@@ -3983,6 +3983,11 @@ public:
             WorldDatabase.Execute(owner);
 
             //phase allow
+            PreparedStatement* allow = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_ALLOW);
+            allow->setUInt16(0, mapId);
+            allow->setUInt64(1, pGuid);
+            WorldDatabase.Execute(allow);
+
 
             // game_tele
             std::string pName = player->GetName();
