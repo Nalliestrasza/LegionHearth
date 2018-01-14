@@ -3956,7 +3956,7 @@ public:
             PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
             map->setUInt16(0, mapId);
-            if (mapId < 5000) // Si plus petit 5000 > message.
+            if (mapId < 5000 && mapId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
 
             map->setUInt16(1, parentMap);
@@ -4053,7 +4053,7 @@ public:
 
         {
             //handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            return false;
+          
         }
 
         return true;
@@ -4109,6 +4109,8 @@ public:
         HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
         for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
             itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+
+        handler->PSendSysMessage("Phase correctement initialisée.");
 
         return true;
 
