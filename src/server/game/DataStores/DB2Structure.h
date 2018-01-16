@@ -26,6 +26,16 @@
 
 struct LocalizedString;
 
+struct AnimationDataEntry
+{
+    uint32 ID;
+    int32 Flag;
+    uint16 FallBack;
+    uint16 BehaviorID;
+    uint8 BehaviorTier;
+};
+
+
 struct AchievementEntry
 {
     LocalizedString* Title;

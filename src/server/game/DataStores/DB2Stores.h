@@ -34,6 +34,7 @@
 
 class DB2HotfixGeneratorBase;
 
+TC_GAME_API extern DB2Storage<AnimationDataEntry>                   sAnimationDataStore;
 TC_GAME_API extern DB2Storage<AchievementEntry>                     sAchievementStore;
 TC_GAME_API extern DB2Storage<AnimKitEntry>                         sAnimKitStore;
 TC_GAME_API extern DB2Storage<AreaTableEntry>                       sAreaTableStore;

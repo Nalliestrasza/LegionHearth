@@ -24,6 +24,23 @@
 #include "DB2DatabaseLoader.h"
 #include "DB2Metadata.h"
 
+struct AnimationDataLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_INT, "Flag" },
+            { false, FT_SHORT, "FallBack" },
+            { false, FT_SHORT, "BehaviorID" },
+            { false, FT_BYTE, "BehaviorTier" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, AnimationDataMeta::Instance(), HOTFIX_SEL_ANIMATION_DATA);
+        return &loadInfo;
+    }
+};
+
 struct AchievementLoadInfo
 {
     static DB2LoadInfo const* Instance()
