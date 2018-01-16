@@ -4229,30 +4229,61 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
 
-        if (map > 5000) // la valeur que t'a définie pour les nouvelles map crées
+        if (map > 5000)
         {
             QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
             Field* mapfields = mapresult->Fetch();
             map = mapfields[0].GetUInt16();
+
+            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", map, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+            if (!results)
+            {
+                handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
+                return false;
+            }
+
+            Field* fields = results->Fetch();
+
+            uint32 replaceID = uint32(atoi(pId));
+            uint32 lightId = fields[0].GetUInt32();
+
+
+            WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+            data << lightId;
+            data << replaceID;
+            data << 200;
+
+            handler->GetSession()->SendPacket(&data, true);
+        }
+        else
+        {
+            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+            if (!results)
+            {
+                handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
+                return false;
+            }
+
+            Field* fields = results->Fetch();
+
+            uint32 replaceID = uint32(atoi(pId));
+            uint32 lightId = fields[0].GetUInt32();
+
+
+            WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+            data << lightId;
+            data << replaceID;
+            data << 200;
+
+            handler->GetSession()->SendPacket(&data, true);
         }
 
-        QueryResult results = WorldDatabase.PQuery("Select ID, Skybox from light_reference where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
 
-
-        Field* fields = results->Fetch();
-
-        uint32 replaceID = uint32(atoi(pId));
-        uint32 lightId = fields[0].GetUInt32();
-
-        WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
-        data << lightId;
-        data << replaceID;
-        data << 200;
-
-        handler->GetSession()->SendPacket(&data, true);
 
         return true;
     }
+
 
 
     static bool HandlePhaseInitializeCommand(ChatHandler * handler, char const* args)
@@ -4287,7 +4318,7 @@ public:
 
         QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
         Field* field = checkSql->Fetch();
-        uint32 accId = field[1].GetUInt32();
+        uint32 accId = field[0].GetUInt32();
 
         if (!accId == handler->GetSession()->GetAccountId())
         {
