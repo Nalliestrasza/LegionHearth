@@ -31,6 +31,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     if (!m_reconnecting)
         m_stmts.resize(MAX_HOTFIXDATABASE_STATEMENTS);
 
+    // AnimationData.db2
+    PrepareStatement(HOTFIX_SEL_ANIMATION_DATA, "SELECT ID, Flag, FallBack, BehaviorID, BehaviorTier FROM animation_data ORDER BY ID DESC", CONNECTION_SYNCH);
+
     // Achievement.db2
     PrepareStatement(HOTFIX_SEL_ACHIEVEMENT, "SELECT Title, Description, Flags, Reward, MapID, Supercedes, Category, UIOrder, SharesCriteria, "
         "Faction, Points, MinimumCriteria, ID, IconFileDataID, CriteriaTree FROM achievement ORDER BY ID DESC", CONNECTION_SYNCH);
@@ -1039,7 +1042,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // PHASE SYSTEM
 
     // CREATEPHASE
-    PrepareStatement(HOTFIX_INS_CREATE_PHASE, "INSERT INTO map (ID, Directory, Flags1, Flags2, ParentMapID, CosmeticParentMapID) VALUES (?, 'garrison_alliance_inn_3', 151010909, 24, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(HOTFIX_INS_CREATE_PHASE, "INSERT INTO map (ID, Directory, Flags1, Flags2, ParentMapID, CosmeticParentMapID, MapName) VALUES (?, 'garrison_alliance_inn_3', 151010909, 24, ?, ?, 'MapPhase')", CONNECTION_ASYNC);
     PrepareStatement(HOTFIX_INS_CREATE_DIFFICULTY, "INSERT INTO map_difficulty (ID, Message, MapID) VALUES (?, 'Phase System', ?)", CONNECTION_ASYNC);
 
     // hotfix_data

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -1183,6 +1183,7 @@ enum TrinityStrings
     // INVITE
     LANG_PHASE_INVITE_SUCCESS                     = 90005, // Success. Player %s is now a member of your phase.
     LANG_PHASE_INVITE_ERROR                       = 90006, // You're not the owner of this phase.
+    LANG_PHASE_PHASE_INVITE_INI                   = 90012, // Vous avez été invité dans la phase %u par %s. Afin de pouvoir rejoindre celle-ci, tapez la commande .phase ini.
 
     // SKYBOX
     LANG_PHASE_SKYBOX_SUCCESS                     = 90007, // Sucess. Changed Y per Z

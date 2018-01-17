@@ -132,6 +132,9 @@ enum WorldDatabaseStatements : uint32
     // phase teleport check
     WORLD_SEL_PHASETP,
 
+   // phase allow when you create ur phase
+    WORLD_INS_PHASE_ALLOW,
+
     MAX_WORLDDATABASE_STATEMENTS
 };
 

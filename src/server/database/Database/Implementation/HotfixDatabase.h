@@ -31,6 +31,8 @@ enum HotfixDatabaseStatements : uint32
         name for a suiting suffix.
     */
 
+    HOTFIX_SEL_ANIMATION_DATA,
+
     HOTFIX_SEL_ACHIEVEMENT,
     HOTFIX_SEL_ACHIEVEMENT_LOCALE,
 

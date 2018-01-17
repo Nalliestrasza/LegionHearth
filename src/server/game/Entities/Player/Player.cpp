@@ -1431,20 +1431,15 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     // Phase System
     if (mapid > 5000)
     {
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u", mapid);
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", mapid, GetSession()->GetAccountId());
         if (!checkSql)
-            return;
-        Field* field = checkSql->Fetch();
-        uint32 accId = field[0].GetUInt32();
-
-        if (accId == GetSession()->GetAccountId())
-        {
-            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
-        }
-        else
         {
             ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
             return false;
+        }
+        else
+        {
+            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
         }
     }
 
