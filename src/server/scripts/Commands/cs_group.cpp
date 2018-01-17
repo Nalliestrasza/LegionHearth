@@ -415,7 +415,7 @@ public:
 				continue;
 			}
 
-			Conversation::CreateConversation(conversationEntry, player, *player, { player->GetGUID() }) != nullptr;
+			Conversation::CreateConversation(conversationEntry, player, *player, { player->GetGUID() });
 
 		}
 

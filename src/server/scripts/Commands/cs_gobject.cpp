@@ -421,7 +421,7 @@ public:
         }
 
 		// LegionHearth conversion
-		float toRad = (M_PI / 180);
+		double toRad = (M_PI / 180);
 
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ());
         object->RelocateStationaryPosition(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
