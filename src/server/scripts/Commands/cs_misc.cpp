@@ -4235,7 +4235,7 @@ public:
             Field* mapfields = mapresult->Fetch();
             map = mapfields[0].GetUInt16();
 
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", map, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", map);
 
             if (!results)
             {
@@ -4258,7 +4258,7 @@ public:
         }
         else
         {
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u and (POWER(x - %f, 2) + POWER(y - %f, 2) + POWER(z - %f, 2)) < POWER(FalloffEnd, 2) order by FalloffEnd = 0, FalloffEnd", player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", player->GetMapId());
             if (!results)
             {
                 handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
