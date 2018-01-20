@@ -1295,6 +1295,8 @@ enum TrinityStrings
     LANG_PHASE_CREATED_BADID                      = 90002, // Error. You're phase ID must be higher than 5000.
     LANG_PHASE_CREATED_BADCOPY                    = 90003, // You cannot create a phase if your character is already in a phase. Quit it.
     LANG_PHASE_CREATED_FINAL                      = 90004, // Use .phase join to teleport on your phase
+    LANG_PHASE_CREATED_PARENTMAP_INVALID          = 90013, // Map invalid.
+    
 
     // INVITE
     LANG_PHASE_INVITE_SUCCESS                     = 90005, // Success. Player %s is now a member of your phase.

@@ -57,6 +57,8 @@
 #include <G3D/Quat.h>
 #include "ItemTemplate.h"
 #include "HotfixPackets.h"
+#include "Position.h"
+#include "Object.h"
 
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
@@ -4040,29 +4042,53 @@ public:
         if (!mId || !pId)
             return false;
 
-        uint16 mapId = uint16(atoi(mId));
-        uint16 parentMap = uint16(atoi(pId));
+        uint32 mapId = uint32(atoi(mId));
+        uint32 parentMap = uint32(atoi(pId));
+
+        // check if parentmap values is an existing map
+        QueryResult mapCheck = WorldDatabase.PQuery("SELECT m_ID from map_check where m_ID = %u", parentMap);
+        if (!mapCheck) 
+        {
+            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, parentMap);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+     
 
         QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", mapId);
-        if (!checkSql)
+   
+        if (checkSql)
         {
+           
+            handler->PSendSysMessage(LANG_PHASE_CREATED_ERROR);
+            handler->SetSentErrorMessage(true); 
+            return false;
+        }
+        else
+        {
+
             PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
-            map->setUInt16(0, mapId);
-            if (mapId < 5000 && mapId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
-                handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
+            map->setUInt32(0, mapId);
+            if (mapId < 5000 || mapId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
+            {
 
-            map->setUInt16(1, parentMap);
-            map->setUInt16(2, parentMap);
-            if (parentMap > 65535) // Si plus grand 65535 > message.
-                handler->PSendSysMessage(LANG_PHASE_CREATED_BADCOPY);
+                handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
+                handler->SetSentErrorMessage(true);
+                return false;
+
+            }
+
+            map->setUInt32(1, parentMap);
+            map->setUInt32(2, parentMap);
+
 
             HotfixDatabase.Execute(map);
 
             // hotfix_data
             PreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
-            data->setUInt16(0, mapId);
-            data->setUInt16(1, mapId);
+            data->setUInt32(0, mapId);
+            data->setUInt32(1, mapId);
             HotfixDatabase.Execute(data);
 
 
@@ -4071,13 +4097,13 @@ public:
             pGuid = handler->GetSession()->GetAccountId();
 
             PreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
-            owner->setUInt16(0, mapId);
+            owner->setUInt32(0, mapId);
             owner->setUInt64(1, pGuid);
             WorldDatabase.Execute(owner);
 
             //phase allow
             PreparedStatement* allow = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_ALLOW);
-            allow->setUInt16(0, mapId);
+            allow->setUInt32(0, mapId);
             allow->setUInt64(1, pGuid);
             WorldDatabase.Execute(allow);
 
@@ -4109,113 +4135,79 @@ public:
             handler->PSendSysMessage(LANG_PHASE_CREATED_FINAL, tele.name);
 
         }
-        else
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_ERROR);
-        }
 
         return true;
+
     }
 
     static bool HandlePhaseInviteCommand(ChatHandler * handler, char const* args)
     {
-        // Define ALL the player variables!
-        Player* target;
-        ObjectGuid targetGuid;
-        PreparedStatement* stmt = NULL;
-
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
-
-        if (!targetName || !phId)
-            return false;
-
-        std::string pName = targetName;
-        uint32 phaseId = uint32(atoi(phId));
-
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-        std::string nameLink = handler->playerLink(pName);
-        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
-
-        if (target)
-        {
-            // check online security
-            if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            if (!*args)
                 return false;
 
-            //sql
+            char const* phId = strtok((char*)args, " "); // Your Phase
+            char* nameStr = strtok(NULL, " ");
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
+            if (!phId || !nameStr)
+                return false;
 
-            if (OwnerId == handler->GetSession()->GetAccountId())
+            uint32 phaseId = uint32(atoi(phId));
+            std::string pName = nameStr;
+
+            if (phaseId < 1)
+                return false;
+
+            Player* target;
+            ObjectGuid targetGuid;
+            std::string targetName;
+
+            // To make sure we get a target, we convert our guid to an omniversal...
+            ObjectGuid parseGUID = ObjectGuid::Create<HighGuid::Player>(strtoull(args, nullptr, 10));
+
+            // ... and make sure we get a target, somehow.
+            if (ObjectMgr::GetPlayerAccountIdByPlayerName(pName))
+            {
+                target = ObjectAccessor::FindPlayer(parseGUID);
+                targetGuid = parseGUID;
+            }
+            // if not, then return false. Which shouldn't happen, now should it ?
+            else if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &targetName))
+                return false;
+
+            target = ObjectAccessor::FindPlayerByName(pName);
+
+            //sql 
+            QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+            Field* field = checkSql->Fetch();
+            uint32 accId = field[0].GetUInt32();
+            if (accId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
                 PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt16(0, phaseId);
+                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName));
                 WorldDatabase.Execute(invit);
 
-                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
+                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, pName);
+                if (handler->needReportToTarget(target))
+                    ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, handler->GetSession()->GetPlayerName());
 
-                if (target->GetSession() == NULL) {
-                    handler->PSendSysMessage(LANG_ERROR);
+                if (handler->needReportToTarget(target)) 
+                {
+                    // Send Packet to target player
+                    sDB2Manager.LoadHotfixData();
+                    sMapStore.LoadFromDB();
+                    sMapStore.LoadStringsFromDB(2); // locale frFR 
+                    target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
                 }
-                else {
-
-                    if (handler->needReportToTarget(target))
-                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
-
-                    if (handler->needReportToTarget(target))
-                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, ownerLink);
-                    return true;
-                }
-
+                    
             }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-        }
-        else {
-
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
+            else
             {
-                // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
-                return true;
-
-            }
-            else {
-
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
             }
 
-
-        }
-
-        return true;
+            return true;
 
     }
 
@@ -4298,12 +4290,18 @@ public:
         handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
         handler->PSendSysMessage(LANG_PHASE_INI);
 
+        // Send Terrain Swap to the player
+        handler->GetSession()->GetPlayer()->SendUpdatePhasing();
+
         return true;
 
     }
 
+    
     static bool HandlePhaseTerrainCommand(ChatHandler * handler, char const* args)
     {
+        Player* tp = handler->GetSession()->GetPlayer();
+
         if (!*args)
             return false;
 
@@ -4320,7 +4318,7 @@ public:
         Field* field = checkSql->Fetch();
         uint32 accId = field[0].GetUInt32();
 
-        if (!accId == handler->GetSession()->GetAccountId())
+        if (accId == handler->GetSession()->GetAccountId())
         {
 
             PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
@@ -4337,8 +4335,14 @@ public:
             TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
             sObjectMgr->LoadTerrainWorldMaps();
 
+            // Actualize 
+             
+            tp->SendUpdatePhasing();
+            
         }
+
         else
+
         {
             handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
         }

@@ -3174,6 +3174,7 @@ void WorldObject::RebuildTerrainSwaps()
     // Reason for this is, multiple phases can have the same terrain swap, we should not remove the swap if another phase still use it
     _terrainSwaps.clear();
 
+    
     // Check all applied phases for terrain swap and add it only once
     for (uint32 phaseId : _phases)
     {
@@ -3191,6 +3192,7 @@ void WorldObject::RebuildTerrainSwaps()
             }
         }
     }
+    
 
     // get default terrain swaps, only for current map always
     if (std::vector<uint32> const* mapSwaps = sObjectMgr->GetDefaultTerrainSwaps(GetMapId()))
