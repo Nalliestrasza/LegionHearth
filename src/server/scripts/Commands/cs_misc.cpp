@@ -163,6 +163,7 @@ public:
 			{ "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
 			{ "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
             { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisualCommand,      "" },
+            { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisualCommand,    "" },
             { "animkit",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAnimKitCommand,          "" },
 			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
@@ -3079,7 +3080,8 @@ public:
 
     static bool HandleSpellVisualCommand(ChatHandler* handler, char const* args)
     {
-        Unit* target = handler->getSelectedUnit();
+        // Unit* target = handler->getSelectedUnit();
+        Player* target = handler->GetSession()->GetPlayer(); // Only self
 
         if (!*args)
             return false;
@@ -3096,6 +3098,30 @@ public:
 
 
         target->SendPlaySpellVisualKit(newEntry, 2, 0);
+
+        return true;
+    }
+
+    static bool HandleUnSpellVisualCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->getSelectedUnit();
+       // Player* target = handler->GetSession()->GetPlayer(); // Only self
+
+        if (!*args)
+            return false;
+
+        if (!target)
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .unspellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        const char* entry;
+        entry = strtok((char*)args, " ");
+
+        const uint32 newEntry = uint32(atoi(entry));
+
+
+        target->SendCancelSpellVisualKit(newEntry);
 
         return true;
     }
