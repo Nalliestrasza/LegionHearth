@@ -680,6 +680,7 @@ class TC_GAME_API World
         void SendWorldText(uint32 string_id, ...);
         void SendGlobalText(const char* text, WorldSession* self);
         void SendGMText(uint32 string_id, ...);
+        void SendMapText(uint32 mapid, uint32 string_id, ...);
         void SendServerMessage(ServerMessageType messageID, std::string stringParam = "", Player* player = NULL);
         void SendGlobalMessage(WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendGlobalGMMessage(WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);

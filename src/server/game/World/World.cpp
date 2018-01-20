@@ -2688,12 +2688,47 @@ bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession
     return foundPlayerToSend;
 }
 
+
 /// Send a System Message to all players in the zone (except self if mentioned)
 void World::SendZoneText(uint32 zone, const char* text, WorldSession* self, uint32 team)
 {
     WorldPackets::Chat::Chat packet;
     packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
     SendZoneMessage(zone, packet.Write(), self, team);
+}
+
+/// Send a System Message to all GMs (except self if mentioned)
+void World::SendMapText(uint32 mapid, uint32 string_id, ...)
+{
+ 
+    SessionMap::const_iterator itr;
+
+    va_list ap;
+    va_start(ap, string_id);
+
+    Trinity::WorldWorldTextBuilder wt_builder(string_id, &ap);
+    Trinity::LocalizedPacketListDo<Trinity::WorldWorldTextBuilder> wt_do(wt_builder);
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+    {
+        // Session should have permissions to receive global gm messages
+        WorldSession* session = itr->second;
+        WorldSession* self;
+        
+
+        if (itr->second &&
+            itr->second->GetPlayer() &&
+            itr->second->GetPlayer()->IsInWorld() &&
+            itr->second->GetPlayer()->GetMapId() == mapid &&
+            itr->second != self)
+        {
+            
+            wt_do(itr->second->GetPlayer());
+            va_end(ap);
+            
+        }
+       
+    }
+
 }
 
 /// Kick (and save) all players

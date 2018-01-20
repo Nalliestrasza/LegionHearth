@@ -72,14 +72,20 @@ public:
 
     std::vector<ChatCommand> GetCommands() const override
     {
+        static std::vector<ChatCommand> phaseRemoveTable =
+        {
+            { "terrain",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseRemoveTerrainCommand,             "" },
+        };
+
         static std::vector<ChatCommand> phaseCommandTable =
         {
-            { "create",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseCreateCommand,             "" },
-            { "initialize", rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInitializeCommand,             "" },
+            { "create",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseCreateCommand,              "" },
+            { "initialize", rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInitializeCommand,          "" },
             { "terrain",	rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseTerrainCommand,             "" },
-            { "invite",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInviteCommand,               "" },
+            { "invite",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInviteCommand,              "" },
             { "skybox",		rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseSkyboxCommand,				 "" },
-            //{ "join",		rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseJoinCommand,				 ""},
+            { "message",	rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseMessageCommand,			 "" },
+            { "remove",     rbac::RBAC_PERM_COMMAND_KICK,	  false, nullptr, "", phaseRemoveTable },
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -4376,6 +4382,73 @@ public:
         return true;
     }
 
+    static bool HandlePhaseRemoveTerrainCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        Player* tp = handler->GetSession()->GetPlayer();
+
+      
+        char const* pId = strtok((char*)args, " "); // PhaseID
+        char const* tId = strtok(NULL, " "); // TerrainId
+
+        uint32 phaseId = uint32(atoi(pId));
+        uint32 terrainMap = uint32(atoi(tId));
+
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[0].GetUInt32();
+
+        if (accId == handler->GetSession()->GetAccountId())
+        {
+
+            PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
+            remove->setUInt32(0, phaseId);
+            remove->setUInt32(1, terrainMap);
+            WorldDatabase.Execute(remove);
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+            sObjectMgr->LoadTerrainPhaseInfo();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+            sObjectMgr->LoadTerrainSwapDefaults();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+            sObjectMgr->LoadTerrainWorldMaps();
+
+            // Actualize 
+
+            tp->SendUpdatePhasing();
+
+        }
+
+        else
+
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        }
+
+        return true;
+    }
+
+    static bool HandlePhaseMessageCommand(ChatHandler * handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        // Player Variable
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 mapId = player->GetMapId();
+
+        if (mapId > 5000)
+        {
+            sWorld->SendMapText(mapId, LANG_PHASE_EVENT_MESSAGE, args);
+        }
+        
+       
+        return true;
+    }
     static bool CheckModifyResources(ChatHandler* handler, const char* args, Player* target, int32& res, int8 const multiplier = 1)
     {
         if (!*args)

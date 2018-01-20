@@ -1193,7 +1193,10 @@ enum TrinityStrings
 
     LANG_PHASETP_SUCCESS                          = 90009, // Success. Player is allowed.
     LANG_PHASETP_ERROR                            = 90010, // Error. Player not allowed.
-    LANG_PHASE_INI                                = 90011  // Success. Phase is initialized.
+    LANG_PHASE_INI                                = 90011,  // Success. Phase is initialized.
+
+    // PHASE MESSAGE
+    LANG_PHASE_EVENT_MESSAGE                      = 90014,
 
 };
 #endif
