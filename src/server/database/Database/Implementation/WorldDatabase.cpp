@@ -120,6 +120,8 @@ void WorldDatabaseConnection::DoPrepareStatements()
 
     //TERRAIN
     PrepareStatement(WORLD_INS_PHASE_TERRAIN, "INSERT INTO terrain_swap_defaults (MapId, TerrainSwapMap) VALUES (?,?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_TERRAIN, "DELETE FROM terrain_swap_defaults WHERE MapId = ? AND TerrainSwapMap = ?", CONNECTION_ASYNC);
+
 
     // TP CHECK
     PrepareStatement(WORLD_SEL_PHASETP, "SELECT playerId from phase_allow WHERE phaseId = ?", CONNECTION_SYNCH);

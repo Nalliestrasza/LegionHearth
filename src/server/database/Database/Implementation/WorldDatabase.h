@@ -128,6 +128,7 @@ enum WorldDatabaseStatements : uint32
 
     // phase terrain
     WORLD_INS_PHASE_TERRAIN,
+    WORLD_DEL_PHASE_TERRAIN,
 
     // phase teleport check
     WORLD_SEL_PHASETP,

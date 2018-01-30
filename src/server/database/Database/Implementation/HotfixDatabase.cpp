@@ -1043,11 +1043,11 @@ void HotfixDatabaseConnection::DoPrepareStatements()
 
     // CREATEPHASE
     PrepareStatement(HOTFIX_INS_CREATE_PHASE, "INSERT INTO map (ID, Directory, Flags1, Flags2, ParentMapID, CosmeticParentMapID, MapName) VALUES (?, 'garrison_alliance_inn_3', 151010909, 24, ?, ?, 'MapPhase')", CONNECTION_ASYNC);
-    PrepareStatement(HOTFIX_INS_CREATE_DIFFICULTY, "INSERT INTO map_difficulty (ID, Message, MapID) VALUES (?, 'Phase System', ?)", CONNECTION_ASYNC);
 
     // hotfix_data
     PrepareStatement(HOTFIX_INS_CREATE_PHASE_DATA, "INSERT INTO hotfix_data (Id, TableHash, RecordID, Deleted) VALUES (?, 3179597154, ?, 0)", CONNECTION_ASYNC);
-    PrepareStatement(HOTFIX_INS_CREATE_DIFFICULTY_DATA, "INSERT INTO hotfix_data (Id, TableHash, RecordID, Deleted) VALUES (?, 2456155917, ?, 0)", CONNECTION_ASYNC);
+
+    
 }
 
 HotfixDatabaseConnection::HotfixDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
