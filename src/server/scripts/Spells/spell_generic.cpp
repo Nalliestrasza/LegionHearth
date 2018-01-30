@@ -4614,70 +4614,7 @@ class spell_gen_impatient_mind : public SpellScriptLoader
         }
 };
 
-enum EndlessHallsDirectionSpells
-{
-    SPELL_DIRECT_NORTH = 247350,
-    SPELL_DIRECT_SOUTH = 247351,
-    SPELL_DIRECT_EAST = 247352,
-    SPELL_DIRECT_WEST = 247353,
 
-    SPELL_DIRECT_BLACKOUT = 144149,
-};
-
-class spell_gen_cust_endlesshalls_direction : public SpellScriptLoader
-{
-public:
-    spell_gen_cust_endlesshalls_direction() : SpellScriptLoader("spell_gen_cust_endlesshalls_direction") { }
-
-    class spell_gen_cust_endlesshalls_direction_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_gen_cust_endlesshalls_direction_SpellScript);
-
-        void HandleScript(SpellEffIndex /*effIndex*/)
-        {
-            Unit* target = GetHitPlayer();
-            target->CastSpell(target, SPELL_DIRECT_BLACKOUT, true);
-
-            // Handled by db
-            //Player* ptarget = GetHitPlayer();
-            //ptarget->TeleportTo(1764, -1431.25, 644.939, 126, 3.14);
-            /*
-            uint32 spellId;
-            */
-
-            switch (GetSpellInfo()->Id)
-            {
-                case SPELL_DIRECT_NORTH:
-                    printf("Nord");
-                    break;
-                case SPELL_DIRECT_SOUTH:
-                    printf("Sud");
-                    break;
-                case SPELL_DIRECT_EAST:
-                    printf("Est");
-                    break;
-                case SPELL_DIRECT_WEST:
-                    printf("Ouest");
-                    break;
-                default:
-                    printf("No spell");
-                    return;
-            }
-            
-        }
-
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_gen_cust_endlesshalls_direction_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
-            // OnEffectHitTarget += SpellEffectFn(spell_gen_cust_endlesshalls_direction_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_gen_cust_endlesshalls_direction_SpellScript();
-    }
-};
 
 
 void AddSC_generic_spell_scripts()
@@ -4785,8 +4722,4 @@ void AddSC_generic_spell_scripts()
     new spell_gen_azgalor_rain_of_fire_hellfire_citadel();
     new spell_gen_face_rage();
     new spell_gen_impatient_mind();
-
-    // custom
-
-    new spell_gen_cust_endlesshalls_direction();
 }

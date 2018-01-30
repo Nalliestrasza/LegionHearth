@@ -259,6 +259,7 @@ public:
             VMAP::IVMapManager* vMapManager = VMAP::VMapFactory::createOrGetVMapManager();
             vMapManager->processCommand("stoplog");
 #endif
+
             return true;
         }
 

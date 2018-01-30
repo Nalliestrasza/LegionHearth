@@ -16,10 +16,13 @@
  */
 
 // This is where scripts' loading functions should be declared:
-
+void AddSC_instance_endless_halls();
+void AddSC_endless_halls();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
+	AddSC_instance_endless_halls();
+	AddSC_endless_halls();
 }
