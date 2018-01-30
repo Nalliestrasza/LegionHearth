@@ -59,6 +59,7 @@
 #include "HotfixPackets.h"
 #include "Position.h"
 #include "Object.h"
+#include "Bag.h"
 
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
@@ -174,6 +175,8 @@ public:
 			{ "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
+            { "cleanbag",           rbac::RBAC_PERM_COMMAND_DAMAGE,         false, &HandleCleanBagCommand,         "" },
+
 
         };
         return commandTable;
@@ -4078,13 +4081,21 @@ public:
         uint32 parentMap = uint32(atoi(pId));
 
         // check if parentmap values is an existing map
-        QueryResult mapCheck = WorldDatabase.PQuery("SELECT m_ID from map_check where m_ID = %u", parentMap);
-        if (!mapCheck) 
+        MapEntry const* mapEntry = sMapStore.LookupEntry(parentMap);
+        if (!mapEntry)
         {
             handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, parentMap);
             handler->SetSentErrorMessage(true);
             return false;
         }
+
+        /*QueryResult mapCheck = WorldDatabase.PQuery("SELECT m_ID from map_check where m_ID = %u", parentMap);
+        if (!mapCheck) 
+        {
+            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, parentMap);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }*/
      
 
         QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", mapId);
@@ -4333,6 +4344,7 @@ public:
     static bool HandlePhaseTerrainCommand(ChatHandler * handler, char const* args)
     {
         Player* tp = handler->GetSession()->GetPlayer();
+        uint32 mapId = tp->GetMapId();
 
         if (!*args)
             return false;
@@ -4342,9 +4354,16 @@ public:
 
         if (!pId || !tId)
             return false;
+       
 
         uint32 phaseId = uint32(atoi(pId));
         uint32 terrainMap = uint32(atoi(tId));
+
+        if (phaseId < 1 || terrainMap < 1)
+            return false;
+
+        if (mapId < 5000)
+            return false;
 
         QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
         Field* field = checkSql->Fetch();
@@ -4388,6 +4407,7 @@ public:
             return false;
 
         Player* tp = handler->GetSession()->GetPlayer();
+        uint32 mapId = tp->GetMapId();
 
       
         char const* pId = strtok((char*)args, " "); // PhaseID
@@ -4395,6 +4415,12 @@ public:
 
         uint32 phaseId = uint32(atoi(pId));
         uint32 terrainMap = uint32(atoi(tId));
+
+        if (phaseId < 1 || terrainMap < 1)
+            return false;
+
+        if (mapId < 5000)
+            return false;
 
         QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
         Field* field = checkSql->Fetch();
@@ -4432,6 +4458,7 @@ public:
         return true;
     }
 
+
     static bool HandlePhaseMessageCommand(ChatHandler * handler, char const* args)
     {
         if (!*args)
@@ -4449,6 +4476,9 @@ public:
        
         return true;
     }
+
+
+
     static bool CheckModifyResources(ChatHandler* handler, const char* args, Player* target, int32& res, int8 const multiplier = 1)
     {
         if (!*args)
@@ -4495,7 +4525,13 @@ public:
         }
         return false;
     }
-
+    
+    static bool HandleCleanBagCommand(ChatHandler* handler, const char* args)
+    {
+      
+        return true;
+        
+    }
 };
 
 void AddSC_misc_commandscript()

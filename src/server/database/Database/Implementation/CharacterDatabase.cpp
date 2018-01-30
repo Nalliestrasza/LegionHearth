@@ -749,6 +749,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
 	//CUSTOM
 	PrepareStatement(CHAR_SEL_CHARSINFO, "SELECT skin, face, hairStyle, hairColor, facialStyle,customDisplay1, customDisplay2, customDisplay3 FROM characters WHERE guid = ?", CONNECTION_SYNCH);
 	PrepareStatement(CHAR_SEL_CHARITEMINFO, "SELECT equipmentCache FROM characters WHERE guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_DEL_CHARACTER_INVENTORY, "DELETE FROM character_inventory WHERE guid = ?", CONNECTION_ASYNC);
 	
 
 }
