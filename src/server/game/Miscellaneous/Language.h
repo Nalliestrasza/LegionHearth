@@ -1198,5 +1198,15 @@ enum TrinityStrings
     // PHASE MESSAGE
     LANG_PHASE_EVENT_MESSAGE                      = 90014,
 
+    // PHASE PLAYSOUND
+    LANG_PHASE_PLAY_SOUND                         = 90015, // Vous jouez le Son: %u
+    LANG_PHASE_PLAY_SOUND_NO_AUTHORIZE            = 90016, // Vous n'êtes pas autorisé(e) à jouer un son en dehors de vos phases et des phases dans lesquelles vous êtes co-propriétaire.
+    LANG_PHASE_PLAY_SOUND_NOT_OWNER               = 90017, // Vous n'êtes pas le/la propriétaire de cette phase
+
+    // NPC ADD UPDATE
+    LANG_NPC_SPAWN_DIST                           = 90018, // Créature spawn aux coordonnées X: %f, Y: %f, Z: %f sur la Map: %u
+    LANG_NO_AUTHORIZATION                         = 90019, // Vous n'êtes pas autorisé(e) à spawn dans cette phase
+    LANG_MAP_NOT_EXISTS                           = 90020, // La Map %u n'existe pas
+
 };
 #endif

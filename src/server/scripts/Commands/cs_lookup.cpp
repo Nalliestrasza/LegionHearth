@@ -74,6 +74,9 @@ public:
             { "tele",     rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTeleCommand,     "" },
             { "title",    rbac::RBAC_PERM_COMMAND_LOOKUP_TITLE,    true, &HandleLookupTitleCommand,    "" },
             { "map",      rbac::RBAC_PERM_COMMAND_LOOKUP_MAP,      true, &HandleLookupMapCommand,      "" },
+            { "skybox",   rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSkyboxCommand,   "" },
+            { "ambiance", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupAmbianceCommand, "" },
+            { "sound",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSoundCommand,    "" },
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -1410,6 +1413,161 @@ public:
 
         return true;
     }
+
+    static bool HandleLookupSkyboxCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+        {
+            return false;
+        }
+
+        char const* str = strtok((char*)args, " ");
+        if (!str)
+            return false;
+
+        std::stringstream ss;
+        ss << "'%" << str << "%'";
+        std::string namePart = ss.str();
+
+        QueryResult query = WorldDatabase.PQuery("SELECT m_ID, name FROM skybox WHERE name LIKE %s", namePart.c_str());
+
+        if (query) {
+            do {
+                Field* result = query->Fetch();
+                uint32 id = result[0].GetUInt32();
+                std::string name = result[1].GetString();
+                std::ostringstream ss;
+                if (handler->GetSession())
+                    ss << id << " - |cffffffff|Hskybox:" << id << "|h[" << name << "]|h|r";
+                else
+                    ss << id << " - " << name;
+                handler->SendSysMessage(ss.str().c_str());
+            } while (query->NextRow());
+        }
+        else {
+           
+            handler->SendSysMessage("Aucune skybox ne correspond");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+    }
+
+    static bool HandleLookupAmbianceCommand(ChatHandler* handler, char const* args) {
+
+        if (!args)
+            return false;
+
+        char const* mapid = strtok((char*)args, " ");
+        if (!mapid)
+            return false;
+
+        std::string checkIsValid = mapid;
+        uint16 map_id = 0;
+
+        if (std::all_of(checkIsValid.begin(), checkIsValid.end(), ::isdigit)) {
+
+            map_id = atoi(mapid);
+
+        }
+        else {
+            handler->SendSysMessage("Argument invalide");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        QueryResult query = WorldDatabase.PQuery("SELECT m_ID, LightParamsID_1, LightParamsID_2, LightParamsID_3, LightParamsID_4 FROM light l WHERE MapID = %u AND NOT EXISTS"
+            " (SELECT * from skybox s WHERE l.m_ID = s.m_ID)", map_id);
+
+        if (query) {
+
+            std::stringstream s1;
+            s1 << "Les ambiances de la Map " << map_id << " sont : ";
+            handler->SendSysMessage(s1.str().c_str());
+            do {
+
+                Field* result = query->Fetch();
+
+                uint32 no1 = result[0].GetUInt32();
+                uint16 no2 = result[1].GetUInt16();
+                uint16 no3 = result[2].GetUInt16();
+                uint16 no4 = result[3].GetUInt16();
+                uint16 no5 = result[4].GetUInt16();
+
+                std::ostringstream ss;
+                if (handler->GetSession()) {
+
+                    ss << "Ambiance light " << no1 << " : " << "|cffffffff|Hlight:" << "|h" << no1 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no2 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no3 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no4 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no5 << "|h|r";
+
+                }
+                else {
+
+                    ss << no1 << " - " << no2 << " - " << no3 << " - " << no4 << " - " << no5;
+                }
+
+                handler->SendSysMessage(ss.str().c_str());
+
+            } while (query->NextRow());
+        }
+        else {
+            handler->SendSysMessage("Pas d'ambiance, probablement une map inexistante");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandleLookupSoundCommand(ChatHandler* handler, char const* args) {
+
+        if (!args)
+            return false;
+
+        char const* name = strtok((char*)args, " ");
+        if (!name)
+            return false;
+
+        std::stringstream ss;
+        ss << "'%" << name << "%'";
+        std::string namePart = ss.str();
+
+        QueryResult query = WorldDatabase.PQuery("SELECT m_id, field4 from soundkitname where field4 like %s", namePart);
+
+        if (query) {
+
+            do {
+
+                Field* result = query->Fetch();
+
+                uint32 id = result[0].GetUInt32();
+                std::string soundName = result[1].GetString();
+
+                std::ostringstream s1;
+                if (handler->GetSession()) {
+
+                    s1 << id << " - |cffffffff|Hsound:" << id << "|h[" << soundName << "]|h|r";
+                }
+                else {
+
+                    s1 << id << " - " << soundName;
+                }
+
+                handler->SendSysMessage(s1.str().c_str());
+
+            } while (query->NextRow());
+        }
+        else {
+            handler->SendSysMessage("Pas de son contenant ce mot");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
 };
 
 void AddSC_lookup_commandscript()

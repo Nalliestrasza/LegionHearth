@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -32,6 +32,7 @@ EndScriptData */
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
+#include "MapManager.h"
 #include "Pet.h"
 #include "SpellAuras.h"
 #include "SpellMgr.h"
@@ -270,6 +271,7 @@ public:
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, nullptr,           "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, nullptr,              "", npcSetCommandTable },
             { "evade",     rbac::RBAC_PERM_COMMAND_NPC_EVADE,     false, &HandleNpcEvadeCommand,             ""       },
+            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,             "" },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -284,39 +286,124 @@ public:
         if (!*args)
             return false;
 
+        Player* chr = handler->GetSession()->GetPlayer();
+
         char* charID = handler->extractKeyFromLink((char*)args, "Hcreature_entry");
         if (!charID)
             return false;
 
-        uint32 id  = atoul(charID);
+        char* xs = strtok(NULL, " ");
+        char* ys = strtok(NULL, " ");
+        char* zs = strtok(NULL, " ");
+        char* maps = strtok(NULL, " ");
+
+        float axeX = 0, axeY = 0, axeZ = 0, x = 0, y = 0, z = 0;
+        Map* map;
+
+        if (xs)
+            axeX = (float)atof(xs);
+        if (ys)
+            axeY = (float)atof(ys);
+        if (zs)
+            axeZ = (float)atof(zs);
+
+        uint32 id = atoul(charID);
         if (!sObjectMgr->GetCreatureTemplate(id))
             return false;
 
-		TC_LOG_DEBUG("chat.log.whisper", "%s a .npc add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), id);
+        TC_LOG_DEBUG("chat.log.whisper", "%s a .npc add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), id);
 
-        Player* chr = handler->GetSession()->GetPlayer();
-        float x = chr->GetPositionX();
-        float y = chr->GetPositionY();
-        float z = chr->GetPositionZ();
+        if (!axeX || axeX == 0)
+            x = chr->GetPositionX();
+        else
+            x = axeX;
+        if (!axeY || axeY == 0)
+            y = chr->GetPositionY();
+        else
+            y = axeY;
+        if (!axeZ || axeZ == 0)
+            z = chr->GetPositionZ();
+        else
+            z = axeZ;
         float o = chr->GetOrientation();
-        Map* map = chr->GetMap();
+        if (maps) {
+            MapEntry const* mapEntry = sMapStore.LookupEntry(atoi(maps));
+            if (!mapEntry)
+            {
+                handler->PSendSysMessage(LANG_MAP_NOT_EXISTS, atoi(maps));
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+            else {
+                if (atoi(maps) != 0) {
+                    map = sMapMgr->CreateBaseMap(atoi(maps));
+                }
+                else {
+                    map = sMapMgr->CreateBaseMap(atoi(maps));
+                }
+            }
+        }
+        else {
+            map = chr->GetMap();
+        }
 
         if (Transport* trans = chr->GetTransport())
         {
-            ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
-            CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
-            data.id = id;
-            data.posX = chr->GetTransOffsetX();
-            data.posY = chr->GetTransOffsetY();
-            data.posZ = chr->GetTransOffsetZ();
-            data.orientation = chr->GetTransOffsetO();
-            /// @todo: add phases
+            if (map->GetId() > 5000) {
 
-            Creature* creature = trans->CreateNPCPassenger(guid, &data);
+                QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", map->GetId(), chr->GetSession()->GetAccountId());
 
-            creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
+                if (!checkSql) {
+                    handler->PSendSysMessage(LANG_NO_AUTHORIZATION);
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+                else {
 
-            sObjectMgr->AddCreatureToGrid(guid, &data);
+                    ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
+                    CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
+                    data.id = id;
+                    data.posX = chr->GetTransOffsetX();
+                    data.posY = chr->GetTransOffsetY();
+                    data.posZ = chr->GetTransOffsetZ();
+                    data.orientation = chr->GetTransOffsetO();
+                    /// @todo: add phases
+
+                    Creature* creature = trans->CreateNPCPassenger(guid, &data);
+
+                    creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
+
+                    sObjectMgr->AddCreatureToGrid(guid, &data);
+                    if (xs && ys && zs && maps) {
+                        handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
+                    }
+                    return true;
+
+                }
+            }
+            else {
+
+                ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
+                CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
+                data.id = id;
+                data.posX = chr->GetTransOffsetX();
+                data.posY = chr->GetTransOffsetY();
+                data.posZ = chr->GetTransOffsetZ();
+                data.orientation = chr->GetTransOffsetO();
+                /// @todo: add phases
+
+                Creature* creature = trans->CreateNPCPassenger(guid, &data);
+
+                creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
+
+                sObjectMgr->AddCreatureToGrid(guid, &data);
+                if (xs && ys && zs && maps) {
+                    handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
+                }
+                return true;
+
+            }
+
             return true;
         }
 
@@ -328,23 +415,69 @@ public:
         }
 
         creature->CopyPhaseFrom(chr);
-        creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
 
-        ObjectGuid::LowType db_guid = creature->GetSpawnId();
+        if (map->GetId() > 5000) {
 
-        // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
-        // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
-        creature->CleanupsBeforeDelete();
-        delete creature;
-        creature = new Creature();
-        if (!creature->LoadCreatureFromDB(db_guid, map))
-        {
+            QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", map->GetId(), chr->GetSession()->GetAccountId());
+
+            if (!checkSql) {
+                handler->PSendSysMessage(LANG_NO_AUTHORIZATION);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+            else {
+
+                creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+
+                ObjectGuid::LowType db_guid = creature->GetSpawnId();
+
+                // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
+                // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
+                creature->CleanupsBeforeDelete();
+                delete creature;
+                creature = new Creature();
+                if (!creature->LoadCreatureFromDB(db_guid, map))
+                {
+                    delete creature;
+                    return false;
+                }
+
+                sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+                if (xs && ys && zs && maps) {
+                    handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
+                }
+                return true;
+
+            }
+
+        }
+        else {
+
+            creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+
+            ObjectGuid::LowType db_guid = creature->GetSpawnId();
+
+            // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
+            // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
+            creature->CleanupsBeforeDelete();
             delete creature;
-            return false;
+            creature = new Creature();
+            if (!creature->LoadCreatureFromDB(db_guid, map))
+            {
+                delete creature;
+                return false;
+            }
+
+            sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+            if (xs && ys && zs && maps) {
+                handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
+            }
+            return true;
+
         }
 
-        sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
         return true;
+
     }
 
     //add item in vendorlist
@@ -1776,7 +1909,7 @@ public:
 		}
 		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -1817,7 +1950,7 @@ public:
 
         target->SetAIAnimKitId(animkit);
 
-        //Coté SQL
+        //CotÃ© SQL
         guidLow = target->GetSpawnId();
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
@@ -1879,7 +2012,7 @@ public:
 
 		//.ToString().c_str()
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		std::string auraString = std::to_string(uint32(spellId));
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
@@ -1931,7 +2064,7 @@ public:
 		target->Mount(mount);
 
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -1952,6 +2085,93 @@ public:
 
 		return true;
 	}
+
+    static bool HandleNpcAddPosCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        Player* chr = handler->GetSession()->GetPlayer();
+
+        char* charID = handler->extractKeyFromLink((char*)args, "Hcreature_entry");
+        if (!charID)
+            return false;
+
+        char* xs = strtok(NULL, " ");
+        char* ys = strtok(NULL, " ");
+        char* zs = strtok(NULL, " ");
+
+        if (!xs)
+            return false;
+        if (!ys)
+            return false;
+        if (!zs)
+            return false;
+
+        float axeX = 0, axeY = 0, axeZ = 0, x = 0, y = 0, z = 0;
+
+        axeX = (float)atof(xs);
+        axeY = (float)atof(ys);
+        axeZ = (float)atof(zs);
+
+        uint32 id = atoul(charID);
+        if (!sObjectMgr->GetCreatureTemplate(id))
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "%s a .npc add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), id);
+
+        x = chr->GetPositionX() + axeX;
+        y = chr->GetPositionY() + axeY;
+        z = chr->GetPositionZ() + axeZ;
+        float o = chr->GetOrientation();
+        Map* map = chr->GetMap();
+
+        if (Transport* trans = chr->GetTransport())
+        {
+            ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
+            CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
+            data.id = id;
+            data.posX = chr->GetTransOffsetX();
+            data.posY = chr->GetTransOffsetY();
+            data.posZ = chr->GetTransOffsetZ();
+            data.orientation = chr->GetTransOffsetO();
+            /// @todo: add phases
+
+            Creature* creature = trans->CreateNPCPassenger(guid, &data);
+
+            creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
+
+            sObjectMgr->AddCreatureToGrid(guid, &data);
+            return true;
+        }
+
+        Creature* creature = new Creature();
+        if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, id, x, y, z, o))
+        {
+            delete creature;
+            return false;
+        }
+
+        creature->CopyPhaseFrom(chr);
+        creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+
+        ObjectGuid::LowType db_guid = creature->GetSpawnId();
+
+        // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
+        // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
+        creature->CleanupsBeforeDelete();
+        delete creature;
+        creature = new Creature();
+        if (!creature->LoadCreatureFromDB(db_guid, map))
+        {
+            delete creature;
+            return false;
+        }
+
+        sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+        return true;
+    }
+
 };
 
 void AddSC_npc_commandscript()

@@ -684,6 +684,8 @@ class TC_GAME_API World
         void SendServerMessage(ServerMessageType messageID, std::string stringParam = "", Player* player = NULL);
         void SendGlobalMessage(WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendGlobalGMMessage(WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
+        void SendMapSound(uint32 mapid, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
+        void SendMapSkybox(uint32 mapid, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession* self = nullptr, uint32 team = 0);
 

@@ -823,6 +823,7 @@ namespace WorldPackets
         {
         public:
             OverrideLight() : ServerPacket(SMSG_OVERRIDE_LIGHT, 4 + 4 + 4) { }
+            OverrideLight(int32 areaLightID, int32 milli, int32 overLightID) : ServerPacket(SMSG_OVERRIDE_LIGHT, 4 + 4 + 4), AreaLightID(areaLightID), TransitionMilliseconds(milli), OverrideLightID(overLightID) { }
 
             WorldPacket const* Write() override;
 
