@@ -109,7 +109,10 @@ public:
         {
             player->SetGameMaster(false); 
             player->BindToInstance();
-            // player->AddAura(SPELL_MUTE_PLAYER, player);
+
+            if(!reachFinal)
+                player->AddAura(SPELL_MUTE_PLAYER, player);
+
             phaseMaze();
             player->CastSpell(player, SPELL_HIDDEN_AURA_1SEC, true);
         }
@@ -637,7 +640,7 @@ public:
             if (BlueRuneState == GO_STATE_READY && RedRuneState == GO_STATE_READY && GreenRuneState == GO_STATE_READY && YellowRuneState == GO_STATE_READY && VioletRuneState == GO_STATE_READY && !finished)
                 finished = true;
 
-            if (canUseTime && difftime(time(0), canTpNow) > 2)
+            if (canUseTime && difftime(time(0), canTpNow) > 2.001)
             {
                 Map::PlayerList const& lPlayers = instance->GetPlayers();
                 if (!lPlayers.isEmpty() && finished)
@@ -649,10 +652,7 @@ public:
                             //TODO : create portal in final room and teleport the player outta here with unaura all and other things
                             // Try to delete instance when leave
                             reachFinal = true;
-                            player->CastSpell(player, SPELL_DIRECT_BLACKOUT, true); // test not fluid, maybe use spell for fade out not in
                             player->TeleportTo(1764,-1748.07f,354.195f,116.615f,(float)M_PI); // Final room
-                            player->RemoveAllAuras();
-
                         }
 
                 }
@@ -662,7 +662,7 @@ public:
             // Brutal
             Map::PlayerList const& lPlayers = instance->GetPlayers();
 
-            if (!lPlayers.isEmpty() && !reachFinal)
+            if (!lPlayers.isEmpty())
             {
                 for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                     if (Player* player = itr->GetSource())

@@ -30,35 +30,7 @@
 #include "TemporarySummon.h"
 
 // i don't know how to program properly :(
-// instances stuructures are so fucking annoying
-
-// generate maze
-/*
-North South 
-0000 	0 	0 	0
-0001 	1 	1 	1
-0010 	2 	2 	2
-0011 	3 	3 	3
-0100 	4 	4 	4
-0101 	5 	5 	5
-0110 	6 	6 	6
-0111 	7 	7 	7
-1000 	10 	8 	8
-1001 	11 	9 	9
-1010 	12 	10 	A
-1011 	13 	11 	B
-1100 	14 	12 	C
-1101 	15 	13 	D
-1110 	16 	14 	E
-1111 	17 	15 	F
-*/
-
-
-// SpellScript = Teleporter
-// SpellScript = Aura orbe couleur
-// Gameobject = Rune au sol
-// Gameobject = Orbe au sol
-// Gameobject = Brouillard / Cailloux ???
+// instances structures are so fucking annoying
 
 uint32 SpellOrbEntries[] =
 {
@@ -142,7 +114,13 @@ public:
 
         void OnCast(SpellMissInfo missInfo)
         {
-            printf("OnCast ! ");
+            if (GetHitPlayer())
+            {
+                Player* player = GetHitPlayer();
+                player->RemoveAllAuras();
+                // player->TeleportTo(870, 535.248962, 453.204132, 301.937988, 3.036497); bug
+                // GetCaster()->ToPlayer()->TeleportTo((uint32)870, 535.248962f, 453.204132f, 301.937988f, 3.036497f);
+            }
         }
 
         void Register() override
@@ -233,6 +211,7 @@ public:
         return false;
     }
 };
+
 
 void AddSC_endless_halls()
 {

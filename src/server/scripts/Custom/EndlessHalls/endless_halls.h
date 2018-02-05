@@ -98,7 +98,9 @@ enum EHSpells
     SPELL_MUTE_PLAYER = 1852,
 
     SPELL_HIDDEN_AURA_1SEC = 218611, // Swimmer Teleport
-    SPELL_EXIT_MAZE = 247349, // Teleport out
+    SPELL_EXIT_MAZE = 253764, // 000
+
+    // SPELL_EXIT_MAZE = 247349, // Teleport out, Shit spell not working, maybe edit SpellEffect and m_caster->GetPlayer
     // Creer un gob de tp comme les autres et cast ce spell
     // Utiliser méthode OnCast, puis unaura le joueur, tp le joueur en extérieur et ensuite on détruit l'instance.
 
