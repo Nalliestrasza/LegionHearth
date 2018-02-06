@@ -884,6 +884,11 @@ void GameObject::SaveToDB()
 
 void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
 {
+    // player variable for logs
+    Player* player;
+    uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+
+
     const GameObjectTemplate* goI = GetGOInfo();
 
     if (!goI)
@@ -958,6 +963,9 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
+    // Test PlayerInfo
+    stmt->setUInt32(index++, spawnerAccountId);
+
     trans->Append(stmt);
 
     WorldDatabase.CommitTransaction(trans);
