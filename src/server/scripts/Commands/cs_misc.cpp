@@ -4265,6 +4265,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
+        uint32 mapCache = player->GetMapId();
 
         if (map > 5000)
         {
@@ -4279,20 +4280,16 @@ public:
                 handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
                 return false;
             }
-
+                                    
             Field* fields = results->Fetch();
 
             uint32 replaceID = uint32(atoi(pId));
             uint32 lightId = fields[0].GetUInt32();
+                      
+            //sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(0)).Write());
 
+            sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
 
-            WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
-            data << lightId;
-            data << replaceID;
-            data << 200;
-
-            handler->GetSession()->SendPacket(&data, true);
-            sWorld->SendMapSkybox(map, WorldPackets::Misc::OverrideLight(lightId, 200, replaceID).Write());
         }
         else
         {
@@ -4307,14 +4304,14 @@ public:
 
             uint32 replaceID = uint32(atoi(pId));
             uint32 lightId = fields[0].GetUInt32();
-
-
+                       
             WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
             data << lightId;
             data << replaceID;
             data << 200;
 
             handler->GetSession()->SendPacket(&data, true);
+
         }
 
 
