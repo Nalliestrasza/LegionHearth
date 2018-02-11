@@ -266,7 +266,7 @@ public:
             else
                 eventFilter << ')';
 
-            result = WorldDatabase.PQuery("SELECT gameobject.guid, id, position_x, position_y, position_z, orientation, map, PhaseId, PhaseGroup, "
+            result = WorldDatabase.PQuery("SELECT gameobject.guid, id, position_x, position_y, position_z, orientation, map, PhaseId, PhaseGroup, spawnerAccountId, spawnerPlayerId, "
                 "(POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ FROM gameobject "
                 "LEFT OUTER JOIN game_event_gameobject on gameobject.guid = game_event_gameobject.guid WHERE map = '%i' %s ORDER BY order_ ASC LIMIT 10",
                 handler->GetSession()->GetPlayer()->GetPositionX(), handler->GetSession()->GetPlayer()->GetPositionY(), handler->GetSession()->GetPlayer()->GetPositionZ(),
@@ -282,7 +282,8 @@ public:
         bool found = false;
         float x, y, z, o;
         ObjectGuid::LowType guidLow;
-        uint32 id, phaseId, phaseGroup;
+        uint32 id, phaseId, phaseGroup, spawnerAccountId;
+        uint64 spawnerPlayerId;
         uint16 mapId;
         uint32 poolId;
 
@@ -298,6 +299,8 @@ public:
             mapId =         fields[6].GetUInt16();
             phaseId =       fields[7].GetUInt32();
             phaseGroup =    fields[8].GetUInt32();
+            spawnerAccountId = fields[9].GetUInt32();
+            spawnerPlayerId = fields[10].GetUInt64();
             poolId =  sPoolMgr->IsPartOfAPool<GameObject>(guidLow);
             if (!poolId || sPoolMgr->IsSpawnedObject<GameObject>(guidLow))
                 found = true;
@@ -320,6 +323,23 @@ public:
         GameObject* target = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL, std::to_string(guidLow).c_str(), objectInfo->name.c_str(), std::to_string(guidLow).c_str(), id, x, y, z, mapId, o, phaseId, phaseGroup);
+        handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PID, spawnerPlayerId);
+        handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
+
+        
+        QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
+        Field* fields = getName->Fetch();
+        std::string spawnerName;
+        spawnerName = fields[0].GetString();
+
+        if (!getName)
+        {
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_DELETE_PNAME);
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PNAME, spawnerName);
+        }
 
         if (target)
         {
@@ -751,6 +771,8 @@ public:
         handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
     }
+
+  
 };
 
 void AddSC_gobject_commandscript()

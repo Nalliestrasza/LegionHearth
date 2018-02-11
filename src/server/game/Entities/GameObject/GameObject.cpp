@@ -43,6 +43,7 @@
 #include "World.h"
 #include <G3D/Quat.h>
 
+
 bool QuaternionData::isUnit() const
 {
     return fabs(x * x + y * y + z * z + w * w - 1.0f) < 1e-5;
@@ -886,8 +887,9 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
 {
     // player variable for logs
     Player* player;
+  
     uint32 spawnerAccountId = player->GetSession()->GetAccountId();
-
+    uint64 spawnerGuid = player->GetGUID().GetCounter();
 
     const GameObjectTemplate* goI = GetGOInfo();
 
@@ -963,11 +965,10 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
-    // Test PlayerInfo
     stmt->setUInt32(index++, spawnerAccountId);
+    stmt->setUInt64(index++, spawnerGuid);    
 
     trans->Append(stmt);
-
     WorldDatabase.CommitTransaction(trans);
 }
 

@@ -136,6 +136,7 @@ enum WorldDatabaseStatements : uint32
    // phase allow when you create ur phase
     WORLD_INS_PHASE_ALLOW,
 
+
     MAX_WORLDDATABASE_STATEMENTS
 };
 

@@ -1207,6 +1207,12 @@ enum TrinityStrings
     LANG_NPC_SPAWN_DIST                           = 90018, // Créature spawn aux coordonnées X: %f, Y: %f, Z: %f sur la Map: %u
     LANG_NO_AUTHORIZATION                         = 90019, // Vous n'êtes pas autorisé(e) à spawn dans cette phase
     LANG_MAP_NOT_EXISTS                           = 90020, // La Map %u n'existe pas
+          
+    //GOB DETAILS
+    LANG_GAMEOBJECT_DETAIL_ACCID                  = 90021,
+    LANG_GAMEOBJECT_DETAIL_PID                    = 90022,
+    LANG_GAMEOBJECT_DETAIL_PNAME                  = 90023,
+    LANG_GAMEOBJECT_DETAIL_DELETE_PNAME           = 90024,
 
 };
 #endif
