@@ -4552,7 +4552,7 @@ public:
             Field* mapfields = mapresult->Fetch();
             map = mapfields[0].GetUInt16();
 
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", map);
+            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
 
             if (!results)
             {
@@ -4570,7 +4570,7 @@ public:
         }
         else
         {
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", player->GetMapId());
+            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", player->GetMapId());
             if (!results)
             {
                 handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
