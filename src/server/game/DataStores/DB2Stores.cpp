@@ -175,6 +175,7 @@ DB2Storage<NameGenEntry>                        sNameGenStore("NameGen.db2", Nam
 DB2Storage<NamesProfanityEntry>                 sNamesProfanityStore("NamesProfanity.db2", NamesProfanityLoadInfo::Instance());
 DB2Storage<NamesReservedEntry>                  sNamesReservedStore("NamesReserved.db2", NamesReservedLoadInfo::Instance());
 DB2Storage<NamesReservedLocaleEntry>            sNamesReservedLocaleStore("NamesReservedLocale.db2", NamesReservedLocaleLoadInfo::Instance());
+DB2Storage<NPCModelItemSlotDisplayInfoEntry>    sNPCModelItemSlotDisplayInfoStore("NPCModelItemSlotDisplayInfo.db2", NPCModelItemSlotDisplayInfoLoadInfo::Instance());
 DB2Storage<OverrideSpellDataEntry>              sOverrideSpellDataStore("OverrideSpellData.db2", OverrideSpellDataLoadInfo::Instance());
 DB2Storage<PhaseEntry>                          sPhaseStore("Phase.db2", PhaseLoadInfo::Instance());
 DB2Storage<PhaseXPhaseGroupEntry>               sPhaseXPhaseGroupStore("PhaseXPhaseGroup.db2", PhaseXPhaseGroupLoadInfo::Instance());
@@ -597,6 +598,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sNamesProfanityStore);
     LOAD_DB2(sNamesReservedStore);
     LOAD_DB2(sNamesReservedLocaleStore);
+    LOAD_DB2(sNPCModelItemSlotDisplayInfoStore);
     LOAD_DB2(sOverrideSpellDataStore);
     LOAD_DB2(sPhaseStore);
     LOAD_DB2(sPhaseXPhaseGroupStore);

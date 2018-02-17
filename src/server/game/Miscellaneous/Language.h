@@ -359,7 +359,8 @@ enum TrinityStrings
     LANG_COMMAND_FACTION_NOREP_ERROR    = 326,
     LANG_FACTION_NOREPUTATION           = 327,
     LANG_LOOKUP_PLAYER_ACCOUNT          = 328,
-    LANG_LOOKUP_PLAYER_CHARACTER        = 329,
+    // PLAYER OF ACCOUNT IS ONLINE
+    LANG_LOOKUP_PLAYER_CHARACTER_ONLINE = 329, // Green if Online
     LANG_NO_PLAYERS_FOUND               = 330,
     LANG_EXTENDED_COST_NOT_EXIST        = 331,
     LANG_GM_ON                          = 332,
@@ -1170,6 +1171,57 @@ enum TrinityStrings
 	LANG_CUST_TABARD                              = 65120, // PLAYER TABARD
 	LANG_CUST_MAINHAND                            = 65121, // PLAYER MAINHAND
 	LANG_CUST_OFFHAND                             = 65122, // PLAYER OFFHAND
+    LANG_CUST_NPCINFOS_TEXT                       = 65123, // NPC INFOS TEXT
+    LANG_CUST_PRIMARYHAND                         = 65124, // NPC MAINHAND
+    LANG_CUST_SECONDARYHAND                       = 65125, // NPC OFFHAND
+    LANG_CUST_TERTIARYHAND                        = 65126, // NPC BOW
+
+    // SET CAST TARGET
+    LANG_CAST_TARGET_NOT_CREATURE                 = 70000, // The target isn't a creature.
+    LANG_CAST_TARGET_NO_CREATURE_ON_MAP           = 70001, // The creature doesn't exist on this map.
+
+    // MAIL INFO
+    LANG_PINFO_CHR_MAILINFO_SEND                  = 70002, // Id : %u, Receiver : %s, Subject : %s
+    LANG_PINFO_CHR_MAILINFO_RECEIVE               = 70003, // Id : %u, Sender : %s, Subject : %s
+
+    // PLAYER OF ACCOUNT IS OFFLINE
+    LANG_LOOKUP_PLAYER_CHARACTER_OFFLINE          = 70004, // Red if Offline
+
+    // LOOKUP SKYBOX
+    LANG_LOOKUP_SKYBOX                            = 70005, // return list of skybox name
+    LANG_LOOKUP_SKYBOX_ERROR                      = 70006, // return error of listing
+
+    // LOOKUP AMBIANCE
+    LANG_LOOKUP_AMBIANCE                          = 70007, // return list of ambiance light from mapid
+    LANG_LOOKUP_AMBIANCE_ERROR                    = 70008, // return error of listing
+    LANG_LOOKUP_AMBIANCE_INVALID_ARG              = 70009, // wrong args
+    LANG_LOOKUP_AMBIANCE_ARE                      = 70010, // intro message of results
+
+    // LOOKUP SOUND
+    LANG_LOOKUP_SOUND                             = 70011, // return list of sounds
+    LANG_LOOKUP_SOUND_ERROR                       = 70012, // return error of listing
+
+    // LOOKUP TERRAIN
+    LANG_LOOKUP_TERRAIN                           = 70013, // return list of map for terrain
+    LANG_LOOKUP_TERRAIN_ERROR                     = 70014, // return error of listing
+
+    // LOOKUP PHASE OWNER
+    LANG_LOOKUP_PHASE_OWN                         = 70015, // return list of owned phases
+    LANG_LOOKUP_PHASE_OWN_ERROR                   = 70016, // return error of listing
+
+    // LOOKUP PHASE AUT
+    LANG_LOOKUP_PHASE_AUT                         = 70017, // return list of authorized phases
+    LANG_LOOKUP_PHASE_AUT_ERROR                   = 70018, // return error of listing
+
+    // LOOKUP PLAYER MAIL
+    LANG_LOOKUP_PLAYER_MAIL                       = 70019, // return content of ID mail
+    LANG_LOOKUP_PLAYER_MAIL_ERROR                 = 70020, // return error of wrong ID
+
+    // SET NAME
+    LANG_NAME_NOT_GOOD                            = 70021, // Name not good
+    LANG_NAME_TOO_LONG                            = 70022, // Too long, spaces count !
+    LANG_NAME_GOOD                                = 70023, // Being processed
+
 
     // Phase System
 

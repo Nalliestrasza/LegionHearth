@@ -1953,6 +1953,14 @@ struct NamesReservedLocaleEntry
     uint8 LocaleMask;
 };
 
+struct NPCModelItemSlotDisplayInfoEntry
+{
+    uint32 ID;
+    uint32 ExtendedDisplayID;
+    uint32 DisplayID;
+    uint8 Slot;
+};
+
 #define MAX_OVERRIDE_SPELL 10
 
 struct OverrideSpellDataEntry

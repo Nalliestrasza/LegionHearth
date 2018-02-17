@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -49,12 +49,20 @@ public:
             { "ip",      rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_IP,      true, &HandleLookupPlayerIpCommand,        "" },
             { "account", rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_ACCOUNT, true, &HandleLookupPlayerAccountCommand,   "" },
             { "email",   rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_EMAIL,   true, &HandleLookupPlayerEmailCommand,     "" },
+            { "mail",    rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_EMAIL,   true, &HandleLookupPlayerMailCommand,      "" },
+
         };
 
         static std::vector<ChatCommand> lookupSpellCommandTable =
         {
             { "id", rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL_ID, true, &HandleLookupSpellIdCommand,         "" },
             { "",   rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL,    true, &HandleLookupSpellCommand,           "" },
+        };
+
+        static std::vector<ChatCommand> lookupPhaseCommandTable =
+        {
+            { "own", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,    true, &HandleLookupPhaseOwnCommand,        "" },
+            { "aut", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,    true, &HandleLookupPhaseAutCommand,        "" },
         };
 
         static std::vector<ChatCommand> lookupCommandTable =
@@ -77,6 +85,9 @@ public:
             { "skybox",   rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSkyboxCommand,   "" },
             { "ambiance", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupAmbianceCommand, "" },
             { "sound",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSoundCommand,    "" },
+            { "terrain",  rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTerrainCommand,  "" },
+            { "phase",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, NULL,                         "", lookupPhaseCommandTable },
+
         };
 
         static std::vector<ChatCommand> commandTable =
@@ -1366,6 +1377,7 @@ public:
             return false;
         }
 
+        //Player* target;
         int32 counter = 0;
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
@@ -1395,9 +1407,21 @@ public:
                     Field* characterFields  = result2->Fetch();
                     ObjectGuid guid         = ObjectGuid::Create<HighGuid::Player>(characterFields[0].GetUInt64());
                     std::string name        = characterFields[1].GetString();
+                    Player* target = NULL;
+                    target = ObjectAccessor::FindPlayer(guid);
 
-                    handler->PSendSysMessage(LANG_LOOKUP_PLAYER_CHARACTER, name.c_str(), guid.ToString().c_str());
-                    ++counter;
+
+                    if (target && target != NULL) {
+                        handler->PSendSysMessage(LANG_LOOKUP_PLAYER_CHARACTER_ONLINE, name.c_str(), guid.ToString().c_str());
+                        ++counter;
+                        target = NULL;
+                    }
+                    else {
+                        handler->PSendSysMessage(LANG_LOOKUP_PLAYER_CHARACTER_OFFLINE, name.c_str(), guid.ToString().c_str());
+                        ++counter;
+                        target = NULL;
+                    }
+
                 }
                 while (result2->NextRow() && (limit == -1 || counter < limit));
             }
@@ -1436,17 +1460,12 @@ public:
                 Field* result = query->Fetch();
                 uint32 id = result[0].GetUInt32();
                 std::string name = result[1].GetString();
-                std::ostringstream ss;
-                if (handler->GetSession())
-                    ss << id << " - |cffffffff|Hskybox:" << id << "|h[" << name << "]|h|r";
-                else
-                    ss << id << " - " << name;
-                handler->SendSysMessage(ss.str().c_str());
+                handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, id, name.c_str());
             } while (query->NextRow());
         }
         else {
            
-            handler->SendSysMessage("Aucune skybox ne correspond");
+            handler->PSendSysMessage(LANG_LOOKUP_SKYBOX_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -1472,7 +1491,7 @@ public:
 
         }
         else {
-            handler->SendSysMessage("Argument invalide");
+            handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_INVALID_ARG);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -1483,8 +1502,8 @@ public:
         if (query) {
 
             std::stringstream s1;
-            s1 << "Les ambiances de la Map " << map_id << " sont : ";
-            handler->SendSysMessage(s1.str().c_str());
+            s1 << map_id;
+            handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ARE, s1.str().c_str());
             do {
 
                 Field* result = query->Fetch();
@@ -1495,23 +1514,12 @@ public:
                 uint16 no4 = result[3].GetUInt16();
                 uint16 no5 = result[4].GetUInt16();
 
-                std::ostringstream ss;
-                if (handler->GetSession()) {
-
-                    ss << "Ambiance light " << no1 << " : " << "|cffffffff|Hlight:" << "|h" << no1 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no2 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no3 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no4 << "|h|r" << " - " << "|cffffffff|Hlight:" << "|h" << no5 << "|h|r";
-
-                }
-                else {
-
-                    ss << no1 << " - " << no2 << " - " << no3 << " - " << no4 << " - " << no5;
-                }
-
-                handler->SendSysMessage(ss.str().c_str());
+                handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE, no1, no2, no3, no4, no5);
 
             } while (query->NextRow());
         }
         else {
-            handler->SendSysMessage("Pas d'ambiance, probablement une map inexistante");
+            handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -1544,22 +1552,219 @@ public:
                 uint32 id = result[0].GetUInt32();
                 std::string soundName = result[1].GetString();
 
-                std::ostringstream s1;
-                if (handler->GetSession()) {
-
-                    s1 << id << " - |cffffffff|Hsound:" << id << "|h[" << soundName << "]|h|r";
-                }
-                else {
-
-                    s1 << id << " - " << soundName;
-                }
-
-                handler->SendSysMessage(s1.str().c_str());
+                handler->PSendSysMessage(LANG_LOOKUP_SOUND, id, soundName.c_str());
 
             } while (query->NextRow());
         }
         else {
-            handler->SendSysMessage("Pas de son contenant ce mot");
+            handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandleLookupTerrainCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        std::string namePart = args;
+        std::wstring wNamePart;
+
+        if (!Utf8toWStr(namePart, wNamePart))
+            return false;
+
+        wstrToLower(wNamePart);
+
+        uint32 counter = 0;
+        uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
+
+        // search in Map.dbc
+        for (uint32 id = 0; id < sMapStore.GetNumRows(); ++id)
+        {
+            if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
+            {
+                int32 locale = handler->GetSessionDbcLocale();
+                std::string name = mapInfo->MapName->Str[locale];
+                if (name.empty())
+                    continue;
+
+                if (!Utf8FitTo(name, wNamePart) && handler->GetSession())
+                {
+                    locale = 0;
+                    for (; locale < TOTAL_LOCALES; ++locale)
+                    {
+                        if (locale == handler->GetSessionDbcLocale())
+                            continue;
+
+                        name = mapInfo->MapName->Str[locale];
+                        if (name.empty())
+                            continue;
+
+                        if (Utf8FitTo(name, wNamePart))
+                            break;
+                    }
+                }
+
+                if (locale < TOTAL_LOCALES)
+                {
+                    if (maxResults && counter == maxResults)
+                    {
+                        handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
+                        return true;
+                    }
+
+                    handler->PSendSysMessage(LANG_LOOKUP_TERRAIN, id, name.c_str());
+
+                    ++counter;
+                }
+            }
+        }
+
+        if (!counter)
+            handler->PSendSysMessage(LANG_LOOKUP_TERRAIN_ERROR);
+
+        return true;
+    }
+
+    static bool HandleLookupPhaseOwnCommand(ChatHandler* handler, char const* args) 
+    {
+
+        uint32 phaseIdOwner = 0;
+
+        QueryResult query = WorldDatabase.PQuery("SELECT phaseId from phase_owner where accountOwner = %u", handler->GetSession()->GetAccountId());
+
+        if (query) {
+
+            do {
+
+                Field* owner = query->Fetch();
+
+                phaseIdOwner = owner[0].GetUInt32();
+
+                QueryResult query3 = WorldDatabase.PQuery("SELECT name from game_tele where map = %u", phaseIdOwner);
+
+                if (query3) {
+
+                    do {
+
+                        Field* result = query3->Fetch();
+
+                        std::string phaseName = result[0].GetString();
+
+                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN, phaseName.c_str());
+
+                    } while (query3->NextRow());
+
+                }
+                else {
+                    handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN_ERROR);
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+            } while (query->NextRow());
+
+        }
+        else {
+            handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN_ERROR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandleLookupPhaseAutCommand(ChatHandler* handler, char const* args)
+    {
+
+        uint16 phaseIdAllow = 0;
+
+        QueryResult query = WorldDatabase.PQuery("SELECT phaseId from phase_allow where playerId = %u", handler->GetSession()->GetAccountId());
+
+        if (query) {
+
+            do {
+
+                Field* allow = query->Fetch();
+
+                phaseIdAllow = allow[0].GetUInt16();
+
+                QueryResult query3 = WorldDatabase.PQuery("SELECT name from game_tele where map = %u", phaseIdAllow);
+
+                if (query3) {
+
+                    do {
+
+                        Field* result = query3->Fetch();
+
+                        std::string phaseName = result[0].GetString();
+
+                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT, phaseName.c_str());
+
+                    } while (query3->NextRow());
+
+                }
+                else {
+                    handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT_ERROR);
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+            } while (query->NextRow());
+
+        }
+        else {
+            handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT_ERROR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandleLookupPlayerMailCommand(ChatHandler* handler, char const* args) 
+    {
+
+        if (!args)
+            return false;
+
+        char const* id = strtok((char*)args, " ");
+
+        if (!id)
+            return false;
+
+        uint32 m_ID = 0;
+
+        if (id) {
+
+            std::string checkString = id;
+
+            if (std::all_of(checkString.begin(), checkString.end(), ::isdigit)) {
+
+                m_ID = atoi(id);
+
+            }
+            else {
+                return false;
+            }
+
+        }
+
+        QueryResult query = CharacterDatabase.PQuery("SELECT body FROM mail WHERE id = %u", m_ID);
+        if (query) {
+            Field* fields = query->Fetch();
+            std::string str = fields[0].GetString();
+
+            handler->PSendSysMessage(LANG_LOOKUP_PLAYER_MAIL, str.c_str());
+        }
+        else {
+            handler->PSendSysMessage(LANG_LOOKUP_PLAYER_MAIL_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
