@@ -2205,22 +2205,6 @@ uint32 Unit::CalculateDamage(WeaponAttackType attType, bool normalized, bool add
     return urand(uint32(minDamage), uint32(maxDamage));
 }
 
-float Unit::CalculateLevelPenalty(SpellInfo const* spellProto) const
-{
-    if (spellProto->SpellLevel <= 0 || spellProto->SpellLevel >= spellProto->MaxLevel)
-        return 1.0f;
-
-    float LvlPenalty = 0.0f;
-
-    if (spellProto->SpellLevel < 20)
-        LvlPenalty = (20.0f - spellProto->SpellLevel) * 3.75f;
-    float LvlFactor = (float(spellProto->SpellLevel) + 6.0f) / float(getLevel());
-    if (LvlFactor > 1.0f)
-        LvlFactor = 1.0f;
-
-    return AddPct(LvlFactor, -LvlPenalty);
-}
-
 void Unit::SendMeleeAttackStart(Unit* victim)
 {
     WorldPackets::Combat::AttackStart packet;
@@ -3034,15 +3018,19 @@ int32 Unit::GetCurrentSpellCastTime(uint32 spell_id) const
     return 0;
 }
 
-bool Unit::CanMoveDuringChannel() const
+bool Unit::IsMovementPreventedByCasting() const
 {
-    if (Spell* spell = m_currentSpells[CURRENT_CHANNELED_SPELL])
-    {
-        if (spell->getState() != SPELL_STATE_FINISHED && spell->IsChannelActive())
-            if (!spell->GetSpellInfo()->IsMoveAllowedChannel())
-                return false;
-    }
+    // can always move when not casting
+    if (!HasUnitState(UNIT_STATE_CASTING))
+        return false;
 
+    // channeled spells during channel stage (after the initial cast timer) allow movement with a specific spell attribute
+    if (Spell* spell = m_currentSpells[CURRENT_CHANNELED_SPELL])
+        if (spell->getState() != SPELL_STATE_FINISHED && spell->IsChannelActive())
+            if (spell->GetSpellInfo()->IsMoveAllowedChannel())
+                return false;
+
+    // prohibit movement for all other spell casts
     return true;
 }
 
@@ -3139,7 +3127,10 @@ Aura* Unit::_TryStackingOrRefreshingExistingAura(SpellInfo const* newAura, uint3
         if (castItem)
         {
             castItemGuid = castItem->GetGUID();
-            castItemLevel = castItem->GetItemLevel(castItem->GetOwner());
+            if (Player* owner = castItem->GetOwner())
+                castItemLevel = int32(castItem->GetItemLevel(owner));
+            else if (castItem->GetOwnerGUID() == caster->GetGUID())
+                castItemLevel = int32(castItem->GetItemLevel(caster->ToPlayer()));
         }
 
         // find current aura from spell and change it's stackamount, or refresh it's duration
@@ -5326,8 +5317,7 @@ ReputationRank Unit::GetReactionTo(Unit const* target) const
             }
 
             // check FFA_PVP
-            if (GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_FFA_PVP
-                && target->GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_FFA_PVP)
+            if (IsFFAPvP() && target->IsFFAPvP())
                 return REP_HOSTILE;
 
             if (selfPlayerOwner)
@@ -6498,15 +6488,13 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     float coeff = effect->BonusCoefficient;
     if (DoneAdvertisedBenefit)
     {
-        float factorMod = CalculateLevelPenalty(spellProto) * stack;
-
         if (Player* modOwner = GetSpellModOwner())
         {
             coeff *= 100.0f;
             modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_BONUS_MULTIPLIER, coeff);
             coeff /= 100.0f;
         }
-        DoneTotal += int32(DoneAdvertisedBenefit * coeff * factorMod);
+        DoneTotal += int32(DoneAdvertisedBenefit * coeff * stack);
     }
 
     // Done Percentage for DOT is already calculated, no need to do it again. The percentage mod is applied in Aura::HandleAuraSpecificMods.
@@ -6647,7 +6635,6 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
         // Default calculation
         if (TakenAdvertisedBenefit)
         {
-            float factorMod = CalculateLevelPenalty(spellProto) * stack;
             // level penalty still applied on Taken bonus - is it blizzlike?
             if (Player* modOwner = GetSpellModOwner())
             {
@@ -6655,7 +6642,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
                 modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_BONUS_MULTIPLIER, coeff);
                 coeff /= 100.0f;
             }
-            TakenTotal += int32(TakenAdvertisedBenefit * coeff * factorMod);
+            TakenTotal += int32(TakenAdvertisedBenefit * coeff * stack);
         }
     }
 
@@ -6944,7 +6931,6 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
 
     // Check for table values
     float coeff = spellEffect->BonusCoefficient;
-    float factorMod = 1.0f;
     if (spellEffect->BonusCoefficientFromAP > 0.0f)
     {
         DoneTotal += int32(spellEffect->BonusCoefficientFromAP * stack * GetTotalAttackPowerValue(
@@ -6960,8 +6946,6 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
     // Default calculation
     if (DoneAdvertisedBenefit)
     {
-        factorMod *= CalculateLevelPenalty(spellProto) * stack;
-
         if (Player* modOwner = GetSpellModOwner())
         {
             coeff *= 100.0f;
@@ -6969,7 +6953,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
             coeff /= 100.0f;
         }
 
-        DoneTotal += int32(DoneAdvertisedBenefit * coeff * factorMod);
+        DoneTotal += int32(DoneAdvertisedBenefit * coeff * stack);
     }
 
     for (SpellEffectInfo const* effect : spellProto->GetEffectsForDifficulty(GetMap()->GetDifficultyID()))
@@ -7056,7 +7040,6 @@ uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, u
 
     // Check for table values
     float coeff = spellEffect->BonusCoefficient;
-    float factorMod = 1.0f;
     if (coeff <= 0.0f)
     {
         // No bonus healing for SPELL_DAMAGE_CLASS_NONE class spells by default
@@ -7070,7 +7053,6 @@ uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, u
     // Default calculation
     if (TakenAdvertisedBenefit)
     {
-        factorMod *= CalculateLevelPenalty(spellProto) * int32(stack);
         if (Player* modOwner = GetSpellModOwner())
         {
             coeff *= 100.0f;
@@ -7078,7 +7060,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, u
             coeff /= 100.0f;
         }
 
-        TakenTotal += int32(TakenAdvertisedBenefit * coeff * factorMod);
+        TakenTotal += int32(TakenAdvertisedBenefit * coeff * stack);
     }
 
     AuraEffectList const& mHealingGet= GetAuraEffectsByType(SPELL_AURA_MOD_HEALING_RECEIVED);
@@ -7185,7 +7167,8 @@ bool Unit::IsImmunedToDamage(SpellInfo const* spellInfo) const
     if (!spellInfo)
         return false;
 
-    if (spellInfo->HasAttribute(SPELL_ATTR3_IGNORE_HIT_RESULT))
+    // for example 40175
+    if (spellInfo->HasAttribute(SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY) && spellInfo->HasAttribute(SPELL_ATTR3_IGNORE_HIT_RESULT))
         return false;
 
     if (spellInfo->HasAttribute(SPELL_ATTR1_UNAFFECTED_BY_SCHOOL_IMMUNE) || spellInfo->HasAttribute(SPELL_ATTR2_UNAFFECTED_BY_AURA_SCHOOL_IMMUNE))
@@ -7918,10 +7901,26 @@ bool Unit::_IsValidAttackTarget(Unit const* target, SpellInfo const* bySpell, Wo
         || (target->GetTypeId() == TYPEID_PLAYER && target->ToPlayer()->IsGameMaster()))
         return false;
 
-    // can't attack invisible (ignore stealth for aoe spells) also if the area being looked at is from a spell use the dynamic object created instead of the casting unit. Ignore stealth if target is player and unit in combat with same player
-    // skip visibility check for GO casts, needs removal when go cast is implemented
-    if (GetEntry() != WORLD_TRIGGER && (!bySpell || !bySpell->HasAttribute(SPELL_ATTR6_CAN_TARGET_INVISIBLE)) && (obj ? !obj->CanSeeOrDetect(target, bySpell && bySpell->IsAffectingArea(GetMap()->GetDifficultyID())) : !CanSeeOrDetect(target, (bySpell && bySpell->IsAffectingArea(GetMap()->GetDifficultyID())) || (target->GetTypeId() == TYPEID_PLAYER && target->HasStealthAura() && target->IsInCombat() && IsInCombatWith(target)))))
-        return false;
+    // visibility checks
+    // skip visibility check for GO casts, needs removal when go cast is implemented. Also ignore for gameobject and dynauras
+    if (GetEntry() != WORLD_TRIGGER && (!obj || !obj->isType(TYPEMASK_GAMEOBJECT | TYPEMASK_DYNAMICOBJECT)))
+    {
+        // can't attack invisible
+        if (!bySpell || !bySpell->HasAttribute(SPELL_ATTR6_CAN_TARGET_INVISIBLE))
+        {
+            if (obj && !obj->CanSeeOrDetect(target, bySpell && bySpell->IsAffectingArea(GetMap()->GetDifficultyID())))
+                return false;
+            else if (!obj)
+            {
+                // ignore stealth for aoe spells. Ignore stealth if target is player and unit in combat with same player
+                bool const ignoreStealthCheck = (bySpell && bySpell->IsAffectingArea(GetMap()->GetDifficultyID())) ||
+                    (target->GetTypeId() == TYPEID_PLAYER && target->HasStealthAura() && target->IsInCombat() && IsInCombatWith(target));
+
+                if (!CanSeeOrDetect(target, ignoreStealthCheck))
+                    return false;
+            }
+        }
+    }
 
     // can't attack dead
     if ((!bySpell || !bySpell->IsAllowingDeadTarget()) && !target->IsAlive())
@@ -7956,7 +7955,7 @@ bool Unit::_IsValidAttackTarget(Unit const* target, SpellInfo const* bySpell, Wo
 
     // PvP, PvC, CvP case
     // can't attack friendly targets
-    if ( GetReactionTo(target) > REP_NEUTRAL
+    if (GetReactionTo(target) > REP_NEUTRAL
         || target->GetReactionTo(this) > REP_NEUTRAL)
         return false;
 
@@ -7964,10 +7963,8 @@ bool Unit::_IsValidAttackTarget(Unit const* target, SpellInfo const* bySpell, Wo
     Player const* playerAffectingTarget = target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE) ? target->GetAffectingPlayer() : nullptr;
 
     // Not all neutral creatures can be attacked (even some unfriendly faction does not react aggresive to you, like Sporaggar)
-    if  (
-        (playerAffectingAttacker && !playerAffectingTarget) ||
-        (!playerAffectingAttacker && playerAffectingTarget)
-    )
+    if ((playerAffectingAttacker && !playerAffectingTarget) ||
+        (!playerAffectingAttacker && playerAffectingTarget))
     {
         Player const* player = playerAffectingAttacker ? playerAffectingAttacker : playerAffectingTarget;
         Unit const* creature = playerAffectingAttacker ? target : this;
@@ -8001,15 +7998,14 @@ bool Unit::_IsValidAttackTarget(Unit const* target, SpellInfo const* bySpell, Wo
     // additional checks - only PvP case
     if (playerAffectingAttacker && playerAffectingTarget)
     {
-        if (target->GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_PVP)
+        if (target->IsPvP())
             return true;
 
-        if (GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_FFA_PVP
-            && target->GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_FFA_PVP)
+        if (IsFFAPvP() && target->IsFFAPvP())
             return true;
 
-        return (GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_UNK1)
-            || (target->GetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG) & UNIT_BYTE2_FLAG_UNK1);
+        return HasByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG, UNIT_BYTE2_FLAG_UNK1)
+            || target->HasByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG, UNIT_BYTE2_FLAG_UNK1);
     }
     return true;
 }

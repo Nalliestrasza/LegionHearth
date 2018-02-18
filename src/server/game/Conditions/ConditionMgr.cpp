@@ -1325,7 +1325,7 @@ bool ConditionMgr::addToGossipMenus(Condition* cond) const
     {
         for (GossipMenusContainer::iterator itr = pMenuBounds.first; itr != pMenuBounds.second; ++itr)
         {
-            if ((*itr).second.MenuID == cond->SourceGroup && (*itr).second.TextID == uint32(cond->SourceEntry))
+            if ((*itr).second.MenuId == cond->SourceGroup && (*itr).second.TextId == uint32(cond->SourceEntry))
             {
                 (*itr).second.Conditions.push_back(cond);
                 return true;
@@ -1344,7 +1344,7 @@ bool ConditionMgr::addToGossipMenuItems(Condition* cond) const
     {
         for (GossipMenuItemsContainer::iterator itr = pMenuItemBounds.first; itr != pMenuItemBounds.second; ++itr)
         {
-            if ((*itr).second.MenuID == cond->SourceGroup && (*itr).second.OptionID == uint32(cond->SourceEntry))
+            if ((*itr).second.MenuId == cond->SourceGroup && (*itr).second.OptionIndex == uint32(cond->SourceEntry))
             {
                 (*itr).second.Conditions.push_back(cond);
                 return true;
@@ -2533,7 +2533,7 @@ bool ConditionMgr::IsPlayerMeetingCondition(Player const* player, PlayerConditio
     {
         if (LanguageDesc const* lang = GetLanguageDescByID(condition->LanguageID))
         {
-            uint32 languageSkill = player->GetSkillValue(lang->skill_id);
+            int32 languageSkill = player->GetSkillValue(lang->skill_id);
             if (!languageSkill && player->HasAuraTypeWithMiscvalue(SPELL_AURA_COMPREHEND_LANGUAGE, condition->LanguageID))
                 languageSkill = 300;
 
@@ -2839,10 +2839,10 @@ bool ConditionMgr::IsPlayerMeetingCondition(Player const* player, PlayerConditio
         }
     }
 
-    if (condition->MinAvgItemLevel && uint32(std::floor(player->GetFloatValue(PLAYER_FIELD_AVG_ITEM_LEVEL))) < condition->MinAvgItemLevel)
+    if (condition->MinAvgItemLevel && int32(std::floor(player->GetFloatValue(PLAYER_FIELD_AVG_ITEM_LEVEL))) < condition->MinAvgItemLevel)
         return false;
 
-    if (condition->MaxAvgItemLevel && uint32(std::floor(player->GetFloatValue(PLAYER_FIELD_AVG_ITEM_LEVEL))) > condition->MaxAvgItemLevel)
+    if (condition->MaxAvgItemLevel && int32(std::floor(player->GetFloatValue(PLAYER_FIELD_AVG_ITEM_LEVEL))) > condition->MaxAvgItemLevel)
         return false;
 
     if (condition->MinAvgEquippedItemLevel && uint32(std::floor(player->GetFloatValue(PLAYER_FIELD_AVG_ITEM_LEVEL + 1))) < condition->MinAvgEquippedItemLevel)

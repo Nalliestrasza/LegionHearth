@@ -760,14 +760,13 @@ struct TC_GAME_API ItemTemplate
     HolidayIds GetHolidayID() const { return HolidayIds(ExtendedData->HolidayID); }
     float  GetStatScalingFactor() const { return ExtendedData->StatScalingFactor; }
     uint8 GetArtifactID() const { return ExtendedData->ArtifactID; }
+    uint8 GetRequiredExpansion() const { return ExtendedData->RequiredExpansion; }
 
     uint32 MaxDurability;
     std::vector<ItemEffectEntry const*> Effects;
 
     // extra fields, not part of db2 files
     uint32 ScriptId;
-    uint32 DisenchantID;
-    uint32 RequiredDisenchantSkill;
     uint32 FoodType;
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;

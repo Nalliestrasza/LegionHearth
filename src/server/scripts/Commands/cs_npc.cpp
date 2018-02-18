@@ -311,6 +311,7 @@ public:
         if (!sObjectMgr->GetCreatureTemplate(id))
             return false;
 
+
         TC_LOG_DEBUG("chat.log.whisper", "%s a .npc add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), id);
 
         if (!axeX || axeX == 0)
@@ -346,6 +347,10 @@ public:
         else {
             map = chr->GetMap();
         }
+
+        Player* chr = handler->GetSession()->GetPlayer();
+        Map* map = chr->GetMap();
+
 
         if (Transport* trans = chr->GetTransport())
         {
@@ -407,12 +412,9 @@ public:
             return true;
         }
 
-        Creature* creature = new Creature();
-        if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, id, x, y, z, o))
-        {
-            delete creature;
+        Creature* creature = Creature::CreateCreature(id, map, chr->GetPosition());
+        if (!creature)
             return false;
-        }
 
         creature->CopyPhaseFrom(chr);
 
@@ -435,19 +437,13 @@ public:
                 // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
                 creature->CleanupsBeforeDelete();
                 delete creature;
-                creature = new Creature();
-                if (!creature->LoadCreatureFromDB(db_guid, map))
-                {
-                    delete creature;
+
+                creature = Creature::CreateCreatureFromDB(db_guid, map);
+                if (!creature)
                     return false;
-                }
 
                 sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
-                if (xs && ys && zs && maps) {
-                    handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
-                }
                 return true;
-
             }
 
         }
@@ -461,12 +457,10 @@ public:
             // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
             creature->CleanupsBeforeDelete();
             delete creature;
-            creature = new Creature();
-            if (!creature->LoadCreatureFromDB(db_guid, map))
-            {
-                delete creature;
+
+            creature = Creature::CreateCreatureFromDB(db_guid, map);
+            if (!creature)
                 return false;
-            }
 
             sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
             if (xs && ys && zs && maps) {
