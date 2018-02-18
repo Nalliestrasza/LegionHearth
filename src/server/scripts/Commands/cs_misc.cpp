@@ -197,18 +197,13 @@ public:
             { "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable     },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
-<<<<<<< HEAD
             { "denied",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleDeniedCommand,           "" },
             { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketCommand,           "" },
             { "ticketlist",       rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketListCommand,       "" },
-
-=======
-            { "cleanbag",         rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleCleanBagCommand,         "" },
             { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisCommand,         "" },
             { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisCommand,       "" },
             { "set",              rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", setCommandTable       },
             { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
->>>>>>> ed07bc28a81ac4ab762d77e6911954f41924dee0
 
         };
         return commandTable;
