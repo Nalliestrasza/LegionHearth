@@ -1214,5 +1214,14 @@ enum TrinityStrings
     LANG_GAMEOBJECT_DETAIL_PNAME                  = 90023,
     LANG_GAMEOBJECT_DETAIL_DELETE_PNAME           = 90024,
 
+    //DENIED COMMAND
+    LANG_DENIED_SUCCESSFULL                       = 90025,
+    LANG_DENIED_ERROR                             = 90026,
+
+    //TICKET
+    LANG_TICKET_SEND_GM                           = 90027,
+    LANG_TICKET_SEND_GM_CONTENT                   = 90028,
+    LANG_TICKET_LIST                              = 90029,
+
 };
 #endif

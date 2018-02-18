@@ -136,6 +136,10 @@ enum WorldDatabaseStatements : uint32
    // phase allow when you create ur phase
     WORLD_INS_PHASE_ALLOW,
 
+    // ticket system
+    WORLD_INS_NEW_TICKET,
+      
+
 
     MAX_WORLDDATABASE_STATEMENTS
 };

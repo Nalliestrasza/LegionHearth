@@ -129,6 +129,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // ALLOW
     PrepareStatement(WORLD_INS_PHASE_ALLOW, "INSERT INTO phase_allow (phaseId, playerId) VALUES (?,?)", CONNECTION_ASYNC);
 
+    // TICKET System
+    PrepareStatement(WORLD_INS_NEW_TICKET, "INSERT INTO ticket (ticketId, ticketContents, ticketOwner, ticketOwnerGuid, ticketOwnerAccId) VALUES (?,?,?,?,?)", CONNECTION_ASYNC);
+
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)

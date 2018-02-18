@@ -247,6 +247,7 @@ void ChatHandler::SendGlobalGMSysMessage(const char *str)
     free(buf);
 }
 
+
 void ChatHandler::SendSysMessage(uint32 entry)
 {
     SendSysMessage(GetTrinityString(entry));

@@ -176,7 +176,9 @@ public:
             { "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
             { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
-            { "cleanbag",           rbac::RBAC_PERM_COMMAND_DAMAGE,         false, &HandleCleanBagCommand,         "" },
+            { "denied",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleDeniedCommand,           "" },
+            { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketCommand,           "" },
+            { "ticketlist",       rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketListCommand,       "" },
 
 
         };
@@ -4579,12 +4581,95 @@ static bool HandleHealthCommand(ChatHandler* handler, const char* args)
     return false;
 }
 
-static bool HandleCleanBagCommand(ChatHandler* handler, const char* args)
+static bool HandleDeniedCommand(ChatHandler* handler, const char* args)
 {
+    if (!*args)
+        return false;
+    
 
+    char const* aId = strtok((char*)args, " ");
+    char const* pId = strtok(NULL, " ");
+
+
+    if (!aId || !pId)
+        return false;
+
+
+    uint32 accountId = uint32(atoi(aId));
+    uint32 permission = uint32(atoi(pId));
+
+    QueryResult permCheck = LoginDatabase.PQuery("SELECT permissionId FROM rbac_account_permissions WHERE permissionId = %u AND accountId = %u ", permission, accountId);
+    if (permCheck)
+    {
+        handler->PSendSysMessage(LANG_DENIED_ERROR, accountId, permission);
+    }
+
+    else
+    {
+        PreparedStatement* addPerm = LoginDatabase.GetPreparedStatement(LOGIN_INS_DENIED_PERMISSION);
+        addPerm->setUInt32(0, accountId);
+        addPerm->setUInt32(1, permission);
+        LoginDatabase.Execute(addPerm);
+
+        sAccountMgr->LoadRBAC();
+        sWorld->ReloadRBAC();
+        handler->SendGlobalGMSysMessage("RBAC data reloaded.");
+
+        handler->PSendSysMessage(LANG_DENIED_SUCCESSFULL, accountId, permission);
+    }
+
+   
     return true;
 
 }
+
+static bool HandleTicketCommand(ChatHandler* handler, const char* args)
+{
+    if (!*args)
+        return false;
+
+    Player* player;
+
+    char* msg = (char*)args;
+    std::string playerName = handler->GetSession()->GetPlayer()->GetName();
+  
+
+
+    // auto increment test 
+    QueryResult lastId = WorldDatabase.PQuery("SELECT MAX(ticketId) from ticket");
+    Field* field = lastId->Fetch();
+    uint32 tId = field[0].GetUInt32();
+        ++tId;
+  
+
+    PreparedStatement* sendTicket = WorldDatabase.GetPreparedStatement(WORLD_INS_NEW_TICKET);
+    sendTicket->setUInt32(0, tId);
+    sendTicket->setString(1, msg);
+    sendTicket->setString(2, playerName.c_str());
+    sendTicket->setInt64(3, handler->GetSession()->GetAccountId());
+    sendTicket->setInt64(4, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+    WorldDatabase.Execute(sendTicket);
+
+    
+    sWorld->SendGMText(LANG_TICKET_SEND_GM, tId, handler->GetSession()->GetAccountId(), handler->GetSession()->GetPlayer()->GetGUID().GetCounter(), playerName.c_str());
+    sWorld->SendGMText(LANG_TICKET_SEND_GM_CONTENT, tId, msg);
+
+}
+
+static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
+{
+    Player* player;
+
+    QueryResult listTicket = WorldDatabase.PQuery("SELECT ticketId, ticketContents, ticketOwner from ticket WHERE ticketStatus = 0");
+    Field* field = listTicket->Fetch();
+    uint32 ticketId = field[0].GetUInt32();
+    std::string ticketMsg = field[1].GetString();
+    std::string ticketOwner = field[2].GetString();
+    
+    sWorld->SendGMText(LANG_TICKET_LIST, ticketId, ticketMsg, ticketOwner);
+
+}
+
 };
 
 void AddSC_misc_commandscript()
