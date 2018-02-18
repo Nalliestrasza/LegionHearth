@@ -3249,6 +3249,22 @@ struct NamesReservedLocaleLoadInfo
     }
 };
 
+struct NPCModelItemSlotDisplayInfoLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_INT, "ExtendedDisplayID" },
+            { false, FT_INT, "DisplayID" },
+            { false, FT_BYTE, "Slot" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, NPCModelItemSlotDisplayInfoMeta::Instance(), HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO);
+        return &loadInfo;
+    }
+};
+
 struct OverrideSpellDataLoadInfo
 {
     static DB2LoadInfo const* Instance()

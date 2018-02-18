@@ -147,11 +147,18 @@ bool normalizePlayerName(std::string& name)
 
     if (!Utf8toWStr(name, &wstr_buf[0], wstr_len))
         return false;
-
+    
     wstr_buf[0] = wcharToUpper(wstr_buf[0]);
-    for (size_t i = 1; i < wstr_len; ++i)
-        wstr_buf[i] = wcharToLower(wstr_buf[i]);
-
+    for (size_t i = 1; i < wstr_len; ++i) {
+        if (wstr_buf[i - 1] == '_') {
+            wstr_buf[i - 1] = ' ';
+            wstr_buf[i] = wcharToUpper(wstr_buf[i]);
+        }
+        else {
+            wstr_buf[i] = wcharToLower(wstr_buf[i]);
+        }
+    }
+    
     if (!WStrToUtf8(wstr_buf, wstr_len, name))
         return false;
 
@@ -7970,7 +7977,7 @@ ResponseCodes ObjectMgr::CheckPlayerName(std::string const& name, LocaleConstant
 {
     std::wstring wname;
     if (!Utf8toWStr(name, wname))
-        return CHAR_NAME_INVALID_CHARACTER;
+        return CHAR_NAME_SUCCESS;
 
     if (wname.size() > MAX_PLAYER_NAME)
         return CHAR_NAME_TOO_LONG;
@@ -7981,12 +7988,12 @@ ResponseCodes ObjectMgr::CheckPlayerName(std::string const& name, LocaleConstant
 
     uint32 strictMask = sWorld->getIntConfig(CONFIG_STRICT_PLAYER_NAMES);
     if (!isValidString(wname, strictMask, false, create))
-        return CHAR_NAME_MIXED_LANGUAGES;
+        return CHAR_NAME_SUCCESS;
 
     wstrToLower(wname);
     for (size_t i = 2; i < wname.size(); ++i)
         if (wname[i] == wname[i-1] && wname[i] == wname[i-2])
-            return CHAR_NAME_THREE_CONSECUTIVE;
+            return CHAR_NAME_SUCCESS;
 
     return sDB2Manager.ValidateName(wname, locale);
 }

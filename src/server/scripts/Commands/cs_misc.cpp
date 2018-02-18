@@ -90,6 +90,27 @@ public:
             { "playsound",  rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhasePlaySoundCommand,	         "" },
         };
 
+        static std::vector<ChatCommand> castCommandTable =
+        {
+            { "target",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetCastTargetCommand,            "" },
+        };
+
+        static std::vector<ChatCommand> uncastCommandTable =
+        {
+            { "target",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleUnsetCastTargetCommand,          "" },
+        };
+
+        static std::vector<ChatCommand> setCommandTable =
+        {
+            { "cast",       rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", castCommandTable },
+            { "name",       rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetNameCommand,     "" },
+        };
+
+        static std::vector<ChatCommand> unsetCommandTable =
+        {
+            { "cast",       rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", uncastCommandTable },
+        };
+
         static std::vector<ChatCommand> commandTable =
         {
             { "additem",          rbac::RBAC_PERM_COMMAND_ADDITEM,          false, &HandleAddItemCommand,          "" },
@@ -170,16 +191,24 @@ public:
             { "sang",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSangCommand,             "" },
             { "nuit",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleNuitCommand,             "" },
             { "forgeinfo",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleForgeInfoCommand,        "" },
-            { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisualCommand,      "" },
-            { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisualCommand,    "" },
+            { "spellviskit",      rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellViskitCommand,      "" },
+            { "unspellviskit",    rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellViskitCommand,    "" },
             { "animkit",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAnimKitCommand,          "" },
             { "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
-            { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable },
+            { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable     },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
+<<<<<<< HEAD
             { "denied",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleDeniedCommand,           "" },
             { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketCommand,           "" },
             { "ticketlist",       rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketListCommand,       "" },
 
+=======
+            { "cleanbag",         rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleCleanBagCommand,         "" },
+            { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisCommand,         "" },
+            { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisCommand,       "" },
+            { "set",              rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", setCommandTable       },
+            { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
+>>>>>>> ed07bc28a81ac4ab762d77e6911954f41924dee0
 
         };
         return commandTable;
@@ -2067,6 +2096,36 @@ public:
                 handler->PSendSysMessage(LANG_PINFO_CHR_MAILS, readmail, totalmail);
         }
 
+        PreparedStatement* stmt5 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_SEND);
+        stmt5->setUInt64(0, lowguid);
+        PreparedQueryResult result7 = CharacterDatabase.Query(stmt5);
+        if (result7) {
+            do {
+                Field* fields = result7->Fetch();
+                uint32 ID = fields[0].GetUInt32();
+                std::string RECEIVER = fields[1].GetString();
+                std::string SUBJECT = fields[2].GetString();
+
+                handler->PSendSysMessage(LANG_PINFO_CHR_MAILINFO_SEND, ID, RECEIVER.c_str(), SUBJECT.c_str());
+
+            } while (result7->NextRow());
+        }
+
+        PreparedStatement* stmt6 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_RECEIVE);
+        stmt6->setUInt64(0, lowguid);
+        PreparedQueryResult result8 = CharacterDatabase.Query(stmt6);
+        if (result8) {
+            do {
+                Field* fields = result8->Fetch();
+                uint32 ID = fields[0].GetUInt32();
+                std::string SENDER = fields[1].GetString();
+                std::string SUBJECT = fields[2].GetString();
+
+                handler->PSendSysMessage(LANG_PINFO_CHR_MAILINFO_RECEIVE, ID, SENDER.c_str(), SUBJECT.c_str());
+
+            } while (result8->NextRow());
+        }
+
         return true;
     }
 
@@ -3089,15 +3148,12 @@ public:
         return true;
     }
 
-    static bool HandleSpellVisualCommand(ChatHandler* handler, char const* args)
+    static bool HandleSpellViskitCommand(ChatHandler* handler, char const* args)
     {
-        // Unit* target = handler->getSelectedUnit();
-        Player* target = handler->GetSession()->GetPlayer(); // Only self
+        Unit* target = handler->getSelectedUnit();
+        //Player* target = handler->GetSession()->GetPlayer(); // Only self
 
         if (!*args)
-            return false;
-
-        if (!target)
             return false;
 
         TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .spellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
@@ -3107,21 +3163,23 @@ public:
 
         const uint32 newEntry = uint32(atoi(entry));
 
+        if (target) {
+            target->SendPlaySpellVisualKit(newEntry, 2, 0);
+        }
+        else {
+            handler->GetSession()->GetPlayer()->SendPlaySpellVisualKit(newEntry, 2, 0);
+        }
 
-        target->SendPlaySpellVisualKit(newEntry, 2, 0);
 
         return true;
     }
 
-    static bool HandleUnSpellVisualCommand(ChatHandler* handler, char const* args)
+    static bool HandleUnSpellViskitCommand(ChatHandler* handler, char const* args)
     {
         Unit* target = handler->getSelectedUnit();
         // Player* target = handler->GetSession()->GetPlayer(); // Only self
 
         if (!*args)
-            return false;
-
-        if (!target)
             return false;
 
         TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .unspellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
@@ -3131,8 +3189,14 @@ public:
 
         const uint32 newEntry = uint32(atoi(entry));
 
+        if (target) {
 
-        target->SendCancelSpellVisualKit(newEntry);
+            target->SendCancelSpellVisualKit(newEntry);
+        }
+        else {
+
+            handler->GetSession()->GetPlayer()->SendCancelSpellVisualKit(newEntry);
+        }
 
         return true;
     }
@@ -3144,9 +3208,6 @@ public:
         if (!*args)
             return false;
 
-        if (!target)
-            return false;
-
         TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .animkit", handler->GetSession()->GetPlayer()->GetName().c_str());
 
         const char* entry;
@@ -3154,7 +3215,16 @@ public:
 
         const uint32 newEntry = uint32(atoi(entry));
 
-        target->SetAIAnimKitId(newEntry);
+        if (target) {
+
+            target->SetAIAnimKitId(newEntry);
+
+        }
+        else {
+
+            handler->GetSession()->GetPlayer()->SetAIAnimKitId(newEntry);
+
+        }
 
         return true;
     }
@@ -3848,8 +3918,12 @@ public:
 
         return true;
     }
+
     static bool HandleForgeInfoCommand(ChatHandler* handler, char const* args)
     {
+
+        Unit* target = handler->getSelectedUnit();
+
         // Get Textures
         if (!handler->GetSession()->GetPlayer())
         {
@@ -3858,101 +3932,274 @@ public:
             return false;
         }
 
-        uint32 guid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
+        uint32 guid = 0;
+        uint32 displayId = 0;
+        uint32 entryExtra = 0;
+        uint32 entryId = 0;
+        uint8 skin = 0;
+        uint8 face = 0;
+        uint8 hair = 0;
+        uint8 hcol = 0;
+        uint8 pilo = 0;
+        uint8 cust1 = 0;
+        uint8 cust2 = 0;
+        uint8 cust3 = 0;
+        uint32 arme1 = 0;
+        uint32 arme2 = 0;
+        uint32 arme3 = 0;
+        uint64 head = 0;
+        uint64 shoulders = 0;
+        uint64 body = 0;
+        uint64 chest = 0;
+        uint64 waist = 0;
+        uint64 legs = 0;
+        uint64 feet = 0;
+        uint64 wrists = 0;
+        uint64 hands = 0;
+        uint64 back = 0;
+        uint64 tabard = 0;
 
-        //Query
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARSINFO);
-        stmt->setUInt64(0, guid);
-        PreparedQueryResult result = CharacterDatabase.Query(stmt);
-
-        if (!result)
-            return false;
-
-        Field* fields = result->Fetch();
-
-        uint8 skin = fields[0].GetUInt8();
-        uint8 face = fields[1].GetUInt8();
-        uint8 hair = fields[2].GetUInt8();
-        uint8 hcol = fields[3].GetUInt8();
-        uint8 pilo = fields[4].GetUInt8();
-        uint8 cust1 = fields[5].GetUInt8();
-        uint8 cust2 = fields[6].GetUInt8();
-        uint8 cust3 = fields[7].GetUInt8();
-
-        //Get Equipment		
-        Player* player = handler->GetSession()->GetPlayer();
-        static EquipmentSlots const itemSlots[] =
-        {
-            EQUIPMENT_SLOT_HEAD,
-            EQUIPMENT_SLOT_SHOULDERS,
-            EQUIPMENT_SLOT_BODY,
-            EQUIPMENT_SLOT_CHEST,
-            EQUIPMENT_SLOT_WAIST,
-            EQUIPMENT_SLOT_LEGS,
-            EQUIPMENT_SLOT_FEET,
-            EQUIPMENT_SLOT_WRISTS,
-            EQUIPMENT_SLOT_HANDS,
-            EQUIPMENT_SLOT_BACK,
-            EQUIPMENT_SLOT_TABARD,
-            EQUIPMENT_SLOT_MAINHAND,
-            EQUIPMENT_SLOT_OFFHAND,
-        };
-
-        std::vector<uint32> eqqList = std::vector<uint32>();
-
-        // Stolen code from SpellHandler
-        for (EquipmentSlots slot : itemSlots)
-        {
-            uint32 itemDisplayId;
-            if ((slot == EQUIPMENT_SLOT_HEAD && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM)) ||
-                (slot == EQUIPMENT_SLOT_BACK && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK)))
-                itemDisplayId = 0;
-            else if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-            {
-                itemDisplayId = item->GetDisplayId(player);
-
-
-                if (slot == EQUIPMENT_SLOT_MAINHAND || slot == EQUIPMENT_SLOT_OFFHAND)
-                    itemDisplayId = item->GetEntry();
+        if (target) {
+            if (target->IsPlayer()) {
+                guid = target->GetGUID().GetCounter();
             }
-            else
-                itemDisplayId = 0;
-
-
-            eqqList.push_back(itemDisplayId);
+            else if (target->IsCreature()) {
+                displayId = target->GetDisplayId();
+                guid = target->GetGUID().GetCounter();
+            }
+        }
+        else {
+            guid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
         }
 
+        if (!target || target && target->IsPlayer()) {
+
+            //Query
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARSINFO);
+            stmt->setUInt64(0, guid);
+            PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+            if (!result)
+                return false;
+
+            Field* fields = result->Fetch();
+
+            skin = fields[0].GetUInt8();
+            face = fields[1].GetUInt8();
+            hair = fields[2].GetUInt8();
+            hcol = fields[3].GetUInt8();
+            pilo = fields[4].GetUInt8();
+            cust1 = fields[5].GetUInt8();
+            cust2 = fields[6].GetUInt8();
+            cust3 = fields[7].GetUInt8();
+
+            //Get Equipment		
+            Player* player = handler->getSelectedPlayerOrSelf();
+            static EquipmentSlots const itemSlots[] =
+            {
+                EQUIPMENT_SLOT_HEAD,
+                EQUIPMENT_SLOT_SHOULDERS,
+                EQUIPMENT_SLOT_BODY,
+                EQUIPMENT_SLOT_CHEST,
+                EQUIPMENT_SLOT_WAIST,
+                EQUIPMENT_SLOT_LEGS,
+                EQUIPMENT_SLOT_FEET,
+                EQUIPMENT_SLOT_WRISTS,
+                EQUIPMENT_SLOT_HANDS,
+                EQUIPMENT_SLOT_BACK,
+                EQUIPMENT_SLOT_TABARD,
+                EQUIPMENT_SLOT_MAINHAND,
+                EQUIPMENT_SLOT_OFFHAND,
+            };
+
+            std::vector<uint32> eqqList = std::vector<uint32>();
+
+            // Stolen code from SpellHandler
+            for (EquipmentSlots slot : itemSlots)
+            {
+                uint32 itemDisplayId;
+                if ((slot == EQUIPMENT_SLOT_HEAD && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM)) ||
+                    (slot == EQUIPMENT_SLOT_BACK && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK)))
+                    itemDisplayId = 0;
+                else if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+                {
+                    itemDisplayId = item->GetDisplayId(player);
 
 
-        // TEXTURES
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_TEXT);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_SKIN, skin);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_FACE, face);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_HAIR, hair);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_HCOL, hcol);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_PILO, pilo);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH01, cust1);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
-        handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
-
-        // EQUIPMENTS
-        handler->PSendSysMessage(LANG_CUST_SEPARATOR);
-        handler->PSendSysMessage(LANG_CUST_HEAD, eqqList[0]);
-        handler->PSendSysMessage(LANG_CUST_SHOULDERS, eqqList[1]);
-        handler->PSendSysMessage(LANG_CUST_BODY, eqqList[2]);
-        handler->PSendSysMessage(LANG_CUST_CHEST, eqqList[3]);
-        handler->PSendSysMessage(LANG_CUST_WAIST, eqqList[4]);
-        handler->PSendSysMessage(LANG_CUST_LEGS, eqqList[5]);
-        handler->PSendSysMessage(LANG_CUST_FEET, eqqList[6]);
-        handler->PSendSysMessage(LANG_CUST_WRISTS, eqqList[7]);
-        handler->PSendSysMessage(LANG_CUST_HANDS, eqqList[8]);
-        handler->PSendSysMessage(LANG_CUST_BACK, eqqList[9]);
-        handler->PSendSysMessage(LANG_CUST_TABARD, eqqList[10]);
-        handler->PSendSysMessage(LANG_CUST_MAINHAND, eqqList[11]);
-        handler->PSendSysMessage(LANG_CUST_OFFHAND, eqqList[12]);
+                    if (slot == EQUIPMENT_SLOT_MAINHAND || slot == EQUIPMENT_SLOT_OFFHAND)
+                        itemDisplayId = item->GetEntry();
+                }
+                else
+                    itemDisplayId = 0;
 
 
-        // WEAPONS
+                eqqList.push_back(itemDisplayId);
+            }
+
+            // TEXTURES
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_TEXT);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_SKIN, skin);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_FACE, face);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_HAIR, hair);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_HCOL, hcol);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_PILO, pilo);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH01, cust1);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
+
+            // EQUIPMENTS
+            handler->PSendSysMessage(LANG_CUST_SEPARATOR);
+            handler->PSendSysMessage(LANG_CUST_HEAD, eqqList[0]);
+            handler->PSendSysMessage(LANG_CUST_SHOULDERS, eqqList[1]);
+            handler->PSendSysMessage(LANG_CUST_BODY, eqqList[2]);
+            handler->PSendSysMessage(LANG_CUST_CHEST, eqqList[3]);
+            handler->PSendSysMessage(LANG_CUST_WAIST, eqqList[4]);
+            handler->PSendSysMessage(LANG_CUST_LEGS, eqqList[5]);
+            handler->PSendSysMessage(LANG_CUST_FEET, eqqList[6]);
+            handler->PSendSysMessage(LANG_CUST_WRISTS, eqqList[7]);
+            handler->PSendSysMessage(LANG_CUST_HANDS, eqqList[8]);
+            handler->PSendSysMessage(LANG_CUST_BACK, eqqList[9]);
+            handler->PSendSysMessage(LANG_CUST_TABARD, eqqList[10]);
+            handler->PSendSysMessage(LANG_CUST_MAINHAND, eqqList[11]);
+            handler->PSendSysMessage(LANG_CUST_OFFHAND, eqqList[12]);
+
+            // WEAPONS
+        }
+        else if (target->IsCreature()) {
+
+            uint32 eqqList[11] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+            CreatureDisplayInfoEntry const* entry = sCreatureDisplayInfoStore.LookupEntry(displayId);
+            if (entry) {
+                entryExtra = entry->ExtendedDisplayInfoID;
+            }
+
+            if (entryExtra != 0) {
+
+                CreatureDisplayInfoExtraEntry const* extraEntry = sCreatureDisplayInfoExtraStore.LookupEntry(entryExtra);
+                if (extraEntry) {
+                    skin = extraEntry->SkinID;
+                    face = extraEntry->FaceID;
+                    hair = extraEntry->HairStyleID;
+                    hcol = extraEntry->HairColorID;
+                    pilo = extraEntry->FacialHairID;
+                    cust1 = extraEntry->CustomDisplayOption[0];
+                    cust2 = extraEntry->CustomDisplayOption[1];
+                    cust3 = extraEntry->CustomDisplayOption[2];
+                }
+
+                for (uint32 id = 204560; id < sNPCModelItemSlotDisplayInfoStore.GetNumRows(); ++id)
+                {
+
+                    NPCModelItemSlotDisplayInfoEntry const* armorEntry = sNPCModelItemSlotDisplayInfoStore.LookupEntry(id);
+                    if (armorEntry)
+                    {
+                        if (armorEntry->ExtendedDisplayID == entryExtra)
+                        {
+                            if (armorEntry->Slot == 0)
+                                eqqList[0] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 1)
+                                eqqList[1] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 2)
+                                eqqList[2] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 3)
+                                eqqList[3] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 4)
+                                eqqList[4] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 5)
+                                eqqList[5] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 6)
+                                eqqList[6] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 7)
+                                eqqList[7] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 8)
+                                eqqList[8] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 9)
+                                eqqList[9] = armorEntry->DisplayID;
+                            if (armorEntry->Slot == 10)
+                                eqqList[10] = armorEntry->DisplayID;
+                        }
+                    }
+                }
+            }
+
+            entryId = target->GetEntry();
+
+            arme1 = target->GetVirtualItemId(0);
+            arme2 = target->GetVirtualItemId(1);
+            arme3 = target->GetVirtualItemId(2);
+
+            for (uint32 id = 0; id < sItemModifiedAppearanceStore.GetNumRows(); ++id) {
+                ItemModifiedAppearanceEntry const* appArme1 = sItemModifiedAppearanceStore.LookupEntry(id);
+                if (appArme1) {
+                    if (arme1 == appArme1->ItemID) {
+                        arme1 = appArme1->AppearanceID;
+                    }
+                }
+            }
+
+            ItemAppearanceEntry const* displayArme1 = sItemAppearanceStore.LookupEntry(arme1);
+            if (displayArme1) {
+                arme1 = displayArme1->DisplayID;
+            }
+
+            for (uint32 id = 0; id < sItemModifiedAppearanceStore.GetNumRows(); ++id) {
+                ItemModifiedAppearanceEntry const* appArme2 = sItemModifiedAppearanceStore.LookupEntry(id);
+                if (appArme2) {
+                    if (arme2 == appArme2->ItemID) {
+                        arme2 = appArme2->AppearanceID;
+                    }
+                }
+            }
+
+            ItemAppearanceEntry const* displayArme2 = sItemAppearanceStore.LookupEntry(arme2);
+            if (displayArme2) {
+                arme2 = displayArme2->DisplayID;
+            }
+
+            for (uint32 id = 0; id < sItemModifiedAppearanceStore.GetNumRows(); ++id) {
+                ItemModifiedAppearanceEntry const* appArme3 = sItemModifiedAppearanceStore.LookupEntry(id);
+                if (appArme3) {
+                    if (arme3 == appArme3->ItemID) {
+                        arme3 = appArme3->AppearanceID;
+                    }
+                }
+            }
+
+            ItemAppearanceEntry const* displayArme3 = sItemAppearanceStore.LookupEntry(arme3);
+            if (displayArme3) {
+                arme3 = displayArme3->DisplayID;
+            }
+
+            // TEXTURES
+            handler->PSendSysMessage(LANG_CUST_NPCINFOS_TEXT);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_SKIN, skin);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_FACE, face);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_HAIR, hair);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_HCOL, hcol);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_PILO, pilo);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH01, cust1);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH02, cust2);
+            handler->PSendSysMessage(LANG_CUST_CHARINFOS_DH03, cust3);
+
+            // EQUIPMENTS
+            handler->PSendSysMessage(LANG_CUST_SEPARATOR);
+            handler->PSendSysMessage(LANG_CUST_HEAD, eqqList[0]);
+            handler->PSendSysMessage(LANG_CUST_SHOULDERS, eqqList[1]);
+            handler->PSendSysMessage(LANG_CUST_BODY, eqqList[2]);
+            handler->PSendSysMessage(LANG_CUST_CHEST, eqqList[3]);
+            handler->PSendSysMessage(LANG_CUST_WAIST, eqqList[4]);
+            handler->PSendSysMessage(LANG_CUST_LEGS, eqqList[5]);
+            handler->PSendSysMessage(LANG_CUST_FEET, eqqList[6]);
+            handler->PSendSysMessage(LANG_CUST_WRISTS, eqqList[7]);
+            handler->PSendSysMessage(LANG_CUST_HANDS, eqqList[8]);
+            handler->PSendSysMessage(LANG_CUST_BACK, eqqList[10]);
+            handler->PSendSysMessage(LANG_CUST_TABARD, eqqList[9]);
+            handler->PSendSysMessage(LANG_CUST_PRIMARYHAND, arme1);
+            handler->PSendSysMessage(LANG_CUST_SECONDARYHAND, arme2);
+            handler->PSendSysMessage(LANG_CUST_TERTIARYHAND, arme3);
+
+        }
 
         return true;
     }
@@ -4155,6 +4402,8 @@ public:
 
             // game_tele
             std::string pName = player->GetName();
+            pName.erase(std::remove_if(pName.begin(), pName.end(), ::isspace), pName.end());
+            std::transform(pName.begin(), pName.end(), pName.begin(), ::tolower);
 
             GameTele tele;
             tele.position_x = player->GetPositionX();
@@ -4187,72 +4436,107 @@ public:
 
     static bool HandlePhaseInviteCommand(ChatHandler * handler, char const* args)
     {
-        if (!*args)
-            return false;
-
-        char const* phId = strtok((char*)args, " "); // Your Phase
-        char* nameStr = strtok(NULL, " ");
-
-        if (!phId || !nameStr)
-            return false;
-
-        uint32 phaseId = uint32(atoi(phId));
-        std::string pName = nameStr;
-
-        if (phaseId < 1)
-            return false;
-
+        // Define ALL the player variables!
         Player* target;
         ObjectGuid targetGuid;
-        std::string targetName;
+        PreparedStatement* stmt = NULL;
 
-        // To make sure we get a target, we convert our guid to an omniversal...
-        ObjectGuid parseGUID = ObjectGuid::Create<HighGuid::Player>(strtoull(args, nullptr, 10));
+        char const* targetName = strtok((char*)args, " ");
+        char const* phId = strtok(NULL, " ");
 
-        // ... and make sure we get a target, somehow.
-        if (ObjectMgr::GetPlayerAccountIdByPlayerName(pName))
-        {
-            target = ObjectAccessor::FindPlayer(parseGUID);
-            targetGuid = parseGUID;
-        }
-        // if not, then return false. Which shouldn't happen, now should it ?
-        else if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &targetName))
+        if (!targetName || !phId)
             return false;
 
-        target = ObjectAccessor::FindPlayerByName(pName);
+        std::string pName = targetName;
+        uint32 phaseId = uint32(atoi(phId));
 
-        //sql 
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
-        Field* field = checkSql->Fetch();
-        uint32 accId = field[0].GetUInt32();
-        if (accId == handler->GetSession()->GetAccountId())
+        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
+            return false;
+
+        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
+        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
+
+        std::string nameLink = handler->playerLink(pName);
+        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
+
+        if (target)
         {
-            // ajouter
-            PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-            invit->setUInt16(0, phaseId);
-            invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName));
-            WorldDatabase.Execute(invit);
+            // check online security
+            if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+                return false;
 
-            std::string nameLink = handler->playerLink(pName);
-            std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
+            //sql
 
-            handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
-            if (handler->needReportToTarget(target))
-                ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, ownerLink);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            Field* field1 = checksql->Fetch();
+            uint32 OwnerId = field1[0].GetUInt32();
 
-            if (handler->needReportToTarget(target))
+            if (OwnerId == handler->GetSession()->GetAccountId())
             {
-                // Send Packet to target player
-                sDB2Manager.LoadHotfixData();
-                sMapStore.LoadFromDB();
-                sMapStore.LoadStringsFromDB(2); // locale frFR 
-                target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+                // ajouter
+                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+                invit->setUInt32(0, phaseId);
+                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                WorldDatabase.Execute(invit);
+
+                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
+
+                if (target->GetSession() == NULL) {
+                    handler->PSendSysMessage(LANG_ERROR);
+                }
+                else {
+
+                    if (handler->needReportToTarget(target))
+                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, ownerLink);
+
+                    if (handler->needReportToTarget(target))
+                    {
+                        // Send Packet to target player
+                        sDB2Manager.LoadHotfixData();
+                        sMapStore.LoadFromDB();
+                        sMapStore.LoadStringsFromDB(2); // locale frFR 
+                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+                    }
+
+                    return true;
+                }
+
+            }
+            else {
+
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
             }
 
         }
-        else
-        {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        else {
+
+            if (handler->HasLowerSecurity(NULL, targetGuid))
+                return false;
+
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            Field* field1 = checksql->Fetch();
+            uint32 OwnerId = field1[0].GetUInt32();
+
+            if (OwnerId == handler->GetSession()->GetAccountId())
+            {
+                // ajouter
+                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+                invit->setUInt32(0, phaseId);
+                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                WorldDatabase.Execute(invit);
+
+                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
+                return true;
+
+            }
+            else {
+
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
+            }
+
+
         }
 
         return true;
@@ -4275,27 +4559,25 @@ public:
             Field* mapfields = mapresult->Fetch();
             map = mapfields[0].GetUInt16();
 
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", map);
+            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
 
             if (!results)
             {
                 handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
                 return false;
             }
-                                    
+
             Field* fields = results->Fetch();
 
             uint32 replaceID = uint32(atoi(pId));
             uint32 lightId = fields[0].GetUInt32();
-                      
-            //sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(0)).Write());
 
             sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
 
         }
         else
         {
-            QueryResult results = WorldDatabase.PQuery("Select ID from light where mapid = %u", player->GetMapId());
+            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", player->GetMapId());
             if (!results)
             {
                 handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
@@ -4306,7 +4588,7 @@ public:
 
             uint32 replaceID = uint32(atoi(pId));
             uint32 lightId = fields[0].GetUInt32();
-                       
+
             WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
             data << lightId;
             data << replaceID;
@@ -4323,251 +4605,260 @@ public:
 
 
 
-static bool HandlePhaseInitializeCommand(ChatHandler * handler, char const* args)
-{
-
-    // Refresh Hotfixe
-    sDB2Manager.LoadHotfixData();
-    sMapStore.LoadFromDB();
-    sMapStore.LoadStringsFromDB(2); // locale frFR 
-
-    // Send Packet to the Player
-    handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
-    handler->PSendSysMessage(LANG_PHASE_INI);
-
-    // Send Terrain Swap to the player
-    handler->GetSession()->GetPlayer()->SendUpdatePhasing();
-
-    return true;
-
-}
-
-
-static bool HandlePhaseTerrainCommand(ChatHandler * handler, char const* args)
-{
-    Player* tp = handler->GetSession()->GetPlayer();
-    uint32 mapId = tp->GetMapId();
-
-    if (!*args)
-        return false;
-
-    char const* pId = strtok((char*)args, " "); // phaseId
-    char const* tId = strtok(NULL, " "); // TerrainId
-
-    if (!pId || !tId)
-        return false;
-
-
-    uint32 phaseId = uint32(atoi(pId));
-    uint32 terrainMap = uint32(atoi(tId));
-
-    if (phaseId < 1 || terrainMap < 1)
-        return false;
-
-    if (mapId < 5000)
-        return false;
-
-    QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
-    Field* field = checkSql->Fetch();
-    uint32 accId = field[0].GetUInt32();
-
-    if (accId == handler->GetSession()->GetAccountId())
+    static bool HandlePhaseInitializeCommand(ChatHandler * handler, char const* args)
     {
 
-        PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
-        swap->setUInt32(0, phaseId);
-        swap->setUInt32(1, terrainMap);
-        WorldDatabase.Execute(swap);
+        // Refresh Hotfixe
+        sDB2Manager.LoadHotfixData();
+        sMapStore.LoadFromDB();
+        sMapStore.LoadStringsFromDB(2); // locale frFR 
 
-        TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
-        sObjectMgr->LoadTerrainPhaseInfo();
+        // Send Packet to the Player
+        handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+        handler->PSendSysMessage(LANG_PHASE_INI);
 
-        TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
-        sObjectMgr->LoadTerrainSwapDefaults();
+        // Send Terrain Swap to the player
+        handler->GetSession()->GetPlayer()->SendUpdatePhasing();
 
-        TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
-        sObjectMgr->LoadTerrainWorldMaps();
-
-        // Actualize 
-
-        tp->SendUpdatePhasing();
+        return true;
 
     }
 
-    else
 
+    static bool HandlePhaseTerrainCommand(ChatHandler * handler, char const* args)
     {
-        handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        Player* tp = handler->GetSession()->GetPlayer();
+        uint32 mapId = tp->GetMapId();
+
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " "); // phaseId
+        char const* tId = strtok(NULL, " "); // TerrainId
+
+        if (!pId || !tId)
+            return false;
+
+
+        uint32 phaseId = uint32(atoi(pId));
+        uint32 terrainMap = uint32(atoi(tId));
+
+        if (phaseId < 1 || terrainMap < 1)
+            return false;
+
+        if (mapId < 5000)
+            return false;
+
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[0].GetUInt32();
+
+        if (accId == handler->GetSession()->GetAccountId())
+        {
+
+            PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
+            swap->setUInt32(0, phaseId);
+            swap->setUInt32(1, terrainMap);
+            WorldDatabase.Execute(swap);
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+            sObjectMgr->LoadTerrainPhaseInfo();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+            sObjectMgr->LoadTerrainSwapDefaults();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+            sObjectMgr->LoadTerrainWorldMaps();
+
+            // Actualize 
+
+            tp->SendUpdatePhasing();
+
+
+
+        }
+
+        else
+
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        }
+
+        return true;
     }
 
-    return true;
-}
-
-static bool HandlePhaseRemoveTerrainCommand(ChatHandler * handler, char const* args)
-{
-    if (!*args)
-        return false;
-
-    Player* tp = handler->GetSession()->GetPlayer();
-    uint32 mapId = tp->GetMapId();
-
-
-    char const* pId = strtok((char*)args, " "); // PhaseID
-    char const* tId = strtok(NULL, " "); // TerrainId
-
-    uint32 phaseId = uint32(atoi(pId));
-    uint32 terrainMap = uint32(atoi(tId));
-
-    if (phaseId < 1 || terrainMap < 1)
-        return false;
-
-    if (mapId < 5000)
-        return false;
-
-    QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
-    Field* field = checkSql->Fetch();
-    uint32 accId = field[0].GetUInt32();
-
-    if (accId == handler->GetSession()->GetAccountId())
+    static bool HandlePhaseRemoveTerrainCommand(ChatHandler * handler, char const* args)
     {
+        if (!*args)
+            return false;
 
-        PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
-        remove->setUInt32(0, phaseId);
-        remove->setUInt32(1, terrainMap);
-        WorldDatabase.Execute(remove);
-
-        TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
-        sObjectMgr->LoadTerrainPhaseInfo();
-
-        TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
-        sObjectMgr->LoadTerrainSwapDefaults();
-
-        TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
-        sObjectMgr->LoadTerrainWorldMaps();
-
-        // Actualize 
-
-        tp->SendUpdatePhasing();
-
-    }
-
-    else
-
-    {
-        handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-    }
-
-    return true;
-}
+        Player* tp = handler->GetSession()->GetPlayer();
+        uint32 mapId = tp->GetMapId();
 
 
-static bool HandlePhaseMessageCommand(ChatHandler * handler, char const* args)
-{
-    if (!*args)
-        return false;
+        char const* pId = strtok((char*)args, " "); // PhaseID
+        char const* tId = strtok(NULL, " "); // TerrainId
 
-    // Player Variable
-    Player* player = handler->GetSession()->GetPlayer();
-    uint32 mapId = player->GetMapId();
+        uint32 phaseId = uint32(atoi(pId));
+        uint32 terrainMap = uint32(atoi(tId));
 
-    if (mapId > 5000)
-    {
-        sWorld->SendMapText(mapId, LANG_PHASE_EVENT_MESSAGE, args);
+        if (phaseId < 1 || terrainMap < 1)
+            return false;
+
+        if (mapId < 5000)
+            return false;
+
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        Field* field = checkSql->Fetch();
+        uint32 accId = field[0].GetUInt32();
+
+        if (accId == handler->GetSession()->GetAccountId())
+        {
+
+            PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
+            remove->setUInt32(0, phaseId);
+            remove->setUInt32(1, terrainMap);
+            WorldDatabase.Execute(remove);
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+            sObjectMgr->LoadTerrainPhaseInfo();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+            sObjectMgr->LoadTerrainSwapDefaults();
+
+            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+            sObjectMgr->LoadTerrainWorldMaps();
+
+            // Actualize 
+
+            tp->SendUpdatePhasing();
+
+        }
+
+        else
+
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+        }
+
+        return true;
     }
 
 
-    return true;
-}
-
-static bool HandlePhasePlaySoundCommand(ChatHandler* handler, char const* args)
-{
-    if (!*args)
-        return false;
-
-    uint32 soundId = atoul(args);
-    uint32 mapid = handler->GetSession()->GetPlayer()->GetMapId();
-
-    if (!sSoundKitStore.LookupEntry(soundId))
+    static bool HandlePhaseMessageCommand(ChatHandler * handler, char const* args)
     {
-        handler->PSendSysMessage(LANG_SOUND_NOT_EXIST, soundId);
-        handler->SetSentErrorMessage(true);
-        return false;
+        if (!*args)
+            return false;
+
+        // Player Variable
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 mapId = player->GetMapId();
+
+        if (mapId > 5000)
+        {
+            sWorld->SendMapText(mapId, LANG_PHASE_EVENT_MESSAGE, args);
+        }
+
+
+        return true;
     }
 
-    if (mapid > 5000) {
+    static bool HandlePhasePlaySoundCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
 
-        QueryResult query = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapid);
+        uint32 soundId = atoul(args);
+        uint32 mapid = handler->GetSession()->GetPlayer()->GetMapId();
 
-        if (query) {
+        if (!sSoundKitStore.LookupEntry(soundId))
+        {
+            handler->PSendSysMessage(LANG_SOUND_NOT_EXIST, soundId);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-            Field* result = query->Fetch();
-            uint32 accId = result[0].GetUInt32();
+        if (mapid > 5000) {
 
-            if (accId == handler->GetSession()->GetAccountId()) {
+            QueryResult query = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapid);
 
-                handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND, soundId);
-                sWorld->SendMapSound(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId).Write());
-                return true;
+            if (query) {
+
+                Field* result = query->Fetch();
+                uint32 accId = result[0].GetUInt32();
+
+                if (accId == handler->GetSession()->GetAccountId()) {
+
+                    handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND, soundId);
+                    sWorld->SendMapSound(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId).Write());
+                    return true;
+
+                }
+
+            }
+
+            else {
+
+                handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND_NOT_OWNER);
+                handler->SetSentErrorMessage(true);
+                return false;
 
             }
 
         }
-
         else {
 
-            handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND_NOT_OWNER);
+            handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND_NO_AUTHORIZE);
             handler->SetSentErrorMessage(true);
             return false;
 
         }
 
-    }
-    else {
-
-        handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND_NO_AUTHORIZE);
-        handler->SetSentErrorMessage(true);
-        return false;
+        return true;
 
     }
 
-    return true;
-
-}
-
-static bool CheckModifyResources(ChatHandler* handler, const char* args, Player* target, int32& res, int8 const multiplier = 1)
-{
-    if (!*args)
-        return false;
-
-    res = atoi((char*)args) * multiplier;
-
-    if (res < 1)
+    static bool CheckModifyResources(ChatHandler* handler, const char* args, Player* target, int32& res, int8 const multiplier = 1)
     {
-        handler->SendSysMessage(LANG_BAD_VALUE);
-        handler->SetSentErrorMessage(true);
-        return false;
+        if (!*args)
+            return false;
+
+        res = atoi((char*)args) * multiplier;
+
+        if (res < 1)
+        {
+            handler->SendSysMessage(LANG_BAD_VALUE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        return true;
     }
 
-    if (!target)
+    static bool HandleHealthCommand(ChatHandler* handler, const char* args)
     {
-        handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
-        handler->SetSentErrorMessage(true);
-        return false;
-    }
 
-    if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
-        return false;
+        if (!args)
+            return false;
 
-    return true;
-}
+        char const* health = strtok((char*)args, " ");
 
-static bool HandleHealthCommand(ChatHandler* handler, const char* args)
-{
-    int32 hp;
-    int32 lp;
-    Player* target = handler->getSelectedPlayerOrSelf();
-    if (CheckModifyResources(handler, args, target, hp))
-    {
+        int32 hp = 0;
+        int32 lp = 0;
+
+        Player* target = handler->getSelectedPlayerOrSelf();
+
+        hp = atoi(health);
         lp = target->GetHealth() + hp;
         if (lp >= target->GetMaxHealth()) {
             target->SetHealth(target->GetMaxHealth());
@@ -4577,10 +4868,12 @@ static bool HandleHealthCommand(ChatHandler* handler, const char* args)
             target->SetHealth(lp);
             return true;
         }
-    }
-    return false;
-}
 
+        return true;
+
+    }
+
+<<<<<<< HEAD
 static bool HandleDeniedCommand(ChatHandler* handler, const char* args)
 {
     if (!*args)
@@ -4670,6 +4963,367 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
 }
 
+=======
+    static bool HandleCleanBagCommand(ChatHandler* handler, const char* args)
+    {
+
+        return true;
+
+    }
+
+    static bool HandleSpellVisCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->getSelectedUnit();
+        //Player* target = handler->GetSession()->GetPlayer(); // Only self
+
+        if (!*args)
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .spellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        const char* entry;
+        entry = strtok((char*)args, " ");
+
+        const uint32 newEntry = uint32(atoi(entry));
+
+        if (target) {
+            target->SendPlaySpellVisual(target->GetPosition(), target->GetOrientation(), newEntry, 0, 0, 5000, false);
+        }
+        else {
+            handler->GetSession()->GetPlayer()->SendPlaySpellVisual(target->GetPosition(), target->GetOrientation(), newEntry, 0, 0, 5000, false);
+        }
+
+
+        return true;
+    }
+
+    static bool HandleUnSpellVisCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->getSelectedUnit();
+        //Player* target = handler->GetSession()->GetPlayer(); // Only self
+
+        if (!*args)
+            return false;
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .spellvis", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        const char* entry;
+        entry = strtok((char*)args, " ");
+
+        const uint32 newEntry = uint32(atoi(entry));
+
+        if (target) {
+            target->SendCancelSpellVisual(newEntry);
+        }
+        else {
+            handler->GetSession()->GetPlayer()->SendCancelSpellVisual(newEntry);
+        }
+
+
+        return true;
+    }
+
+    static bool HandleSetCastTargetCommand(ChatHandler* handler, char const* args) {
+
+        if (!args)
+            return false;
+
+        Unit* target = handler->getSelectedUnit();
+
+        char const* cible = strtok((char*)args, " ");
+        char const* spell = strtok(NULL, " ");
+
+        if (!cible)
+            return false;
+        if (!spell)
+            return false;
+
+        WorldObject* object = nullptr;
+        ObjectGuid::LowType guid = UI64LIT(0);
+        uint32 spellId = 0;
+        std::string checkIsValid = cible;
+        std::string checkSpell = spell;
+
+        if (std::all_of(checkIsValid.begin(), checkIsValid.end(), ::isdigit) && std::all_of(checkSpell.begin(), checkSpell.end(), ::isdigit)) {
+
+            guid = atoull(cible);
+            spellId = atoi(spell);
+
+        }
+        else {
+
+            return false;
+
+        }
+
+        object = handler->GetCreatureFromPlayerMapByDbGuid(guid);
+        if (!object) {
+            handler->PSendSysMessage(LANG_CAST_TARGET_NO_CREATURE_ON_MAP, guid);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+            if (target && target->IsCreature()) {
+
+                target->ToCreature()->SetTarget(object->GetGUID());
+                target->ToCreature()->CastSpell(object->ToUnit(), spellId);
+            }
+            else if (target && !target->IsCreature()) {
+                handler->PSendSysMessage(LANG_CAST_TARGET_NOT_CREATURE);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .set cast target", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+
+        return true;
+
+    }
+
+    static bool HandleUnsetCastTargetCommand(ChatHandler* handler, char const* args) {
+
+        Unit* target = handler->getSelectedUnit();
+
+        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .unset cast target", handler->GetSession()->GetPlayer()->GetName().c_str());
+
+        if (target && target->IsCreature()) {
+
+            target->ToCreature()->SendClearTarget();
+            target->ToCreature()->CastStop();
+
+        }
+        else if (target && !target->IsCreature()) {
+            handler->PSendSysMessage(LANG_CAST_TARGET_NOT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    static bool HandleSetNameCommand(ChatHandler* handler, char const* args)
+    {
+
+        if (!args)
+            return false;
+
+        uint8 compteur = 0;
+        uint8 iter = 0;
+        std::string newName;
+        ObjectGuid playerGuid = handler->GetSession()->GetPlayer()->GetGUID();
+
+        int32 alphabetASCII[100] = { 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100,
+            101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+            57, 233, 232, 45, 231, 224, 249, 181, 44, 226, 234, 251, 238, 244, 228, 235, 252, 239, 246, 230, 339, 46, 192, 194, 196, 198, 199, 200, 201, 202,
+            203, 206, 207, 212, 214, 219, 220, 338, 34 };
+
+        char const* newNameStr = strtok((char*)args, " ");
+        char const* newNameStr2 = strtok(NULL, " ");
+        char const* newNameStr3 = strtok(NULL, " ");
+        char const* newNameStr4 = strtok(NULL, " ");
+
+        if (!newNameStr)
+            return false;
+
+        std::string name;
+        std::string name2;
+        std::string name3;
+        std::string name4;
+        std::stringstream ss;
+
+        if (newNameStr) {
+            name = newNameStr;
+            std::wstring wname;
+            Utf8toWStr(name, wname);
+            for (int32 i = 0; i < wname.size(); ++i) {
+                wchar_t a = wname[i];
+                int32 b = int32(a);
+                ++iter;
+                for (int32 j = 0; j < 100; ++j) {
+                    int32 d = alphabetASCII[j];
+                    if (b == d) {
+                        ++compteur;
+                    }
+                }
+            }
+            if (compteur == iter) {
+                compteur = 0;
+                iter = 0;
+                ss << newNameStr;
+                newName = ss.str().c_str();
+                if (newNameStr2) {
+                    name2 = newNameStr2;
+                    std::wstring wname2;
+                    Utf8toWStr(name2, wname2);
+                    for (int32 i = 0; i < wname2.size(); ++i) {
+                        wchar_t a = wname2[i];
+                        int32 b = int32(a);
+                        ++iter;
+                        for (int32 j = 0; j < 100; ++j) {
+                            int32 d = alphabetASCII[j];
+                            if (b == d) {
+                                ++compteur;
+                            }
+                        }
+                    }
+                    if (compteur == iter) {
+                        compteur = 0;
+                        iter = 0;
+                        ss << "_" << newNameStr2;
+                        newName = ss.str().c_str();
+                        if (newNameStr3) {
+                            name3 = newNameStr3;
+                            std::wstring wname3;
+                            Utf8toWStr(name3, wname3);
+                            for (int32 i = 0; i < wname3.size(); ++i) {
+                                wchar_t a = wname3[i];
+                                int32 b = int32(a);
+                                ++iter;
+                                for (int32 j = 0; j < 100; ++j) {
+                                    int32 d = alphabetASCII[j];
+                                    if (b == d) {
+                                        ++compteur;
+                                    }
+                                }
+                            }
+                            if (compteur == iter) {
+                                compteur = 0;
+                                iter = 0;
+                                ss << "_" << newNameStr3;
+                                newName = ss.str().c_str();
+                                if (newNameStr4) {
+                                    name4 = newNameStr4;
+                                    std::wstring wname4;
+                                    Utf8toWStr(name4, wname4);
+                                    for (int32 i = 0; i < wname4.size(); ++i) {
+                                        wchar_t a = wname4[i];
+                                        int32 b = int32(a);
+                                        ++iter;
+                                        for (int32 j = 0; j < 100; ++j) {
+                                            int32 d = alphabetASCII[j];
+                                            if (b == d) {
+                                                ++compteur;
+                                            }
+                                        }
+                                    }
+                                    if (compteur == iter) {
+                                        compteur = 0;
+                                        iter = 0;
+                                        ss << "_" << newNameStr4;
+                                        newName = ss.str().c_str();
+                                    }
+                                    else {
+                                        compteur = 0;
+                                        iter = 0;
+                                        handler->PSendSysMessage(LANG_NAME_NOT_GOOD);
+                                        handler->SetSentErrorMessage(true);
+                                        return false;
+                                    }
+                                }
+                                else {
+                                    newName == ss.str().c_str();
+                                }
+                            }
+                            else {
+                                compteur = 0;
+                                iter = 0;
+                                handler->PSendSysMessage(LANG_NAME_NOT_GOOD);
+                                handler->SetSentErrorMessage(true);
+                                return false;
+                            }
+                        }
+                        else {
+                            newName = ss.str().c_str();
+                        }
+                    }
+                    else {
+                        compteur = 0;
+                        iter = 0;
+                        handler->PSendSysMessage(LANG_NAME_NOT_GOOD);
+                        handler->SetSentErrorMessage(true);
+                        return false;
+                    }
+                }
+                else {
+                    newName == ss.str().c_str();
+                }
+            }
+            else {
+                compteur = 0;
+                iter = 0;
+                handler->PSendSysMessage(LANG_NAME_NOT_GOOD);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            if (!normalizePlayerName(newName))
+            {
+                handler->SendSysMessage(LANG_BAD_VALUE);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            if (ObjectMgr::CheckPlayerName(newName, handler->GetSession()->GetPlayer() ? handler->GetSession()->GetSessionDbcLocale() : sWorld->GetDefaultDbcLocale(), true) != CHAR_NAME_SUCCESS)
+            {
+                handler->PSendSysMessage(LANG_NAME_TOO_LONG);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            if (WorldSession* session = handler->GetSession())
+            {
+                if (!session->HasPermission(rbac::RBAC_PERM_SKIP_CHECK_CHARACTER_CREATION_RESERVEDNAME) && sObjectMgr->IsReservedName(newName))
+                {
+                    handler->SendSysMessage(LANG_RESERVED_NAME);
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+            }
+
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
+            stmt->setString(0, newName);
+            PreparedQueryResult result = CharacterDatabase.Query(stmt);
+            if (result)
+            {
+                handler->PSendSysMessage(LANG_RENAME_PLAYER_ALREADY_EXISTS, newName.c_str());
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            // Remove declined name from db
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_DECLINED_NAME);
+            stmt->setUInt64(0, playerGuid.GetCounter());
+            CharacterDatabase.Execute(stmt);
+
+
+            handler->GetSession()->GetPlayer()->SetName(newName);
+
+            handler->PSendSysMessage(LANG_NAME_GOOD, newName.c_str());
+
+            if (WorldSession* session = handler->GetSession())
+                session->KickPlayer();
+
+
+            sWorld->UpdateCharacterInfo(playerGuid, newName);
+
+            handler->PSendSysMessage(LANG_RENAME_PLAYER_WITH_NEW_NAME, handler->GetSession()->GetPlayerName().c_str(), newName.c_str());
+
+            if (WorldSession* session = handler->GetSession())
+            {
+                if (Player* player = session->GetPlayer())
+                    sLog->outCommand(session->GetAccountId(), "GM %s (Account: %u) forced rename %s to player %s (Account: %u)", player->GetName().c_str(), session->GetAccountId(), newName.c_str(), handler->GetSession()->GetPlayerName().c_str(), ObjectMgr::GetPlayerAccountIdByGUID(playerGuid));
+            }
+            else
+                sLog->outCommand(0, "CONSOLE forced rename '%s' to '%s' (%s)", handler->GetSession()->GetPlayerName().c_str(), newName.c_str(), playerGuid.ToString().c_str());
+
+        }
+
+        return true;
+    }
+
+>>>>>>> ed07bc28a81ac4ab762d77e6911954f41924dee0
 };
 
 void AddSC_misc_commandscript()
