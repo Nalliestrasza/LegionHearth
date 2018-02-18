@@ -4873,7 +4873,7 @@ public:
 
     }
 
-<<<<<<< HEAD
+
 static bool HandleDeniedCommand(ChatHandler* handler, const char* args)
 {
     if (!*args)
@@ -4963,13 +4963,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
 }
 
-=======
-    static bool HandleCleanBagCommand(ChatHandler* handler, const char* args)
-    {
-
-        return true;
-
-    }
 
     static bool HandleSpellVisCommand(ChatHandler* handler, char const* args)
     {
@@ -5322,8 +5315,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
     }
-
->>>>>>> ed07bc28a81ac4ab762d77e6911954f41924dee0
 };
 
 void AddSC_misc_commandscript()
