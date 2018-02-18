@@ -271,7 +271,7 @@ public:
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, nullptr,           "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, nullptr,              "", npcSetCommandTable },
             { "evade",     rbac::RBAC_PERM_COMMAND_NPC_EVADE,     false, &HandleNpcEvadeCommand,             ""       },
-            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,             "" },
+            //{ "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,             "" },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -279,9 +279,67 @@ public:
         };
         return commandTable;
     }
-
+    
     //add spawn of creature
     static bool HandleNpcAddCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char* charID = handler->extractKeyFromLink((char*)args, "Hcreature_entry");
+        if (!charID)
+            return false;
+
+        uint32 id = atoul(charID);
+        if (!sObjectMgr->GetCreatureTemplate(id))
+            return false;
+
+        Player* chr = handler->GetSession()->GetPlayer();
+        Map* map = chr->GetMap();
+
+        if (Transport* trans = chr->GetTransport())
+        {
+            ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
+            CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
+            data.id = id;
+            data.posX = chr->GetTransOffsetX();
+            data.posY = chr->GetTransOffsetY();
+            data.posZ = chr->GetTransOffsetZ();
+            data.orientation = chr->GetTransOffsetO();
+            /// @todo: add phases
+
+            Creature* creature = trans->CreateNPCPassenger(guid, &data);
+
+            creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
+
+            sObjectMgr->AddCreatureToGrid(guid, &data);
+            return true;
+        }
+
+        Creature* creature = Creature::CreateCreature(id, map, chr->GetPosition());
+        if (!creature)
+            return false;
+
+        creature->CopyPhaseFrom(chr);
+        creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+
+        ObjectGuid::LowType db_guid = creature->GetSpawnId();
+
+        // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells()
+        // current "creature" variable is deleted and created fresh new, otherwise old values might trigger asserts or cause undefined behavior
+        creature->CleanupsBeforeDelete();
+        delete creature;
+
+        creature = Creature::CreateCreatureFromDB(db_guid, map);
+        if (!creature)
+            return false;
+
+        sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+        return true;
+    }
+
+    //add spawn of creature
+ /*   static bool HandleNpcAddCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
             return false;
@@ -473,7 +531,7 @@ public:
         return true;
 
     }
-
+    */
     //add item in vendorlist
     static bool HandleNpcAddVendorItemCommand(ChatHandler* handler, char const* args)
     {
@@ -2079,7 +2137,7 @@ public:
 
 		return true;
 	}
-
+    /*
     static bool HandleNpcAddPosCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
@@ -2140,7 +2198,7 @@ public:
         }
 
         Creature* creature = new Creature();
-        if (!creature->Create(map->GenerateLowGuid<HighGuid::Creature>(), map, id, x, y, z, o))
+        if (!creature->CreateCreature(map->GenerateLowGuid<HighGuid::Creature>(), map, id, x, y, z, o))
         {
             delete creature;
             return false;
@@ -2156,7 +2214,7 @@ public:
         creature->CleanupsBeforeDelete();
         delete creature;
         creature = new Creature();
-        if (!creature->LoadCreatureFromDB(db_guid, map))
+        if (!creature->CreateCreatureFromDB(db_guid, map))
         {
             delete creature;
             return false;
@@ -2165,7 +2223,7 @@ public:
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
         return true;
     }
-
+    */
 };
 
 void AddSC_npc_commandscript()

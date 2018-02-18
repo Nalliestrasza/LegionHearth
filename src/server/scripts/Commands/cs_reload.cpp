@@ -1383,7 +1383,7 @@ public:
 		sScalingStatDistributionStore.LoadFromDB();
 		sScenarioStore.LoadFromDB();
 		sScenarioStepStore.LoadFromDB();
-		sSceneScriptStore.LoadFromDB();
+	//	sSceneScriptStore.LoadFromDB();
 		sSceneScriptPackageStore.LoadFromDB();
 		sSkillLineStore.LoadFromDB();
 		sSkillLineAbilityStore.LoadFromDB();
@@ -1400,7 +1400,7 @@ public:
 		sSpellCooldownsStore.LoadFromDB();
 		sSpellDurationStore.LoadFromDB();
 		sSpellEffectStore.LoadFromDB();
-		sSpellEffectScalingStore.LoadFromDB();
+	//	sSpellEffectScalingStore.LoadFromDB();
 		sSpellEquippedItemsStore.LoadFromDB();
 		sSpellFocusObjectStore.LoadFromDB();
 		sSpellInterruptsStore.LoadFromDB();

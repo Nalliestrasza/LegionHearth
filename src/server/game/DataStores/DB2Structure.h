@@ -1962,7 +1962,7 @@ struct NamesReservedLocaleEntry
 struct NPCModelItemSlotDisplayInfoEntry
 {
     uint32 ID;
-    uint32 ExtendedDisplayID;
+   // uint32 ExtendedDisplayID;
     uint32 DisplayID;
     uint8 Slot;
 };

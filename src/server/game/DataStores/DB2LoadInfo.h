@@ -3262,7 +3262,7 @@ struct NPCModelItemSlotDisplayInfoLoadInfo
         static DB2FieldMeta const fields[] =
         {
             { false, FT_INT, "ID" },
-            { false, FT_INT, "ExtendedDisplayID" },
+          //  { false, FT_INT, "ExtendedDisplayID" },
             { false, FT_INT, "DisplayID" },
             { false, FT_BYTE, "Slot" },
         };
