@@ -42,6 +42,8 @@
 #include "UpdateFieldFlags.h"
 #include "World.h"
 #include <G3D/Quat.h>
+#include "Player.h"
+#include "Chat.h"
 
 
 bool QuaternionData::isUnit() const
@@ -912,16 +914,12 @@ void GameObject::SaveToDB()
     SaveToDB(GetMapId(), data->spawnMask);
 }
 
+
 void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
 {
 
     const GameObjectTemplate* goI = GetGOInfo();
-
-    Player* player; 
-    uint32 spawnerAccountId = player->GetSession()->GetAccountId();
-    uint64 spawnerGuid = player->GetGUID().GetCounter();
-
-
+   
 
     if (!goI)
         return;
@@ -945,6 +943,7 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     data.go_state = GetGoState();
     data.spawnMask = spawnMask;
     data.artKit = GetGoArtKit();
+
     
    
     if (data.size == 0.0f)
@@ -997,12 +996,12 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
-    stmt->setUInt32(index++, spawnerAccountId);
-    stmt->setUInt64(index++, spawnerGuid);
+
 
     trans->Append(stmt);
     WorldDatabase.CommitTransaction(trans);
 }
+
 
 bool GameObject::LoadGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, bool addToMap)
 {

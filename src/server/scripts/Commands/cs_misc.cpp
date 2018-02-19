@@ -4942,6 +4942,8 @@ static bool HandleTicketCommand(ChatHandler* handler, const char* args)
     sWorld->SendGMText(LANG_TICKET_SEND_GM, tId, handler->GetSession()->GetAccountId(), handler->GetSession()->GetPlayer()->GetGUID().GetCounter(), playerName.c_str());
     sWorld->SendGMText(LANG_TICKET_SEND_GM_CONTENT, tId, msg);
 
+    return true;
+
 }
 
 static bool HandleTicketListCommand(ChatHandler* handler, const char* args)

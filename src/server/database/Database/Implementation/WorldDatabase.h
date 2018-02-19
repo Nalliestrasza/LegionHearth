@@ -138,6 +138,9 @@ enum WorldDatabaseStatements : uint32
 
     // ticket system
     WORLD_INS_NEW_TICKET,
+
+    // GAMeobject log
+     WORLD_INS_GAMEOBJECT_LOG,
       
 
 
