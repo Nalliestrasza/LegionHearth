@@ -1962,9 +1962,9 @@ struct NamesReservedLocaleEntry
 struct NPCModelItemSlotDisplayInfoEntry
 {
     uint32 ID;
-   // uint32 ExtendedDisplayID;
     uint32 DisplayID;
     uint8 Slot;
+    uint32 ExtendedDisplayID;
 };
 
 #define MAX_OVERRIDE_SPELL 10

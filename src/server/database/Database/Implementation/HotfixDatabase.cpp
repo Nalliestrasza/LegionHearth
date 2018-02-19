@@ -660,7 +660,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_NAMES_RESERVED_LOCALE, "SELECT ID, Name, LocaleMask FROM names_reserved_locale ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // NPCModelItemSlotDisplayInfo.db2
-    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, ExtendedDisplayID, DisplayID, Slot FROM npc_model_item_slot_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, DisplayID, Slot, ExtendedDisplayID FROM npc_model_item_slot_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // OverrideSpellData.db2
     PrepareStatement(HOTFIX_SEL_OVERRIDE_SPELL_DATA, "SELECT ID, SpellID1, SpellID2, SpellID3, SpellID4, SpellID5, SpellID6, SpellID7, SpellID8, "

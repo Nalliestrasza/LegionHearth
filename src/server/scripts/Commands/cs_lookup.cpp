@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -1684,7 +1684,8 @@ public:
 
         uint16 phaseIdAllow = 0;
 
-        QueryResult query = WorldDatabase.PQuery("SELECT phaseId from phase_allow where playerId = %u", handler->GetSession()->GetAccountId());
+        QueryResult query = WorldDatabase.PQuery("SELECT phaseId from phase_allow l where playerId = %u AND NOT EXISTS"
+            " (SELECT * from phase_owner s WHERE l.phaseId = s.phaseId AND s.accountOwner = %u)", handler->GetSession()->GetAccountId(), handler->GetSession()->GetAccountId());
 
         if (query) {
 

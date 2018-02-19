@@ -3973,8 +3973,8 @@ struct NPCModelItemSlotDisplayInfoMeta
 {
     static DB2Meta const* Instance()
     {
-        static char const* types = "ibi";
-        static uint8 const arraySizes[3] = { 1, 1, 1 };
+        static char const* types = "ibii";
+        static uint8 const arraySizes[4] = { 1, 1, 1, 1 };
         static DB2Meta instance(-1, 3, 0x11D16204, types, arraySizes, 2);
         return &instance;
     }
