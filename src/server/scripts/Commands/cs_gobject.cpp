@@ -172,6 +172,16 @@ public:
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+        
+        // Log
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+        uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
+
+        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        gobInfo->setUInt64(0, spawnId);
+        gobInfo->setUInt32(1, spawnerAccountId);
+        gobInfo->setUInt64(2, spawnerGuid);
+        WorldDatabase.Execute(gobInfo);
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
         return true;
@@ -259,11 +269,13 @@ public:
             else
                 eventFilter << ')';
 
-            result = WorldDatabase.PQuery("SELECT gameobject.guid, id, position_x, position_y, position_z, orientation, map, PhaseId, PhaseGroup, spawnerAccountId, spawnerPlayerId, "
+            result = WorldDatabase.PQuery("SELECT gameobject.guid, id, position_x, position_y, position_z, orientation, map, PhaseId, PhaseGroup, "
                 "(POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ FROM gameobject "
                 "LEFT OUTER JOIN game_event_gameobject on gameobject.guid = game_event_gameobject.guid WHERE map = '%i' %s ORDER BY order_ ASC LIMIT 10",
                 handler->GetSession()->GetPlayer()->GetPositionX(), handler->GetSession()->GetPlayer()->GetPositionY(), handler->GetSession()->GetPlayer()->GetPositionZ(),
                 handler->GetSession()->GetPlayer()->GetMapId(), eventFilter.str().c_str());
+            
+            
         }
 
         if (!result)
@@ -282,6 +294,8 @@ public:
 
         do
         {
+            
+
             Field* fields = result->Fetch();
             guidLow =       fields[0].GetUInt64();
             id =            fields[1].GetUInt32();
@@ -292,8 +306,6 @@ public:
             mapId =         fields[6].GetUInt16();
             phaseId =       fields[7].GetUInt32();
             phaseGroup =    fields[8].GetUInt32();
-            spawnerAccountId = fields[9].GetUInt32();
-            spawnerPlayerId = fields[10].GetUInt64();
             poolId =  sPoolMgr->IsPartOfAPool<GameObject>(guidLow);
             if (!poolId || sPoolMgr->IsSpawnedObject<GameObject>(guidLow))
                 found = true;
@@ -319,6 +331,11 @@ public:
         handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PID, spawnerPlayerId);
         handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
 
+        // log info
+        QueryResult logResult = WorldDatabase.PQuery("SELECT spawnerAccountId, spawnerPlayerId from gameobject_log WHERE guid = %u", guidLow);
+        Field* log = logResult->Fetch();
+        spawnerAccountId = log[0].GetUInt32();
+        spawnerPlayerId = log[1].GetUInt64();
         
         QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
         Field* fields = getName->Fetch();
@@ -748,7 +765,7 @@ public:
         object->UpdateObjectVisibility();
         object->SaveToDB();
 
-        /*
+       
         
 		//Geoffrey, the son of a bitch.
 		Player* _caller = handler->GetSession()->GetPlayer();
@@ -762,9 +779,9 @@ public:
 					_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
 				}
 			}
-       */
+       
 
-   //     handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
+        handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
     }
 

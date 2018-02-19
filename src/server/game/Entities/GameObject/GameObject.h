@@ -25,6 +25,7 @@
 #include "Loot.h"
 #include "MapObject.h"
 #include "SharedDefines.h"
+#include "Player.h"
 
 class GameObjectAI;
 class GameObjectModel;
