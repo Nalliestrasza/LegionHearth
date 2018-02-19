@@ -4956,6 +4956,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     
     sWorld->SendGMText(LANG_TICKET_LIST, ticketId, ticketMsg, ticketOwner);
 
+    return true;
 }
 
 
