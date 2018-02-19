@@ -525,7 +525,8 @@ struct CreatureData
     uint32 phaseGroup;
     uint32 ScriptId;
     bool dbData;
-	float size;
+    float size = 0.0f;
+
 };
 
 struct CreatureModelInfo

@@ -872,7 +872,8 @@ struct GameObjectData
     uint32 phaseGroup;
     uint32 ScriptId;
     bool dbData;
-	float size;
+    float size = 0.0f;
+
 };
 
 #endif // GameObjectData_h__

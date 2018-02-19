@@ -199,7 +199,8 @@ void GameObject::RemoveFromWorld()
 }
 
 
-bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit /*= 0*/, float size /*= -1*/)
+bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, float size /*= -1*/)
+
 {
     ASSERT(map);
     SetMap(map);
@@ -268,7 +269,6 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     else
         SetObjectScale(goInfo->size);
 
-  
 
     if (m_goTemplateAddon)
     {
