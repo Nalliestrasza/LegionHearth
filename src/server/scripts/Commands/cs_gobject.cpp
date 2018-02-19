@@ -749,6 +749,7 @@ public:
         object->SaveToDB();
 
         /*
+        
 		//Geoffrey, the son of a bitch.
 		Player* _caller = handler->GetSession()->GetPlayer();
 		Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
@@ -761,9 +762,9 @@ public:
 					_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
 				}
 			}
-        */
+       */
 
-      //  handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
+   //     handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
     }
 

@@ -914,13 +914,14 @@ void GameObject::SaveToDB()
 
 void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
 {
-    // player variable for logs
-    Player* player;
-  
+
+    const GameObjectTemplate* goI = GetGOInfo();
+
+    Player* player; 
     uint32 spawnerAccountId = player->GetSession()->GetAccountId();
     uint64 spawnerGuid = player->GetGUID().GetCounter();
 
-    const GameObjectTemplate* goI = GetGOInfo();
+
 
     if (!goI)
         return;
@@ -944,6 +945,8 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     data.go_state = GetGoState();
     data.spawnMask = spawnMask;
     data.artKit = GetGoArtKit();
+    
+   
     if (data.size == 0.0f)
     {
         // first save, use default if scale matches template or use custom scale if not
@@ -995,7 +998,7 @@ void GameObject::SaveToDB(uint32 mapid, uint64 spawnMask)
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
     stmt->setUInt32(index++, spawnerAccountId);
-    stmt->setUInt64(index++, spawnerGuid);    
+    stmt->setUInt64(index++, spawnerGuid);
 
     trans->Append(stmt);
     WorldDatabase.CommitTransaction(trans);
