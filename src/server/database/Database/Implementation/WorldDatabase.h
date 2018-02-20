@@ -141,6 +141,7 @@ enum WorldDatabaseStatements : uint32
 
     // GAMeobject log
      WORLD_INS_GAMEOBJECT_LOG,
+     WORLD_DEL_GAMEOBJECT_LOG,
       
 
 
