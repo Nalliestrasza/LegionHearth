@@ -135,6 +135,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // gameobject log
     PrepareStatement(WORLD_INS_GAMEOBJECT_LOG, "INSERT INTO gameobject_log (guid, spawnerAccountId, spawnerPlayerId) VALUES (?,?,?)", CONNECTION_ASYNC);
 
+    // gameobject raz
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_LOG, "DELETE FROM gameobject_log WHERE guid = ?", CONNECTION_ASYNC);
+
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)

@@ -68,6 +68,7 @@ public:
             { "rotate",   rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectRotateCommand,      ""       },
             { "add",      rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",      rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
+            { "raz",      rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },  
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -785,6 +786,48 @@ public:
         return true;
     }
 
+    static bool HandleGameRazCommand(ChatHandler* handler, char const* args)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+        QueryResult getGuid = WorldDatabase.PQuery("SELECT guid from gameobject_log WHERE spawnerAccountId = %u", player->GetSession()->GetAccountId());
+        if (getGuid)
+        {
+            do {
+                
+                Field* field = getGuid->Fetch();
+                uint64 guidLow = field[0].GetUInt64();
+
+                if (guidLow == 0)
+                    return false;
+
+                GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+                if (!object)
+                {
+                    handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+                object->SetRespawnTime(0);                                 // not save respawn time
+                object->Delete();
+                object->DeleteFromDB();
+
+                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                del->setUInt64(0, guidLow);
+                WorldDatabase.Execute(del);
+
+                handler->PSendSysMessage(LANG_COMMAND_DELOBJMESSAGE, std::to_string(guidLow).c_str());
+
+            } while (getGuid->NextRow());
+        }
+        else
+        {
+            return false;
+        }
+
+        return true;
+    }
   
 };
 
