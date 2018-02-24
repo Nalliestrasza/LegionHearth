@@ -271,7 +271,8 @@ public:
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, nullptr,           "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, nullptr,              "", npcSetCommandTable },
             { "evade",     rbac::RBAC_PERM_COMMAND_NPC_EVADE,     false, &HandleNpcEvadeCommand,             ""       },
-            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,             "" },
+            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,            ""       },
+            { "raz",       rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcRazCommand,               ""       },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -349,6 +350,8 @@ public:
         }
 
         Position pos = { x, y, z, o };
+        uint32 spawnerAccountId = handler->GetSession()->GetAccountId();
+        uint64 spawnerGuid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
         if (Transport* trans = chr->GetTransport())
         {
@@ -380,6 +383,13 @@ public:
                     if (xs && ys && zs && maps) {
                         handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                     }
+    
+                    PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                    npcInfo->setUInt64(0, guid);
+                    npcInfo->setUInt32(1, spawnerAccountId);
+                    npcInfo->setUInt64(2, spawnerGuid);
+                    WorldDatabase.Execute(npcInfo);
+
                     return true;
 
                 }
@@ -403,6 +413,13 @@ public:
                 if (xs && ys && zs && maps) {
                     handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                 }
+
+                PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                npcInfo->setUInt64(0, guid);
+                npcInfo->setUInt32(1, spawnerAccountId);
+                npcInfo->setUInt64(2, spawnerGuid);
+                WorldDatabase.Execute(npcInfo);
+
                 return true;
 
             }
@@ -444,6 +461,13 @@ public:
                 if (xs && ys && zs && maps) {
                     handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                 }
+
+                PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                npcInfo->setUInt64(0, db_guid);
+                npcInfo->setUInt32(1, spawnerAccountId);
+                npcInfo->setUInt64(2, spawnerGuid);
+                WorldDatabase.Execute(npcInfo);
+
                 return true;
 
             }
@@ -2109,6 +2133,8 @@ public:
         axeX = (float)atof(xs);
         axeY = (float)atof(ys);
         axeZ = (float)atof(zs);
+        uint32 spawnerAccountId = handler->GetSession()->GetAccountId();
+        uint64 spawnerGuid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
         uint32 id = atoul(charID);
         if (!sObjectMgr->GetCreatureTemplate(id))
@@ -2139,6 +2165,11 @@ public:
             creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
+            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            npcInfo->setUInt64(0, guid);
+            npcInfo->setUInt32(1, spawnerAccountId);
+            npcInfo->setUInt64(2, spawnerGuid);
+            WorldDatabase.Execute(npcInfo);
             return true;
         }
 
@@ -2161,7 +2192,55 @@ public:
             return false;
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        npcInfo->setUInt64(0, db_guid);
+        npcInfo->setUInt32(1, spawnerAccountId);
+        npcInfo->setUInt64(2, spawnerGuid);
+        WorldDatabase.Execute(npcInfo);
         return true;
+    }
+
+    static bool HandleNpcRazCommand(ChatHandler* handler, char const* args) {
+
+        QueryResult getGuid = WorldDatabase.PQuery("SELECT guid FROM creature_log WHERE spawnerAccountId = %u", handler->GetSession()->GetPlayer()->GetSession()->GetAccountId());
+        if (getGuid) {
+
+            do {
+
+                Field* result = getGuid->Fetch();
+                uint64 guidLow = result[0].GetUInt64();
+
+                if (guidLow == 0)
+                    return false;
+
+                Creature* object = handler->GetCreatureFromPlayerMapByDbGuid(guidLow);
+                if (!object) {
+                    handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+                object->CombatStop();
+                object->DeleteFromDB();
+                object->AddObjectToRemoveList();
+
+                PreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
+                del->setUInt64(0, guidLow);
+                WorldDatabase.Execute(del);
+
+                handler->PSendSysMessage(LANG_COMMAND_DELCREATMESSAGE);
+
+            } while (getGuid->NextRow());
+
+        }
+        else {
+
+            return false;
+
+        }
+
+        return true;
+
     }
     
 };

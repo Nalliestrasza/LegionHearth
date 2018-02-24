@@ -139,11 +139,13 @@ enum WorldDatabaseStatements : uint32
     // ticket system
     WORLD_INS_NEW_TICKET,
 
-    // GAMeobject log
-     WORLD_INS_GAMEOBJECT_LOG,
-     WORLD_DEL_GAMEOBJECT_LOG,
+    // Gameobject log
+    WORLD_INS_GAMEOBJECT_LOG,
+    WORLD_DEL_GAMEOBJECT_LOG,
       
-
+    // Creature log
+    WORLD_INS_CREATURE_LOG,
+    WORLD_DEL_CREATURE_LOG,
 
     MAX_WORLDDATABASE_STATEMENTS
 };
