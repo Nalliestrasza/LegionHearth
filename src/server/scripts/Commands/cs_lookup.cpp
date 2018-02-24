@@ -65,6 +65,11 @@ public:
             { "aut", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,    true, &HandleLookupPhaseAutCommand,        "" },
         };
 
+        static std::vector<ChatCommand> lookupItemForgeCommandTable =
+        {
+            { "item", rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,   true, &HandleLookupItemForgeCommand,       "" },
+        };
+
         static std::vector<ChatCommand> lookupCommandTable =
         {
             { "area",     rbac::RBAC_PERM_COMMAND_LOOKUP_AREA,     true, &HandleLookupAreaCommand,     "" },
@@ -87,6 +92,7 @@ public:
             { "sound",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSoundCommand,    "" },
             { "terrain",  rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTerrainCommand,  "" },
             { "phase",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, NULL,                         "", lookupPhaseCommandTable },
+            { "forge",    rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, NULL,                         "", lookupItemForgeCommandTable },
 
         };
 
@@ -1655,7 +1661,7 @@ public:
 
                         std::string phaseName = result[0].GetString();
 
-                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN, phaseName.c_str());
+                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN, phaseIdOwner, phaseName.c_str());
 
                     } while (query3->NextRow());
 
@@ -1705,7 +1711,7 @@ public:
 
                         std::string phaseName = result[0].GetString();
 
-                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT, phaseName.c_str());
+                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT, phaseIdAllow, phaseName.c_str());
 
                     } while (query3->NextRow());
 
@@ -1771,6 +1777,75 @@ public:
         }
 
         return true;
+
+    }
+
+    static bool HandleLookupItemForgeCommand(ChatHandler* handler, char const* args) {
+
+        if (!*args)
+            return false;
+
+        std::string namePart = args;
+        std::wstring wNamePart;
+
+        // converting string that we try to find to lower case
+        if (!Utf8toWStr(namePart, wNamePart))
+            return false;
+
+        wstrToLower(wNamePart);
+
+        uint32 count = 0;
+        uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
+
+        uint32 itemEntryId = 0;
+        uint32 itemAppearanceId = 0;
+        uint32 itemDisplayInfo = 0;
+
+        for (uint32 id = 300001; id < sItemSparseStore.GetNumRows(); ++id)
+        {
+            ItemSparseEntry const* entryId = sItemSparseStore.LookupEntry(id);
+            if (entryId) {
+                int32 locale = handler->GetSessionDbcLocale();
+                std::string name = entryId->Name->Str[locale];
+                itemEntryId = entryId->ID;
+                if (name.empty())
+                    continue;
+
+                if (Utf8FitTo(name, wNamePart))
+                {
+
+                    ItemModifiedAppearanceEntry const* modifiedAppearanceId = sItemModifiedAppearanceStore.LookupEntry(itemEntryId);
+                    if (modifiedAppearanceId) {
+
+                        itemAppearanceId = modifiedAppearanceId->AppearanceID;
+
+                    }
+
+                    ItemAppearanceEntry const* appearanceId = sItemAppearanceStore.LookupEntry(itemAppearanceId);
+                    if (appearanceId) {
+
+                        itemDisplayInfo = appearanceId->DisplayID;
+
+                    }
+
+                    if (maxResults && ++count == maxResults)
+                    {
+                        handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
+                        return true;
+                    }
+
+                    if (handler->GetSession())
+                        handler->PSendSysMessage(LANG_LOOKUP_ITEM_FORGE, itemEntryId, itemEntryId, name.c_str(), itemAppearanceId, itemDisplayInfo);
+                    else
+                        handler->PSendSysMessage(LANG_LOOKUP_ITEM_FORGE, itemEntryId, itemEntryId, name.c_str(), itemAppearanceId, itemDisplayInfo);
+
+                }
+
+            }
+
+        }
+
+    return true;
 
     }
 

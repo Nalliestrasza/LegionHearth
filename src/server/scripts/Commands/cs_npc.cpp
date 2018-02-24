@@ -492,6 +492,13 @@ public:
             if (xs && ys && zs && maps) {
                 handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
             }
+
+            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            npcInfo->setUInt64(0, db_guid);
+            npcInfo->setUInt32(1, spawnerAccountId);
+            npcInfo->setUInt64(2, spawnerGuid);
+            WorldDatabase.Execute(npcInfo);
+
             return true;
 
         }
@@ -2228,9 +2235,9 @@ public:
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
-                handler->PSendSysMessage(LANG_COMMAND_DELCREATMESSAGE);
-
             } while (getGuid->NextRow());
+
+            handler->PSendSysMessage(LANG_COMMAND_DEL_NOT_SAVED_CREATURE);
 
         }
         else {
