@@ -271,7 +271,9 @@ public:
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, nullptr,           "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, nullptr,              "", npcSetCommandTable },
             { "evade",     rbac::RBAC_PERM_COMMAND_NPC_EVADE,     false, &HandleNpcEvadeCommand,             ""       },
-            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,             "" },
+            { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,            ""       },
+            { "raz",       rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcRazCommand,               ""       },
+            { "go",        rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcGoCommand,                ""       },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -294,15 +296,50 @@ public:
         char* ys = strtok(NULL, " ");
         char* zs = strtok(NULL, " ");
         char* maps = strtok(NULL, " ");
+        char* saveIt = strtok(NULL, " ");
 
         float axeX = 0, axeY = 0, axeZ = 0, x = 0, y = 0, z = 0;
+        std::string save;
+        std::string sx;
+        std::string sy;
+        std::string sz;
+        std::string smap;
 
-        if (xs)
-            axeX = (float)atof(xs);
-        if (ys)
-            axeY = (float)atof(ys);
-        if (zs)
-            axeZ = (float)atof(zs);
+        if (xs) {
+            sx = xs;
+            if (sx == "save") {
+                sx = xs;
+            }
+            else {
+                axeX = (float)atof(xs);
+            }
+        }
+        if (ys) {
+            sy = ys;
+            if (sy == "save") {
+                sy = ys;
+            }
+            else {
+                axeY = (float)atof(ys);
+            }
+        }
+        if (zs) {
+            sz = zs;
+            if (sy == "save") {
+                sz = zs;
+            }
+            else {
+                axeZ = (float)atof(zs);
+            }
+        }
+        if (saveIt)
+            save = saveIt;
+
+        if (saveIt && save != "save") {
+            handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_INVALID_ARG);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
         uint32 id = atoul(charID);
         if (!sObjectMgr->GetCreatureTemplate(id))
@@ -328,19 +365,26 @@ public:
         float o = chr->GetOrientation();
 
         if (maps) {
-            MapEntry const* mapEntry = sMapStore.LookupEntry(atoi(maps));
-            if (!mapEntry)
-            {
-                handler->PSendSysMessage(LANG_MAP_NOT_EXISTS, atoi(maps));
-                handler->SetSentErrorMessage(true);
-                return false;
+            smap = maps;
+            if (smap == "save") {
+                smap = maps;
+                map = chr->GetMap();
             }
             else {
-                if (atoi(maps) != 0) {
-                    map = sMapMgr->CreateBaseMap(atoi(maps));
+                MapEntry const* mapEntry = sMapStore.LookupEntry(atoi(maps));
+                if (!mapEntry)
+                {
+                    handler->PSendSysMessage(LANG_MAP_NOT_EXISTS, atoi(maps));
+                    handler->SetSentErrorMessage(true);
+                    return false;
                 }
                 else {
-                    map = sMapMgr->CreateBaseMap(atoi(maps));
+                    if (atoi(maps) != 0) {
+                        map = sMapMgr->CreateBaseMap(atoi(maps));
+                    }
+                    else {
+                        map = sMapMgr->CreateBaseMap(atoi(maps));
+                    }
                 }
             }
         }
@@ -349,6 +393,8 @@ public:
         }
 
         Position pos = { x, y, z, o };
+        uint32 spawnerAccountId = handler->GetSession()->GetAccountId();
+        uint64 spawnerGuid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
         if (Transport* trans = chr->GetTransport())
         {
@@ -380,6 +426,17 @@ public:
                     if (xs && ys && zs && maps) {
                         handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                     }
+    
+                    PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                    npcInfo->setUInt64(0, guid);
+                    npcInfo->setUInt32(1, spawnerAccountId);
+                    npcInfo->setUInt64(2, spawnerGuid);
+                    if (saveIt && save == "save" || xs && sx == "save" || ys && sy == "save" || zs && sz == "save" || maps && smap == "save")
+                        npcInfo->setUInt8(3, 1);
+                    else
+                        npcInfo->setUInt8(3, 0);
+                    WorldDatabase.Execute(npcInfo);
+
                     return true;
 
                 }
@@ -403,6 +460,17 @@ public:
                 if (xs && ys && zs && maps) {
                     handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                 }
+
+                PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                npcInfo->setUInt64(0, guid);
+                npcInfo->setUInt32(1, spawnerAccountId);
+                npcInfo->setUInt64(2, spawnerGuid);
+                if (saveIt && save == "save" || xs && sx == "save" || ys && sy == "save" || zs && sz == "save" || maps && smap == "save")
+                    npcInfo->setUInt8(3, 1);
+                else
+                    npcInfo->setUInt8(3, 0);
+                WorldDatabase.Execute(npcInfo);
+
                 return true;
 
             }
@@ -444,6 +512,17 @@ public:
                 if (xs && ys && zs && maps) {
                     handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
                 }
+
+                PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+                npcInfo->setUInt64(0, db_guid);
+                npcInfo->setUInt32(1, spawnerAccountId);
+                npcInfo->setUInt64(2, spawnerGuid);
+                if (saveIt && save == "save" || xs && sx == "save" || ys && sy == "save" || zs && sz == "save" || maps && smap == "save")
+                    npcInfo->setUInt8(3, 1);
+                else
+                    npcInfo->setUInt8(3, 0);
+                WorldDatabase.Execute(npcInfo);
+
                 return true;
 
             }
@@ -468,6 +547,17 @@ public:
             if (xs && ys && zs && maps) {
                 handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
             }
+
+            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            npcInfo->setUInt64(0, db_guid);
+            npcInfo->setUInt32(1, spawnerAccountId);
+            npcInfo->setUInt64(2, spawnerGuid);
+            if (saveIt && save == "save" || xs && sx == "save" || ys && sy == "save" || zs && sz == "save" || maps && smap == "save")
+                npcInfo->setUInt8(3, 1);
+            else
+                npcInfo->setUInt8(3, 0);
+            WorldDatabase.Execute(npcInfo);
+
             return true;
 
         }
@@ -2109,6 +2199,8 @@ public:
         axeX = (float)atof(xs);
         axeY = (float)atof(ys);
         axeZ = (float)atof(zs);
+        uint32 spawnerAccountId = handler->GetSession()->GetAccountId();
+        uint64 spawnerGuid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
         uint32 id = atoul(charID);
         if (!sObjectMgr->GetCreatureTemplate(id))
@@ -2139,6 +2231,11 @@ public:
             creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, UI64LIT(1) << map->GetSpawnMode());
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
+            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            npcInfo->setUInt64(0, guid);
+            npcInfo->setUInt32(1, spawnerAccountId);
+            npcInfo->setUInt64(2, spawnerGuid);
+            WorldDatabase.Execute(npcInfo);
             return true;
         }
 
@@ -2161,6 +2258,125 @@ public:
             return false;
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
+        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        npcInfo->setUInt64(0, db_guid);
+        npcInfo->setUInt32(1, spawnerAccountId);
+        npcInfo->setUInt64(2, spawnerGuid);
+        WorldDatabase.Execute(npcInfo);
+        return true;
+    }
+
+    static bool HandleNpcRazCommand(ChatHandler* handler, char const* args) {
+
+        QueryResult getGuid = WorldDatabase.PQuery("SELECT guid FROM creature_log WHERE spawnerAccountId = %u and saved = 0", handler->GetSession()->GetPlayer()->GetSession()->GetAccountId());
+        if (getGuid) {
+
+            do {
+
+                Field* result = getGuid->Fetch();
+                uint64 guidLow = result[0].GetUInt64();
+
+                if (guidLow == 0)
+                    return false;
+
+                Creature* object = handler->GetCreatureFromPlayerMapByDbGuid(guidLow);
+                if (!object) {
+                    handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+                object->CombatStop();
+                object->DeleteFromDB();
+                object->AddObjectToRemoveList();
+
+                PreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
+                del->setUInt64(0, guidLow);
+                WorldDatabase.Execute(del);
+
+            } while (getGuid->NextRow());
+
+            handler->PSendSysMessage(LANG_COMMAND_DEL_NOT_SAVED_CREATURE);
+
+        }
+        else {
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+    //move selected creature
+    static bool HandleNpcGoCommand(ChatHandler* handler, char const* args)
+    {
+
+        if (!*args)
+            return false;
+
+        char const* xs = strtok((char*)args, " ");
+        char const* ys = strtok(NULL, " ");
+        char const* zs = strtok(NULL, " ");
+        char const* speeds = strtok(NULL, " ");
+
+        if (!xs || !ys || !zs || !speeds)
+            return false;
+
+        float x = 0;
+        float y = 0;
+        float z = 0;
+        float speed = 0;
+        
+        x = atof(xs);
+        y = atof(ys);
+        z = atof(zs);
+        speed = atof(speeds);
+
+        ObjectGuid::LowType lowguid = UI64LIT(0);
+
+        Creature* creature = handler->getSelectedCreature();
+
+        if (!creature)
+        {
+            // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+            char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
+            if (!cId)
+                return false;
+
+            lowguid = atoull(cId);
+
+            // Attempting creature load from DB data
+            CreatureData const* data = sObjectMgr->GetCreatureData(lowguid);
+            if (!data)
+            {
+                handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, std::to_string(lowguid).c_str());
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            uint32 map_id = data->mapid;
+
+            if (handler->GetSession()->GetPlayer()->GetMapId() != map_id)
+            {
+                handler->PSendSysMessage(LANG_COMMAND_CREATUREATSAMEMAP, std::to_string(lowguid).c_str());
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
+        else
+        {
+            lowguid = creature->GetSpawnId();
+        }
+
+        if (creature)
+        {
+            Position pos{ x, y, z };
+            creature->AI()->EnterEvadeMode();
+            creature->MonsterMoveWithSpeed(x, y, z, speed);
+        }
+
         return true;
     }
     

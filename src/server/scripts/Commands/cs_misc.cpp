@@ -5105,10 +5105,10 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         std::string newName;
         ObjectGuid playerGuid = handler->GetSession()->GetPlayer()->GetGUID();
 
-        int32 alphabetASCII[100] = { 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100,
+        int32 alphabetASCII[103] = { 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100,
             101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55, 56,
             57, 233, 232, 45, 231, 224, 249, 181, 44, 226, 234, 251, 238, 244, 228, 235, 252, 239, 246, 230, 339, 46, 192, 194, 196, 198, 199, 200, 201, 202,
-            203, 206, 207, 212, 214, 219, 220, 338, 34 };
+            203, 206, 207, 212, 214, 219, 220, 338, 34, 145, 146, 39 };
 
         char const* newNameStr = strtok((char*)args, " ");
         char const* newNameStr2 = strtok(NULL, " ");
@@ -5132,7 +5132,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                 wchar_t a = wname[i];
                 int32 b = int32(a);
                 ++iter;
-                for (int32 j = 0; j < 100; ++j) {
+                for (int32 j = 0; j < 103; ++j) {
                     int32 d = alphabetASCII[j];
                     if (b == d) {
                         ++compteur;
@@ -5152,7 +5152,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                         wchar_t a = wname2[i];
                         int32 b = int32(a);
                         ++iter;
-                        for (int32 j = 0; j < 100; ++j) {
+                        for (int32 j = 0; j < 103; ++j) {
                             int32 d = alphabetASCII[j];
                             if (b == d) {
                                 ++compteur;
@@ -5172,7 +5172,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                                 wchar_t a = wname3[i];
                                 int32 b = int32(a);
                                 ++iter;
-                                for (int32 j = 0; j < 100; ++j) {
+                                for (int32 j = 0; j < 103; ++j) {
                                     int32 d = alphabetASCII[j];
                                     if (b == d) {
                                         ++compteur;
@@ -5192,7 +5192,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                                         wchar_t a = wname4[i];
                                         int32 b = int32(a);
                                         ++iter;
-                                        for (int32 j = 0; j < 100; ++j) {
+                                        for (int32 j = 0; j < 103; ++j) {
                                             int32 d = alphabetASCII[j];
                                             if (b == d) {
                                                 ++compteur;

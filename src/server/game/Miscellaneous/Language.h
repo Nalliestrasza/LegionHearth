@@ -1222,6 +1222,12 @@ enum TrinityStrings
     LANG_NAME_TOO_LONG                            = 70022, // Too long, spaces count !
     LANG_NAME_GOOD                                = 70023, // Being processed
 
+    // ITEM FORGE LOOKUP
+    LANG_LOOKUP_ITEM_FORGE                        = 70024, // return list of forged item
+
+    // NPC RAZ
+    LANG_COMMAND_DEL_NOT_SAVED_CREATURE           = 70025, // Creature not saved, deleted
+
 
     // Phase System
 
