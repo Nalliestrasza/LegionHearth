@@ -139,10 +139,10 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_DEL_GAMEOBJECT_LOG, "DELETE FROM gameobject_log WHERE guid = ?", CONNECTION_ASYNC);
 
     // creature log
-    PrepareStatement(WORLD_INS_CREATURE_LOG, "INSERT INTO creature_log (guid, spawnerAccountId, spawnerPlayerId) VALUES (?,?,?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_CREATURE_LOG, "INSERT INTO creature_log (guid, spawnerAccountId, spawnerPlayerId, saved) VALUES (?,?,?,?)", CONNECTION_ASYNC);
 
     // creature raz
-    PrepareStatement(WORLD_DEL_CREATURE_LOG, "DELETE FROM creature_log WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_CREATURE_LOG, "DELETE FROM creature_log WHERE guid = ? and saved = 0", CONNECTION_ASYNC);
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
