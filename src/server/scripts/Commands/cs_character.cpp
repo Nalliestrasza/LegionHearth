@@ -503,6 +503,9 @@ public:
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &targetName))
             return false;
 
+        if (target->getRace == RACE_PANDAREN_NEUTRAL || target->getRace == RACE_PANDAREN_ALLIANCE || target->getRace == RACE_PANDAREN_HORDE)
+            return false;
+
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
         stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_FACTION));
         if (target)

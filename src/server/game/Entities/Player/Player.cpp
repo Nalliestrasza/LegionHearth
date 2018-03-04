@@ -21615,7 +21615,7 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
         return false;
 
     // First time this aura applies a mod to us and is out of charges
-    if (spell && mod->ownerAura->IsUsingCharges() && !mod->ownerAura->GetCharges() && !spell->m_appliedMods.count(mod->ownerAura))
+    if (spell && mod->ownerAura && mod->ownerAura->IsUsingCharges() && !mod->ownerAura->GetCharges() && !spell->m_appliedMods.count(mod->ownerAura))
         return false;
 
     // +duration to infinite duration spells making them limited
@@ -21798,6 +21798,9 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId /*= 0*/, Aura* au
         {
             for (SpellModifier* mod : m_spellMods[i][j])
             {
+                if (!mod->ownerAura)
+                    continue;
+
                 // Spellmods without charged aura set cannot be charged
                 if (!mod->ownerAura->IsUsingCharges())
                     continue;

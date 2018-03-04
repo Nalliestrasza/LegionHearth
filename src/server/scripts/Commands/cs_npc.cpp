@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -1429,6 +1429,12 @@ public:
             return false;
         }
 
+        if (creature->IsPet())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         float scale = (float)atof((char*)args);
 
         if (scale <= 0.0f)
@@ -1995,7 +2001,7 @@ public:
 		}
 		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -2036,7 +2042,7 @@ public:
 
         target->SetAIAnimKitId(animkit);
 
-        //CotÃ© SQL
+        //Coté SQL
         guidLow = target->GetSpawnId();
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
@@ -2098,7 +2104,7 @@ public:
 
 		//.ToString().c_str()
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		std::string auraString = std::to_string(uint32(spellId));
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
@@ -2150,7 +2156,7 @@ public:
 		target->Mount(mount);
 
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
