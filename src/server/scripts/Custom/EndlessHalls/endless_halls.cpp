@@ -29,9 +29,6 @@
 #include "endless_halls.h"
 #include "TemporarySummon.h"
 
-// i don't know how to program properly :(
-// instances structures are so fucking annoying
-
 uint32 SpellOrbEntries[] =
 {
     SPELL_BLUE_ORB,
@@ -78,11 +75,6 @@ public:
                         return;
                 }
 
-                // Aura the player with whatever buff when he find the 5 runes in instance_cpp
-                // If aura, then cast another spellscript tp at the end
-
-                // if (InstanceSave* save = GetInstanceSave(mapId)) Check instance
-            
                 if (InstanceScript* instance = player->GetInstanceScript())
                 {
                     instance->SetData(DATA_DIRECTION, direction);
@@ -116,10 +108,7 @@ public:
         {
             if (GetHitPlayer())
             {
-                Player* player = GetHitPlayer();
-                player->RemoveAllAuras();
-                // player->TeleportTo(870, 535.248962, 453.204132, 301.937988, 3.036497); bug
-                // GetCaster()->ToPlayer()->TeleportTo((uint32)870, 535.248962f, 453.204132f, 301.937988f, 3.036497f);
+                GetHitPlayer()->RemoveAllAuras();
             }
         }
 
@@ -149,7 +138,7 @@ public:
             if (GetCaster()->ToPlayer() && GetCaster()->ToPlayer()->GetInstanceSave(1764) && GetCaster()->ToPlayer()->GetMapId() != (uint32)1764)
             {
                 // Whisper to player ?
-                GetCaster()->ToPlayer()->TeleportTo((uint32)1764 ,-1427.2808f, 695.654f, 125.618f, 3.1415f);
+                GetCaster()->ToPlayer()->TeleportTo(TAKE_ME_BACK);
             }
         }
 

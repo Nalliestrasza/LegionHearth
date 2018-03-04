@@ -177,16 +177,16 @@ public:
             actualPos = rand() % 100;
 
 
-            printf("\n Rune bleu : %i", runeBluePos);
-            printf("\n Orbe bleu : %i", orbBluePos);
-            printf("\n Rune rouge : %i", runeRedPos);
-            printf("\n Orbe rouge : %i", orbRedPos);
-            printf("\n Rune verte : %i", runeGreenPos);
-            printf("\n Orbe verte : %i", orbGreenPos);
-            printf("\n Rune jaune : %i", runeYellowPos);
-            printf("\n Orbe jaune : %i", orbYellowPos);
-            printf("\n Rune violet : %i", runeVioletPos);
-            printf("\n Orbe violet : %i", orbVioletPos);
+            printf("Rune bleu : %i \n", runeBluePos);
+            printf("Orbe bleu : %i \n", orbBluePos);
+            printf("Rune rouge : %i \n", runeRedPos);
+            printf("Orbe rouge : %i \n", orbRedPos);
+            printf("Rune verte : %i \n", runeGreenPos);
+            printf("Orbe verte : %i \n", orbGreenPos);
+            printf("Rune jaune : %i \n", runeYellowPos);
+            printf("Orbe jaune : %i \n", orbYellowPos);
+            printf("Rune violet : %i \n", runeVioletPos);
+            printf("Orbe violet : %i \n", orbVioletPos);
         }
 
         // Hide and show gameobjects pending maze location
@@ -245,7 +245,7 @@ public:
                 {
                     if (actualPos == test)
                     {
-                        printf("\n Phasing actualPos : %i", actualPos);
+                        printf("Phasing actualPos : %i \n", actualPos);
                         k = i;
                         v = j;
                     }

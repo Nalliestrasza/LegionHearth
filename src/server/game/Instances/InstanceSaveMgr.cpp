@@ -421,11 +421,20 @@ void InstanceSaveManager::LoadResetTimes()
         {
             Difficulty difficulty = Difficulty(difficultyPair.first);
             MapDifficultyEntry const* mapDiff = difficultyPair.second;
-            if (!mapDiff->GetRaidDuration())
+
+            uint32 raidDuration = 0;
+
+            // Add Scenario map for reset time
+            if (!mapDiff->GetRaidDuration() && mapDiff->DifficultyID != DIFFICULTY_3_MAN_SCENARIO_N)
                 continue;
 
+            if (mapDiff->DifficultyID == DIFFICULTY_3_MAN_SCENARIO_N)
+                raidDuration = 86400; // 1 day
+            else
+                raidDuration = mapDiff->GetRaidDuration();
+
             // the reset_delay must be at least one day
-            uint32 period = uint32(((mapDiff->GetRaidDuration() * sWorld->getRate(RATE_INSTANCE_RESET_TIME)) / DAY) * DAY);
+            uint32 period = uint32(((raidDuration * sWorld->getRate(RATE_INSTANCE_RESET_TIME)) / DAY) * DAY);
             if (period < DAY)
                 period = DAY;
 
