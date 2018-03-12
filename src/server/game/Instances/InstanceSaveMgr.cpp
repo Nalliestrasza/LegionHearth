@@ -424,11 +424,11 @@ void InstanceSaveManager::LoadResetTimes()
 
             uint32 raidDuration = 0;
 
-            // Add Scenario map for reset time
-            if (!mapDiff->GetRaidDuration() && mapDiff->DifficultyID != DIFFICULTY_3_MAN_SCENARIO_N)
+            // Add Endless map for reset time
+            if (!mapDiff->GetRaidDuration() && mapid != 1764)
                 continue;
 
-            if (mapDiff->DifficultyID == DIFFICULTY_3_MAN_SCENARIO_N)
+            if (mapid == 1764)
                 raidDuration = 86400; // 1 day
             else
                 raidDuration = mapDiff->GetRaidDuration();
@@ -475,14 +475,29 @@ void InstanceSaveManager::LoadResetTimes()
 time_t InstanceSaveManager::GetSubsequentResetTime(uint32 mapid, Difficulty difficulty, time_t resetTime) const
 {
     MapDifficultyEntry const* mapDiff = sDB2Manager.GetMapDifficultyData(mapid, difficulty);
-    if (!mapDiff || !mapDiff->GetRaidDuration())
+    uint32 mapDuration = 0;
+
+    if(mapid != 1764)
+    { 
+        if (!mapDiff || !mapDiff->GetRaidDuration())
+        {
+            TC_LOG_ERROR("misc", "InstanceSaveManager::GetSubsequentResetTime: not valid difficulty or no reset delay for map %u", mapid);
+            return 0;
+        }
+        else
+        {
+            mapDuration = mapDiff->GetRaidDuration();
+        }
+    }
+    else
     {
-        TC_LOG_ERROR("misc", "InstanceSaveManager::GetSubsequentResetTime: not valid difficulty or no reset delay for map %u", mapid);
-        return 0;
+        mapDuration = 86400;
     }
 
+    
+
     time_t diff = sWorld->getIntConfig(CONFIG_INSTANCE_RESET_TIME_HOUR) * HOUR;
-    time_t period = uint32(((mapDiff->GetRaidDuration() * sWorld->getRate(RATE_INSTANCE_RESET_TIME)) / DAY) * DAY);
+    time_t period = uint32(((mapDuration * sWorld->getRate(RATE_INSTANCE_RESET_TIME)) / DAY) * DAY);
     if (period < DAY)
         period = DAY;
 
