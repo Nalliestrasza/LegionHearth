@@ -1882,7 +1882,7 @@ public:
             ItemSparseEntry const* entryId = sItemSparseStore.LookupEntry(id);
             if (entryId) {
                 int32 locale = handler->GetSessionDbcLocale();
-                std::string name = entryId->Name->Str[locale];
+                std::string name = entryId->Display->Str[locale];
                 itemEntryId = entryId->ID;
                 if (name.empty())
                     continue;
@@ -1893,14 +1893,14 @@ public:
                     ItemModifiedAppearanceEntry const* modifiedAppearanceId = sItemModifiedAppearanceStore.LookupEntry(itemEntryId);
                     if (modifiedAppearanceId) {
 
-                        itemAppearanceId = modifiedAppearanceId->AppearanceID;
+                        itemAppearanceId = modifiedAppearanceId->ItemAppearanceID;
 
                     }
 
                     ItemAppearanceEntry const* appearanceId = sItemAppearanceStore.LookupEntry(itemAppearanceId);
                     if (appearanceId) {
 
-                        itemDisplayInfo = appearanceId->DisplayID;
+                        itemDisplayInfo = appearanceId->ItemDisplayInfoID;
 
                     }
 

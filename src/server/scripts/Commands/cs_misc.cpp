@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -3271,7 +3271,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mÃ¨tres (Ã  deux decimal pres, arrondi Ã  l'infÃ©rieur )
+        //Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3360,7 +3360,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3412,7 +3412,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3459,7 +3459,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÃ©]", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé]", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3495,7 +3495,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3503,11 +3503,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("ParamÃ¨tre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3896,7 +3896,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire dÃ©sactivÃ©e !");
+            handler->SendSysMessage("Nuit noire désactivée !");
             return true;
         }
         else if (argstr == "on")
@@ -3907,7 +3907,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activÃ©e ! Tapez .nuit off pour la dÃ©sactivÃ©e.");
+            handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
             return true;
         }
 
@@ -4128,42 +4128,42 @@ public:
                 ItemModifiedAppearanceEntry const* appArme1 = sItemModifiedAppearanceStore.LookupEntry(id);
                 if (appArme1) {
                     if (arme1 == appArme1->ItemID) {
-                        arme1 = appArme1->AppearanceID;
+                        arme1 = appArme1->ItemAppearanceID;
                     }
                 }
             }
 
             ItemAppearanceEntry const* displayArme1 = sItemAppearanceStore.LookupEntry(arme1);
             if (displayArme1) {
-                arme1 = displayArme1->DisplayID;
+                arme1 = displayArme1->ItemDisplayInfoID;
             }
 
             for (uint32 id = 0; id < sItemModifiedAppearanceStore.GetNumRows(); ++id) {
                 ItemModifiedAppearanceEntry const* appArme2 = sItemModifiedAppearanceStore.LookupEntry(id);
                 if (appArme2) {
                     if (arme2 == appArme2->ItemID) {
-                        arme2 = appArme2->AppearanceID;
+                        arme2 = appArme2->ItemAppearanceID;
                     }
                 }
             }
 
             ItemAppearanceEntry const* displayArme2 = sItemAppearanceStore.LookupEntry(arme2);
             if (displayArme2) {
-                arme2 = displayArme2->DisplayID;
+                arme2 = displayArme2->ItemDisplayInfoID;
             }
 
             for (uint32 id = 0; id < sItemModifiedAppearanceStore.GetNumRows(); ++id) {
                 ItemModifiedAppearanceEntry const* appArme3 = sItemModifiedAppearanceStore.LookupEntry(id);
                 if (appArme3) {
                     if (arme3 == appArme3->ItemID) {
-                        arme3 = appArme3->AppearanceID;
+                        arme3 = appArme3->ItemAppearanceID;
                     }
                 }
             }
 
             ItemAppearanceEntry const* displayArme3 = sItemAppearanceStore.LookupEntry(arme3);
             if (displayArme3) {
-                arme3 = displayArme3->DisplayID;
+                arme3 = displayArme3->ItemDisplayInfoID;
             }
 
             // TEXTURES
@@ -4199,7 +4199,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");

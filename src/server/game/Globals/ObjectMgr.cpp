@@ -8290,8 +8290,8 @@ void ObjectMgr::LoadCreatureOutfits()
         co.gender       = fields[i++].GetUInt8();
         switch (co.gender)
         {
-        case GENDER_FEMALE: co.displayId = rEntry->FemaleDisplayID; break;
-        case GENDER_MALE:   co.displayId = rEntry->MaleDisplayID; break;
+        case GENDER_FEMALE: co.displayId = rEntry->FemaleDisplayId; break;
+        case GENDER_MALE:   co.displayId = rEntry->MaleDisplayId; break;
         default:
             TC_LOG_ERROR("server.loading", ">> Outfit entry %u in `creature_template_outfits` has invalid gender %u", entry, uint32(co.gender));
             continue;
