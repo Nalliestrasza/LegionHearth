@@ -75,19 +75,19 @@ public:
     {
         static std::vector<ChatCommand> phaseRemoveTable =
         {
-            { "terrain",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseRemoveTerrainCommand,             "" },
+            { "terrain",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseRemoveTerrainCommand,             "" },
         };
 
         static std::vector<ChatCommand> phaseCommandTable =
         {
-            { "create",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseCreateCommand,              "" },
-            { "initialize", rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInitializeCommand,          "" },
-            { "terrain",	rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseTerrainCommand,             "" },
-            { "invite",     rbac::RBAC_PERM_COMMAND_KICK,     false, &HandlePhaseInviteCommand,              "" },
-            { "skybox",		rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseSkyboxCommand,				 "" },
-            { "message",	rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhaseMessageCommand,			 "" },
-            { "remove",     rbac::RBAC_PERM_COMMAND_KICK,	  false, nullptr, "", phaseRemoveTable },
-            { "playsound",  rbac::RBAC_PERM_COMMAND_KICK,	  false, &HandlePhasePlaySoundCommand,	         "" },
+            { "create",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseCreateCommand,              "" },
+            { "initialize", rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseInitializeCommand,          "" },
+            { "terrain",	rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseTerrainCommand,             "" },
+            { "invite",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseInviteCommand,              "" },
+            { "skybox",		rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhaseSkyboxCommand,				 "" },
+            { "message",	rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhaseMessageCommand,			 "" },
+            { "remove",     rbac::RBAC_PERM_COMMAND_AURA,	  false, nullptr, "", phaseRemoveTable },
+            { "playsound",  rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhasePlaySoundCommand,	         "" },
         };
 
         static std::vector<ChatCommand> castCommandTable =
@@ -195,7 +195,7 @@ public:
             { "unspellviskit",    rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellViskitCommand,    "" },
             { "animkit",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAnimKitCommand,          "" },
             { "debugsync",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleDebugSyncCommand,        "" },
-            { "phase",			  rbac::RBAC_PERM_COMMAND_KICK,				false, nullptr, "", phaseCommandTable     },
+            { "phase",			  rbac::RBAC_PERM_COMMAND_AURA,				false, nullptr, "", phaseCommandTable     },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
             { "denied",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleDeniedCommand,           "" },
             { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketCommand,           "" },
@@ -4308,41 +4308,22 @@ public:
 
     static bool HandlePhaseCreateCommand(ChatHandler * handler, char const* args)
     {
-        if (!*args)
-            return false;
+    
 
         // PLAYER
         Player* player = handler->GetSession()->GetPlayer();
+        uint32 pMap = handler->GetSession()->GetPlayer()->GetMapId();
 
-        // Space
-        char const* mId = strtok((char*)args, " "); // MapID
-        char const* pId = strtok(NULL, " "); // ParentID
+      
+        // auto-increment
+        QueryResult lastId = HotfixDatabase.PQuery("SELECT MAX(ID) from map");
+        Field* field = lastId->Fetch();
+        uint32 tId = field[0].GetUInt32();
+        ++tId;
 
-        if (!mId || !pId)
-            return false;
+  
 
-        uint32 mapId = uint32(atoi(mId));
-        uint32 parentMap = uint32(atoi(pId));
-
-        // check if parentmap values is an existing map
-        MapEntry const* mapEntry = sMapStore.LookupEntry(parentMap);
-        if (!mapEntry)
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, parentMap);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        /*QueryResult mapCheck = WorldDatabase.PQuery("SELECT m_ID from map_check where m_ID = %u", parentMap);
-        if (!mapCheck)
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, parentMap);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }*/
-
-
-        QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", mapId);
+        QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", tId);
 
         if (checkSql)
         {
@@ -4356,8 +4337,8 @@ public:
 
             PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
-            map->setUInt32(0, mapId);
-            if (mapId < 5000 || mapId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
+            map->setUInt32(0, tId);
+            if (tId < 5000 || tId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
             {
 
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
@@ -4366,16 +4347,16 @@ public:
 
             }
 
-            map->setUInt32(1, parentMap);
-            map->setUInt32(2, parentMap);
+            map->setUInt32(1, pMap);
+            map->setUInt32(2, pMap);
 
 
             HotfixDatabase.Execute(map);
 
             // hotfix_data
             PreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
-            data->setUInt32(0, mapId);
-            data->setUInt32(1, mapId);
+            data->setUInt32(0, tId);
+            data->setUInt32(1, tId);
             HotfixDatabase.Execute(data);
 
 
@@ -4384,13 +4365,13 @@ public:
             pGuid = handler->GetSession()->GetAccountId();
 
             PreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
-            owner->setUInt32(0, mapId);
+            owner->setUInt32(0, tId);
             owner->setUInt64(1, pGuid);
             WorldDatabase.Execute(owner);
 
             //phase allow
             PreparedStatement* allow = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_ALLOW);
-            allow->setUInt32(0, mapId);
+            allow->setUInt32(0, tId);
             allow->setUInt64(1, pGuid);
             WorldDatabase.Execute(allow);
 
@@ -4405,8 +4386,8 @@ public:
             tele.position_y = player->GetPositionY();
             tele.position_z = player->GetPositionZ();
             tele.orientation = player->GetOrientation();
-            tele.mapId = mapId;
-            tele.name = pName + std::to_string(mapId);
+            tele.mapId = tId;
+            tele.name = pName + std::to_string(tId);
             ;
 
             if (sObjectMgr->AddGameTele(tele))
