@@ -4323,12 +4323,11 @@ public:
 
   
 
-        QueryResult checkSql = HotfixDatabase.PQuery("SELECT ID from map WHERE ID = %u", tId);
-
-        if (checkSql)
+        // check if parentmap values is an existing map	
+        MapEntry const* mapEntry = sMapStore.LookupEntry(pMap);
+        if (!mapEntry)
         {
-
-            handler->PSendSysMessage(LANG_PHASE_CREATED_ERROR);
+            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, pMap);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -4529,7 +4528,7 @@ public:
         uint32 map = player->GetMapId();
         uint32 mapCache = player->GetMapId();
 
-        if (map > 5000)
+        if (map >= 5000)
         {
             QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
             Field* mapfields = mapresult->Fetch();
@@ -4605,35 +4604,38 @@ public:
     {
         Player* tp = handler->GetSession()->GetPlayer();
         uint32 mapId = tp->GetMapId();
-
+      
         if (!*args)
             return false;
 
-        char const* pId = strtok((char*)args, " "); // phaseId
-        char const* tId = strtok(NULL, " "); // TerrainId
-
-        if (!pId || !tId)
-            return false;
-
-
-        uint32 phaseId = uint32(atoi(pId));
+        char const* tId = strtok((char*)args, " ");
         uint32 terrainMap = uint32(atoi(tId));
 
-        if (phaseId < 1 || terrainMap < 1)
+        if (!tId)
             return false;
 
         if (mapId < 5000)
             return false;
 
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
+        if (!mapEntry)
+        {
+            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
         Field* field = checkSql->Fetch();
         uint32 accId = field[0].GetUInt32();
+        
 
         if (accId == handler->GetSession()->GetAccountId())
         {
 
             PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
-            swap->setUInt32(0, phaseId);
+            swap->setUInt32(0, mapId);
             swap->setUInt32(1, terrainMap);
             WorldDatabase.Execute(swap);
 
@@ -4649,8 +4651,6 @@ public:
             // Actualize 
 
             tp->SendUpdatePhasing();
-
-
 
         }
 
@@ -4671,20 +4671,21 @@ public:
         Player* tp = handler->GetSession()->GetPlayer();
         uint32 mapId = tp->GetMapId();
 
-
-        char const* pId = strtok((char*)args, " "); // PhaseID
-        char const* tId = strtok(NULL, " "); // TerrainId
-
-        uint32 phaseId = uint32(atoi(pId));
+        char const* tId = strtok((char*)args, " ");
         uint32 terrainMap = uint32(atoi(tId));
 
-        if (phaseId < 1 || terrainMap < 1)
+        MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
+        if (!mapEntry)
+        {
+            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
         if (mapId < 5000)
             return false;
 
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner from phase_owner WHERE phaseId = %u", phaseId);
+        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
         Field* field = checkSql->Fetch();
         uint32 accId = field[0].GetUInt32();
 
@@ -4692,7 +4693,7 @@ public:
         {
 
             PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
-            remove->setUInt32(0, phaseId);
+            remove->setUInt32(0, mapId);
             remove->setUInt32(1, terrainMap);
             WorldDatabase.Execute(remove);
 
