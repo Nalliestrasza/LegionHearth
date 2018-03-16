@@ -1620,7 +1620,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                     InterruptNonMeleeSpells(true);
 
             //remove auras before removing from map...
-            RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP | AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING));
+            //RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP | AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING));
 
             if (!GetSession()->PlayerLogout() && !(options & TELE_TO_SEAMLESS))
             {
@@ -6990,8 +6990,11 @@ void Player::UpdateArea(uint32 newArea)
     pvpInfo.IsInFFAPvPArea = area && (area->Flags[0] & AREA_FLAG_ARENA);
     UpdatePvPState(true);
 
-    UpdateAreaDependentAuras(newArea);
-    UpdateAreaAndZonePhase();
+    if (GetMapId() != (uint32)1764)
+    {
+        UpdateAreaDependentAuras(newArea);
+        UpdateAreaAndZonePhase();
+    }
 
     if (IsAreaThatActivatesPvpTalents(newArea))
         EnablePvpRules();

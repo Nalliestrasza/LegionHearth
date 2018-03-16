@@ -107,7 +107,10 @@ public:
 
         void OnPlayerEnter(Player* player) override
         {
-            player->SetGameMaster(false); 
+
+            if (player->IsGameMaster())
+                player->SetGameMaster(false);
+
             player->BindToInstance();
 
             if(!reachFinal)
@@ -653,7 +656,9 @@ public:
                 for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                     if (Player* player = itr->GetSource())
                     {
-                        player->SetGameMaster(false);
+                        if (player->IsGameMaster())
+                            player->SetGameMaster(false);
+
                         player->SetSpeedRate(MOVE_RUN, 2.0f);
                         player->SetCanFly(false);
                     }
