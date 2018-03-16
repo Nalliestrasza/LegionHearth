@@ -73,6 +73,15 @@ public:
 
     std::vector<ChatCommand> GetCommands() const override
     {
+
+        static std::vector<ChatCommand> ticketCommandTable =
+        {
+            {"create",  rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleCreateTicketCommand,                   "" },
+            {"cancel",  rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleCancelTicketCommand,                   "" },
+         //   {"close",   rbac::RBAC_PERM_COMMAND_KICK,          false, &HandleCloseTicketCommand,                    "" },
+            {"list",    rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleListTicketCommand,                     "" },
+        };
+
         static std::vector<ChatCommand> phaseRemoveTable =
         {
             { "terrain",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseRemoveTerrainCommand,             "" },
@@ -198,7 +207,7 @@ public:
             { "phase",			  rbac::RBAC_PERM_COMMAND_AURA,				false, nullptr, "", phaseCommandTable     },
             { "health",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleHealthCommand,           "" },
             { "denied",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleDeniedCommand,           "" },
-            { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketCommand,           "" },
+            { "ticket",           rbac::RBAC_PERM_COMMAND_DAMAGE,           false, nullptr, "", ticketCommandTable },
             { "ticketlist",       rbac::RBAC_PERM_COMMAND_DAMAGE,           false, &HandleTicketListCommand,       "" },
             { "spellvis",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSpellVisCommand,         "" },
             { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisCommand,       "" },
@@ -4893,7 +4902,7 @@ static bool HandleDeniedCommand(ChatHandler* handler, const char* args)
 
 }
 
-static bool HandleTicketCommand(ChatHandler* handler, const char* args)
+static bool HandleCreateTicketCommand(ChatHandler* handler, const char* args)
 {
     if (!*args)
         return false;
@@ -5295,6 +5304,130 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
     }
+
+    static bool HandleCancelTicketCommand(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+            return false;
+
+        Player* player;
+        char const* tId = strtok((char*)args, " ");
+        uint32 ticketId = uint32(atoi(tId));
+        std::string playerName = handler->GetSession()->GetPlayer()->GetName();
+
+
+        // check if the ticket exist in the database
+        QueryResult checkExist = WorldDatabase.PQuery("SELECT ticketId, ticketStatus FROM ticket WHERE ticketId = %u", ticketId);
+        Field* checkStatus = checkExist->Fetch();
+        uint8 status = checkStatus[1].GetUInt8();
+
+        if (status == 1)
+        {
+            handler->SendSysMessage(LANG_TICKET_ALREADY_CANCEL);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (!checkExist)
+        {
+            handler->SendSysMessage(LANG_TICKET_NOTFOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+            
+        }
+        else
+        {
+            QueryResult checkOwn = WorldDatabase.PQuery("SELECT ticketOwnerAccId FROM ticket WHERE ticketId = %u", ticketId);
+            Field* field = checkOwn->Fetch();
+            uint32 accId = field[0].GetUInt32();
+
+            if (accId == handler->GetSession()->GetAccountId())
+            {
+                PreparedStatement* updateTicket = WorldDatabase.GetPreparedStatement(WORLD_UPD_CANCEL_TICKET);
+                updateTicket->setUInt32(0, ticketId);
+                WorldDatabase.Execute(updateTicket);
+
+                handler->PSendSysMessage(LANG_TICKET_SEND_NOTFI_CANCEL);
+                sWorld->SendGMText(LANG_TICKET_CANCEL_BY_PLAYERS, playerName.c_str(), handler->GetSession()->GetAccountId());
+
+            }
+            else
+            {
+                handler->SendSysMessage(LANG_TICKET_NOTFOUND);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+       
+        }
+           
+        return true;
+
+    }
+    
+
+    static bool HandleListTicketCommand(ChatHandler* handler, const char* args)
+    {
+
+        if (*args)
+            return false;
+
+        if (handler->GetSession()->GetSecurity() >= 2)
+        {
+            QueryResult query = WorldDatabase.PQuery("SELECT ticketId, ticketContents, ticketOwner, ticketOwnerAccId, ticketOwnerGuid FROM ticket WHERE ticketStatus = 0");
+
+            if (query) {
+
+                do {
+
+                    Field* result = query->Fetch();
+
+                    uint32 id = result[0].GetUInt32();
+                    std::string ticketContents = result[1].GetString();
+                    std::string ticketOwner = result[2].GetString();
+                    uint32 ticketAccId = result[3].GetUInt32();
+                    uint32 ticketOwnerGuid = result[4].GetUInt32();
+
+               
+                    handler->PSendSysMessage(LANG_TICKET_RESULT_GM_QUERY, id, ticketContents.c_str(), ticketOwner.c_str(), ticketAccId, ticketOwnerGuid);
+
+                } while (query->NextRow());
+            }
+            else {
+                handler->PSendSysMessage(LANG_TICKET_RESULT_NONE_GM);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
+        else
+        {
+            QueryResult queryP = WorldDatabase.PQuery("SELECT ticketId, ticketContents FROM ticket WHERE ticketOwnerAccId = %u AND ticketStatus = 0", handler->GetSession()->GetAccountId());
+            printf_s("AccountID : %u" PRIu64 "/n", handler->GetSession()->GetAccountId());
+
+            if (queryP) {
+
+                do {
+
+                    Field* pResult = queryP->Fetch();
+
+                    uint32 id = pResult[0].GetUInt32();
+                    std::string ticketContents = pResult[1].GetString();
+  
+                    handler->PSendSysMessage(LANG_TICKET_RESULT_PLAYER_QUERY, id, ticketContents.c_str());
+
+                } while (queryP->NextRow());
+            }
+            else {
+                handler->PSendSysMessage(LANG_TICKET_RESULT_NONE_PLAYER);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
+
+
+        return true;
+
+    }
+       
 };
 
 void AddSC_misc_commandscript()
