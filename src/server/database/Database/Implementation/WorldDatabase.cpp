@@ -133,10 +133,10 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_INS_NEW_TICKET, "INSERT INTO ticket (ticketId, ticketContents, ticketOwner, ticketOwnerAccId, ticketOwnerGuid) VALUES (?,?,?,?,?)", CONNECTION_ASYNC);
 
     // ticket update, cancel by players
-    PrepareStatement(WORLD_UPD_CANCEL_TICKET, "UPDATE ticket SET ticketStatuts = 1 WHERE ticketId = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_UPD_CANCEL_TICKET, "UPDATE ticket SET ticketStatus = 1 WHERE ticketId = ?", CONNECTION_ASYNC);
 
     // ticket update, close by gamemasters
-    PrepareStatement(WORLD_UPD_CLOSE_TICKET, "UPDATE ticket SET ticketStatuts = 1 WHERE ticketId = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_UPD_CLOSE_TICKET, "UPDATE ticket SET ticketStatus = 1 WHERE ticketId = ?", CONNECTION_ASYNC);
 
     // gameobject log
     PrepareStatement(WORLD_INS_GAMEOBJECT_LOG, "INSERT INTO gameobject_log (guid, spawnerAccountId, spawnerPlayerId) VALUES (?,?,?)", CONNECTION_ASYNC);

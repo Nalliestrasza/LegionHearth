@@ -112,7 +112,7 @@ public:
         static std::vector<ChatCommand> setCommandTable =
         {
             { "cast",       rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", castCommandTable },
-            { "name",       rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetNameCommand,     "" },
+         // { "name",       rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetNameCommand,     "" },
         };
 
         static std::vector<ChatCommand> unsetCommandTable =
@@ -4443,6 +4443,9 @@ public:
         std::string nameLink = handler->playerLink(pName);
         std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
 
+        if (phaseId < 1)
+            return false;
+
         if (target)
         {
             // check online security
@@ -4460,7 +4463,7 @@ public:
                 // ajouter
                 PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
@@ -4507,7 +4510,7 @@ public:
                 // ajouter
                 PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt64(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
@@ -5085,7 +5088,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
     }
 
-    static bool HandleSetNameCommand(ChatHandler* handler, char const* args)
+    /*static bool HandleSetNameCommand(ChatHandler* handler, char const* args)
     {
 
         if (!args)
@@ -5303,7 +5306,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         }
 
         return true;
-    }
+    }*/
 
     static bool HandleCancelTicketCommand(ChatHandler* handler, const char* args)
     {
@@ -5401,7 +5404,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         else
         {
             QueryResult queryP = WorldDatabase.PQuery("SELECT ticketId, ticketContents FROM ticket WHERE ticketOwnerAccId = %u AND ticketStatus = 0", handler->GetSession()->GetAccountId());
-            printf_s("AccountID : %u" PRIu64 "/n", handler->GetSession()->GetAccountId());
+           
 
             if (queryP) {
 

@@ -328,29 +328,41 @@ public:
 
         GameObject* target = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
 
-        handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL, std::to_string(guidLow).c_str(), objectInfo->name.c_str(), std::to_string(guidLow).c_str(), id, x, y, z, mapId, o, phaseId, phaseGroup);
-        handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PID, spawnerPlayerId);
-        handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
 
         // log info
-        QueryResult logResult = WorldDatabase.PQuery("SELECT spawnerAccountId, spawnerPlayerId from gameobject_log WHERE guid = %u", guidLow);
-        Field* log = logResult->Fetch();
-        spawnerAccountId = log[0].GetUInt32();
-        spawnerPlayerId = log[1].GetUInt64();
-        
-        QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
-        Field* fields = getName->Fetch();
-        std::string spawnerName;
-        spawnerName = fields[0].GetString();
+        QueryResult logResult = WorldDatabase.PQuery("SELECT spawnerAccountId, spawnerPlayerId from gameobject_log WHERE guid = %u", guidLow);       
 
-        if (!getName)
+        if (!logResult)
         {
-            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_DELETE_PNAME);
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL, std::to_string(guidLow).c_str(), objectInfo->name.c_str(), std::to_string(guidLow).c_str(), id, x, y, z, mapId, o, phaseId, phaseGroup);
+            return false;
         }
         else
         {
-            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PNAME, spawnerName);
+            Field* log = logResult->Fetch();
+            spawnerAccountId = log[0].GetUInt32();
+            spawnerPlayerId = log[1].GetUInt64();
+
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PID, spawnerPlayerId);
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
+
+            QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
+            Field* fields = getName->Fetch();
+            std::string spawnerName;
+            spawnerName = fields[0].GetString();
+
+
+            if (!getName)
+            {
+                handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_DELETE_PNAME);
+            }
+            else
+            {
+                handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PNAME, spawnerName);
+            }
         }
+        
+      
 
         if (target)
         {
