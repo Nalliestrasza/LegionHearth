@@ -335,7 +335,6 @@ public:
         if (!logResult)
         {
             handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL, std::to_string(guidLow).c_str(), objectInfo->name.c_str(), std::to_string(guidLow).c_str(), id, x, y, z, mapId, o, phaseId, phaseGroup);
-            return false;
         }
         else
         {
@@ -343,6 +342,7 @@ public:
             spawnerAccountId = log[0].GetUInt32();
             spawnerPlayerId = log[1].GetUInt64();
 
+            handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL, std::to_string(guidLow).c_str(), objectInfo->name.c_str(), std::to_string(guidLow).c_str(), id, x, y, z, mapId, o, phaseId, phaseGroup);
             handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PID, spawnerPlayerId);
             handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
 
