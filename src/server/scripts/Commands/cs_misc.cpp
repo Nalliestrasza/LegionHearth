@@ -4428,7 +4428,7 @@ public:
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
 
-        if (!targetName || !phId)
+        if (!targetName && !phId)
             return false;
 
         std::string pName = targetName;
@@ -4623,26 +4623,30 @@ public:
         char const* tId = strtok((char*)args, " ");
         uint32 terrainMap = uint32(atoi(tId));
 
-        if (!tId)
-            return false;
+		// Check parts
+		QueryResult checkWdt = WorldDatabase.PQuery("SELECT MapID from phase_mapcheck WHERE Compatible = 1 and MapID = %u", terrainMap);
+		if (!checkWdt)
+			return false;
 
-        if (mapId < 5000)
-            return false;
+		if (!tId)
+			return false;
 
-        MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
-        if (!mapEntry)
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+		if (mapId < 5000)
+			return false;
 
+		MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
+		if (!mapEntry)
+		{
+			handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
 
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
-        Field* field = checkSql->Fetch();
-        uint32 accId = field[0].GetUInt32();
-        
+		QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
+		Field* field = checkSql->Fetch();
+		uint32 accId = field[0].GetUInt32();
 
+		
         if (accId == handler->GetSession()->GetAccountId())
         {
 
@@ -4675,63 +4679,63 @@ public:
         return true;
     }
 
-    static bool HandlePhaseRemoveTerrainCommand(ChatHandler * handler, char const* args)
-    {
-        if (!*args)
-            return false;
+	static bool HandlePhaseRemoveTerrainCommand(ChatHandler * handler, char const* args)
+	{
+		if (!*args)
+			return false;
 
-        Player* tp = handler->GetSession()->GetPlayer();
-        uint32 mapId = tp->GetMapId();
+		Player* tp = handler->GetSession()->GetPlayer();
+		uint32 mapId = tp->GetMapId();
 
-        char const* tId = strtok((char*)args, " ");
-        uint32 terrainMap = uint32(atoi(tId));
+		char const* tId = strtok((char*)args, " ");
+		uint32 terrainMap = uint32(atoi(tId));
 
-        MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
-        if (!mapEntry)
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+		MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
+		if (!mapEntry)
+		{
+			handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
 
-        if (mapId < 5000)
-            return false;
+		if (mapId < 5000)
+			return false;
 
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
-        Field* field = checkSql->Fetch();
-        uint32 accId = field[0].GetUInt32();
+		QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
+		Field* field = checkSql->Fetch();
+		uint32 accId = field[0].GetUInt32();
 
-        if (accId == handler->GetSession()->GetAccountId())
-        {
+		if (accId == handler->GetSession()->GetAccountId())
+		{
 
-            PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
-            remove->setUInt32(0, mapId);
-            remove->setUInt32(1, terrainMap);
-            WorldDatabase.Execute(remove);
+			PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
+			remove->setUInt32(0, mapId);
+			remove->setUInt32(1, terrainMap);
+			WorldDatabase.Execute(remove);
 
-            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
-            sObjectMgr->LoadTerrainPhaseInfo();
+			TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+			sObjectMgr->LoadTerrainPhaseInfo();
 
-            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
-            sObjectMgr->LoadTerrainSwapDefaults();
+			TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+			sObjectMgr->LoadTerrainSwapDefaults();
 
-            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
-            sObjectMgr->LoadTerrainWorldMaps();
+			TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+			sObjectMgr->LoadTerrainWorldMaps();
 
-            // Actualize 
+			// Actualize 
 
-            tp->SendUpdatePhasing();
+			tp->SendUpdatePhasing();
 
-        }
+		}
 
-        else
+		else
 
-        {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-        }
+		{
+			handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+		}
 
-        return true;
-    }
+		return true;
+	}
 
 
     static bool HandlePhaseMessageCommand(ChatHandler * handler, char const* args)
@@ -5321,7 +5325,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         // check if the ticket exist in the database
         QueryResult checkExist = WorldDatabase.PQuery("SELECT ticketId, ticketStatus FROM ticket WHERE ticketId = %u", ticketId);
-        Field* checkStatus = checkExist->Fetch();
+		Field* checkStatus = checkExist->Fetch();
         uint8 status = checkStatus[1].GetUInt8();
 
         if (status == 1)

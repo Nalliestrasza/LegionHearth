@@ -120,6 +120,7 @@
 #include "WorldSession.h"
 #include "WorldStatePackets.h"
 #include <G3D/g3dmath.h>
+#include "Chat.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -1424,21 +1425,31 @@ uint8 Player::GetChatFlags() const
 }
 
 bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options)
-{
+{	
     // Phase System
     if (mapid > 5000)
     {
-        QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", mapid, GetSession()->GetAccountId());
-        if (!checkSql)
-        {
-            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
-            return false;
-        }
-        else
-        {
-            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
-        }
+		if (GetSession()->GetSecurity() >= 2)
+		{
+			ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
+		}
+		else
+		{
+			QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", mapid, GetSession()->GetAccountId());
+			if (!checkSql)
+			{
+				ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
+				return false;
+			}
+			else
+			{
+				ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
+			}
+
+		}
+
     }
+
 
     if (!MapManager::IsValidMapCoord(mapid, x, y, z, orientation))
     {
