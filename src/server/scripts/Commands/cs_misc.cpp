@@ -4428,7 +4428,11 @@ public:
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
 
-        if (!targetName && !phId)
+        if (!targetName || targetName == NULL)
+            return false;
+        if (!phId || phId == NULL)
+            return false;
+        if (!targetName && !phId || targetName == NULL && phId == NULL)
             return false;
 
         std::string pName = targetName;
