@@ -1455,28 +1455,37 @@ public:
         if (!str)
             return false;
 
-        std::stringstream ss;
-        ss << "'%" << str << "%'";
-        std::string namePart = ss.str();
-
-        QueryResult query = WorldDatabase.PQuery("SELECT m_ID, name FROM skybox WHERE name LIKE %s", namePart.c_str());
-
-        if (query) {
-            do {
-                Field* result = query->Fetch();
-                uint32 id = result[0].GetUInt32();
-                std::string name = result[1].GetString();
-                handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, id, name.c_str());
-            } while (query->NextRow());
-        }
-        else {
-           
-            handler->PSendSysMessage(LANG_LOOKUP_SKYBOX_ERROR);
+        std::string fix = str;
+        if (fix.find('\'') != std::string::npos) {
+            handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
+        else {
+            std::stringstream ss;
+            ss << "'%" << str << "%'";
+            std::string namePart = ss.str();
 
-        return true;
+            QueryResult query = WorldDatabase.PQuery("SELECT m_ID, name FROM skybox WHERE name LIKE %s", namePart.c_str());
+
+            if (query) {
+                do {
+                    Field* result = query->Fetch();
+                    uint32 id = result[0].GetUInt32();
+                    std::string name = result[1].GetString();
+                    handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, id, name.c_str());
+                } while (query->NextRow());
+            }
+            else {
+
+                handler->PSendSysMessage(LANG_LOOKUP_SKYBOX_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            return true;
+        }
+
     }
 
     static bool HandleLookupAmbianceCommand(ChatHandler* handler, char const* args) {
@@ -1543,32 +1552,39 @@ public:
         if (!name)
             return false;
 
-        std::stringstream ss;
-        ss << "'%" << name << "%'";
-        std::string namePart = ss.str();
-
-        QueryResult query = WorldDatabase.PQuery("SELECT m_id, field4 from soundkitname where field4 like %s", namePart);
-
-        if (query) {
-
-            do {
-
-                Field* result = query->Fetch();
-
-                uint32 id = result[0].GetUInt32();
-                std::string soundName = result[1].GetString();
-
-                handler->PSendSysMessage(LANG_LOOKUP_SOUND, id, soundName.c_str());
-
-            } while (query->NextRow());
-        }
-        else {
+        std::string fix = name;
+        if (fix.find('\'') != std::string::npos) {
             handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
+        else {
+            std::stringstream ss;
+            ss << "'%" << name << "%'";
+            std::string namePart = ss.str();
 
-        return true;
+            QueryResult query = WorldDatabase.PQuery("SELECT m_id, field4 from soundkitname where field4 like %s", namePart);
+            if (query) {
+
+                do {
+
+                    Field* result = query->Fetch();
+
+                    uint32 id = result[0].GetUInt32();
+                    std::string soundName = result[1].GetString();
+
+                    handler->PSendSysMessage(LANG_LOOKUP_SOUND, id, soundName.c_str());
+
+                } while (query->NextRow());
+            }
+            else {
+                handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            return true;
+        }
 
     }
 
