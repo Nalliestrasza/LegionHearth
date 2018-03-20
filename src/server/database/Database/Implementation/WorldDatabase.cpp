@@ -122,6 +122,15 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_INS_PHASE_TERRAIN, "INSERT INTO terrain_swap_defaults (MapId, TerrainSwapMap) VALUES (?,?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_PHASE_TERRAIN, "DELETE FROM terrain_swap_defaults WHERE MapId = ? AND TerrainSwapMap = ?", CONNECTION_ASYNC);
 
+    // DELETE
+    PrepareStatement(WORLD_DEL_PHASE_GOB, "DELETE FROM gameobject WHERE map = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_NPC, "DELETE FROM creature WHERE map = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_OWNER, "DELETE FROM phase_owner WHERE phaseId = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_ALLOW, "DELETE FROM phase_allow WHERE phaseId = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_TERRAIN_CMD, "DELETE FROM terrain_swap_defaults WHERE MapId = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_GAMETELE, "DELETE FROM game_tele WHERE name = ?", CONNECTION_ASYNC);
+
+
 
     // TP CHECK
     PrepareStatement(WORLD_SEL_PHASETP, "SELECT playerId from phase_allow WHERE phaseId = ?", CONNECTION_SYNCH);

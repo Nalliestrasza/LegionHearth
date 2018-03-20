@@ -1291,5 +1291,8 @@ enum TrinityStrings
     LANG_TICKET_RESULT_PLAYER_QUERY               = 90038,
     LANG_TICKET_RESULT_NONE_PLAYER                = 90039,
 
+    //PHASE_DELETE
+    LANG_PLAYER_LIST                              = 90040,
+
 };
 #endif

@@ -4450,8 +4450,18 @@ public:
         if (phaseId < 1)
             return false;
 
+        if (phaseId < 5000)
+            return false;
+
+        // Check if map exist
+        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
+        if (!cExist)
+            return false;
+
+
         if (target)
         {
+     
             // check online security
             if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
                 return false;
@@ -4468,6 +4478,11 @@ public:
                 PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
                 invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+
+                QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                    if (alreadyInvit)
+                        return false;
+
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
@@ -5438,8 +5453,8 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         return true;
 
     }
-       
-};
+   
+};       
 
 void AddSC_misc_commandscript()
 {
