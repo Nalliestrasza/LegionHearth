@@ -4661,6 +4661,11 @@ public:
 			return false;
 		}
 
+        QueryResult checkAlready = WorldDatabase.PQuery("SELECT MapId, TerrainSwapMap FROM terrain_swap_defaults WHERE MapId = %u AND TerrainSwapMap = %u", mapId, terrainMap);
+        if (checkAlready)
+            return false;
+
+
 		QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
 		Field* field = checkSql->Fetch();
 		uint32 accId = field[0].GetUInt32();
