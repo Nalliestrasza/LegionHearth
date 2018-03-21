@@ -2288,9 +2288,6 @@ public:
                 Creature* object = handler->GetCreatureFromPlayerMapByDbGuid(guidLow);
                 if (!object) {
                     continue;
-                   /* handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
-                    handler->SetSentErrorMessage(true);
-                    return false;*/
                 }
 
                 object->CombatStop();

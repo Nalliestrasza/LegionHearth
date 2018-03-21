@@ -4464,14 +4464,15 @@ public:
 
         if (phaseId < 5000)
             return false;
-        
+
         // Check if map exist
         QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
         if (!cExist)
-             return false;
+            return false;
 
         if (target)
         {
+     
             // check online security
             if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
                 return false;
@@ -4490,8 +4491,13 @@ public:
                 invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
 
                 QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+<<<<<<< HEAD
                 if (alreadyInvit)
                     return false;
+=======
+                    if (alreadyInvit)
+                        return false;
+>>>>>>> bb704509b0b78501569c3bc86e98a6f07c7a140e
 
                 WorldDatabase.Execute(invit);
 
@@ -4670,6 +4676,11 @@ public:
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
+
+        QueryResult checkAlready = WorldDatabase.PQuery("SELECT MapId, TerrainSwapMap FROM terrain_swap_defaults WHERE MapId = %u AND TerrainSwapMap = %u", mapId, terrainMap);
+        if (checkAlready)
+            return false;
+
 
 		QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
 		Field* field = checkSql->Fetch();
