@@ -136,6 +136,14 @@ enum WorldDatabaseStatements : uint32
    // phase allow when you create ur phase
     WORLD_INS_PHASE_ALLOW,
 
+    // PHASE DELETE
+    WORLD_DEL_PHASE_GOB,
+    WORLD_DEL_PHASE_NPC,
+    WORLD_DEL_PHASE_OWNER,
+    WORLD_DEL_PHASE_ALLOW,
+    WORLD_DEL_PHASE_TERRAIN_CMD,
+    WORLD_DEL_PHASE_GAMETELE,
+
     // ticket system
     WORLD_INS_NEW_TICKET,
     WORLD_UPD_CANCEL_TICKET,
@@ -148,6 +156,10 @@ enum WorldDatabaseStatements : uint32
     // Creature log
     WORLD_INS_CREATURE_LOG,
     WORLD_DEL_CREATURE_LOG,
+
+    // phaseown_map
+    WORLD_INS_PHASEOWN_MAP,
+    WORLD_DEL_PHASEOWN_MAP,
 
     MAX_WORLDDATABASE_STATEMENTS
 };

@@ -1069,6 +1069,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // hotfix_data
     PrepareStatement(HOTFIX_INS_CREATE_PHASE_DATA, "INSERT INTO hotfix_data (Id, TableHash, RecordID, Deleted) VALUES (?, 3179597154, ?, 0)", CONNECTION_ASYNC);
 
+    // phase delete
+    PrepareStatement(HOTFIX_DEL_PHASE, "DELETE FROM map WHERE ID = ?", CONNECTION_ASYNC);
+    PrepareStatement(HOTFIX_DEL_PHASE_HOTFIX_DATA, "DELETE FROM hotfix_data WHERE RecordId = ?", CONNECTION_ASYNC);
     
 }
 

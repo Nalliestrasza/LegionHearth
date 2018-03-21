@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2001,7 +2001,7 @@ public:
 		}
 		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -2042,7 +2042,7 @@ public:
 
         target->SetAIAnimKitId(animkit);
 
-        //Coté SQL
+        //CotÃ© SQL
         guidLow = target->GetSpawnId();
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
@@ -2104,7 +2104,7 @@ public:
 
 		//.ToString().c_str()
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		std::string auraString = std::to_string(uint32(spellId));
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
@@ -2156,7 +2156,7 @@ public:
 		target->Mount(mount);
 
 
-		//Coté SQL
+		//CotÃ© SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -2287,9 +2287,10 @@ public:
 
                 Creature* object = handler->GetCreatureFromPlayerMapByDbGuid(guidLow);
                 if (!object) {
-                    handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+                    continue;
+                   /* handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
                     handler->SetSentErrorMessage(true);
-                    return false;
+                    return false;*/
                 }
 
                 object->CombatStop();

@@ -1,4 +1,4 @@
-/*
+Ôªø/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -97,6 +97,7 @@ public:
             { "message",	rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhaseMessageCommand,			 "" },
             { "remove",     rbac::RBAC_PERM_COMMAND_AURA,	  false, nullptr, "", phaseRemoveTable },
             { "playsound",  rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhasePlaySoundCommand,	         "" },
+            { "phaselookup",rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandleDeletePhaseOwnCommand,	         "" },
         };
 
         static std::vector<ChatCommand> castCommandTable =
@@ -213,6 +214,7 @@ public:
             { "unspellvis",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnSpellVisCommand,       "" },
             { "set",              rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", setCommandTable       },
             { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
+            { "delete",           rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", phaseCommandTable },
 
         };
         return commandTable;
@@ -3280,7 +3282,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mËtres (‡ deux decimal pres, arrondi ‡ l'infÈrieur )
+        //Phase 3 : Calcul des positions et distance en m√®tres (√† deux decimal pres, arrondi √† l'inf√©rieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3369,7 +3371,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3421,7 +3423,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3468,7 +3470,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÈ]", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en priv√©]", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3504,7 +3506,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3512,11 +3514,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("ParamËtre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Param√®tre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3905,7 +3907,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire dÈsactivÈe !");
+            handler->SendSysMessage("Nuit noire d√©sactiv√©e !");
             return true;
         }
         else if (argstr == "on")
@@ -3916,7 +3918,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activÈe ! Tapez .nuit off pour la dÈsactivÈe.");
+            handler->SendSysMessage("Nuit noire activ√©e ! Tapez .nuit off pour la d√©sactiv√©e.");
             return true;
         }
 
@@ -4208,7 +4210,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -4409,6 +4411,16 @@ public:
                 return false;
             }
 
+            //phaseown_map add for lookup phase own/aut
+            PreparedStatement* insertphaseown = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASEOWN_MAP);
+            insertphaseown->setFloat(0, player->GetPositionX());
+            insertphaseown->setFloat(1, player->GetPositionY());
+            insertphaseown->setFloat(2, player->GetPositionZ());
+            insertphaseown->setFloat(3, player->GetOrientation());
+            insertphaseown->setUInt16(4, tId);
+            insertphaseown->setString(5, pName + std::to_string(tId));
+            WorldDatabase.Execute(insertphaseown);
+
             handler->PSendSysMessage(LANG_PHASE_CREATED_SUCCESS);
             handler->PSendSysMessage(LANG_PHASE_CREATED_FINAL, tele.name);
 
@@ -4450,6 +4462,14 @@ public:
         if (phaseId < 1)
             return false;
 
+        if (phaseId < 5000)
+            return false;
+        
+        // Check if map exist
+        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
+        if (!cExist)
+             return false;
+
         if (target)
         {
             // check online security
@@ -4468,6 +4488,11 @@ public:
                 PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
                 invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+
+                QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                if (alreadyInvit)
+                    return false;
+
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
@@ -4845,7 +4870,7 @@ public:
     static bool HandleHealthCommand(ChatHandler* handler, const char* args)
     {
 
-        if (!args)
+        if (!*args)
             return false;
 
         char const* health = strtok((char*)args, " ");
@@ -5437,6 +5462,58 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
 
+    }
+
+    static bool HandleDeletePhaseOwnCommand(ChatHandler* handler, const char* args) {
+
+        if (!*args)
+            return false;
+
+        const char* pId = strtok((char*)args, " ");
+
+        if (!pId || pId == NULL)
+            return false;
+
+        std::string checkId = pId;
+        if(!std::all_of(checkId.begin(), checkId.end(), ::isdigit)){
+            handler->PSendSysMessage(LANG_PHASE_LOOKUP_BAD_ARG);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        else {
+            uint16 phaseId = atoi(pId);
+
+            QueryResult check = WorldDatabase.PQuery("SELECT phaseId FROM phase_owner WHERE accountOwner = %u AND phaseId = %u", handler->GetSession()->GetAccountId(), phaseId);
+            if (check) {
+
+                QueryResult query = WorldDatabase.PQuery("SELECT map FROM phaseown_map WHERE map = %u", phaseId);
+                if (query) {
+
+                    Field* result = query->Fetch();
+
+                    uint16 toDelete = result[0].GetUInt16();
+
+                    PreparedStatement* deleteLookupEntry = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASEOWN_MAP);
+                    deleteLookupEntry->setUInt16(0, toDelete);
+                    WorldDatabase.Execute(deleteLookupEntry);
+
+                    handler->PSendSysMessage(LANG_PHASE_LOOKUP_ENTRY_DELETE, toDelete);
+
+                    return true;
+
+                }
+                else {
+                    handler->PSendSysMessage(LANG_PHASE_LOOKUP_NO_ENTRY);
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+            }
+            else {
+                handler->PSendSysMessage(LANG_PHASE_LOOKUP_NOT_OWNER, phaseId);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+        }
     }
        
 };

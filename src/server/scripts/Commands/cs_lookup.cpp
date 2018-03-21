@@ -1652,12 +1652,12 @@ public:
         return true;
     }
 
-    static bool HandleLookupPhaseOwnCommand(ChatHandler* handler, char const* args) 
+    static bool HandleLookupPhaseOwnCommand(ChatHandler* handler, char const* args)
     {
 
         uint32 phaseIdOwner = 0;
 
-        uint32 count = 0;
+        uint32 counter = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
         bool limitReached = false;
 
@@ -1671,7 +1671,7 @@ public:
 
                 phaseIdOwner = owner[0].GetUInt32();
 
-                QueryResult query3 = WorldDatabase.PQuery("SELECT name from game_tele where map = %u", phaseIdOwner);
+                QueryResult query3 = WorldDatabase.PQuery("SELECT map, name from phaseown_map where map = %u", phaseIdOwner);
 
                 if (query3) {
 
@@ -1679,51 +1679,23 @@ public:
 
                         Field* result = query3->Fetch();
 
-                        std::string phaseName = result[0].GetString();
-
-                        std::wstring wNamePart;
-
-                        if (!Utf8toWStr(phaseName, wNamePart))
-                            return false;
-
-                        // converting string that we try to find to lower case
-                        wstrToLower(wNamePart);
+                        std::string phaseName = result[1].GetString();
+                        uint16 mapid = result[0].GetUInt16();
 
                         std::ostringstream reply;
 
-                        GameTeleContainer const & teleMap = sObjectMgr->GetGameTeleMap();
-                        for (GameTeleContainer::const_iterator itr = teleMap.begin(); itr != teleMap.end(); ++itr)
-                        {
-                            GameTele const* tele = &itr->second;
+                        if (handler->GetSession())
+                            reply << "  |cffffffff|Htele:" << phaseName.c_str() << "|h[" << phaseName.c_str() << "]|h|r" << "ID : " << "|cffffffff" << mapid << "|r";
+                        else
+                            reply << phaseName.c_str() << phaseName.c_str() << mapid;
 
-                            if (tele->wnameLow.find(wNamePart) == std::wstring::npos)
-                                continue;
-
-                            if (maxResults && ++count == maxResults)
-                            {
-                                limitReached = true;
-                                break;
-                            }
-
-                            if (handler->GetSession())
-                                reply << "  |cffffffff|Htele:" << itr->first << "|h[" << tele->name << "]|h|r\n";
-                            else
-                                reply << "  " << itr->first << ' ' << tele->name << "\n";
-                        }
-
-                        if (!reply.str().empty())
-                            handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN, reply.str().c_str());
-
-                        if (limitReached)
-                            handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
+                        handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN, reply.str().c_str());
 
                     } while (query3->NextRow());
 
                 }
                 else {
-                    handler->PSendSysMessage(LANG_LOOKUP_PHASE_OWN_ERROR);
-                    handler->SetSentErrorMessage(true);
-                    return false;
+                    continue;
                 }
 
             } while (query->NextRow());
@@ -1759,7 +1731,7 @@ public:
 
                 phaseIdAllow = allow[0].GetUInt16();
 
-                QueryResult query3 = WorldDatabase.PQuery("SELECT name from game_tele where map = %u", phaseIdAllow);
+                QueryResult query3 = WorldDatabase.PQuery("SELECT map, name from phaseown_map where map = %u", phaseIdAllow);
 
                 if (query3) {
 
@@ -1767,51 +1739,24 @@ public:
 
                         Field* result = query3->Fetch();
 
-                        std::string phaseName = result[0].GetString();
-
-                        std::wstring wNamePart;
-
-                        if (!Utf8toWStr(phaseName, wNamePart))
-                            return false;
-
-                        // converting string that we try to find to lower case
-                        wstrToLower(wNamePart);
+                        std::string phaseName = result[1].GetString();
+                        uint16 mapid = result[0].GetUInt16();
 
                         std::ostringstream reply;
 
-                        GameTeleContainer const & teleMap = sObjectMgr->GetGameTeleMap();
-                        for (GameTeleContainer::const_iterator itr = teleMap.begin(); itr != teleMap.end(); ++itr)
-                        {
-                            GameTele const* tele = &itr->second;
-
-                            if (tele->wnameLow.find(wNamePart) == std::wstring::npos)
-                                continue;
-
-                            if (maxResults && ++count == maxResults)
-                            {
-                                limitReached = true;
-                                break;
-                            }
-
-                            if (handler->GetSession())
-                                reply << "  |cffffffff|Htele:" << itr->first << "|h[" << tele->name << "]|h|r\n";
-                            else
-                                reply << "  " << itr->first << ' ' << tele->name << "\n";
-                        }
+                        if (handler->GetSession())
+                            reply << "  |cffffffff|Htele:" << phaseName.c_str() << "|h[" << phaseName.c_str() << "]|h|r" << "ID : " << "|cffffffff" << mapid << "|r";
+                        else
+                            reply << phaseName.c_str() << phaseName.c_str() << mapid;
 
                         if (!reply.str().empty())
                             handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT, reply.str().c_str());
-
-                        if (limitReached)
-                            handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
 
                     } while (query3->NextRow());
 
                 }
                 else {
-                    handler->PSendSysMessage(LANG_LOOKUP_PHASE_AUT_ERROR);
-                    handler->SetSentErrorMessage(true);
-                    return false;
+                    continue;
                 }
 
             } while (query->NextRow());

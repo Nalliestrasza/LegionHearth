@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -1228,6 +1228,11 @@ enum TrinityStrings
     // NPC RAZ
     LANG_COMMAND_DEL_NOT_SAVED_CREATURE           = 70025, // Creature not saved, deleted
 
+    // Delete lookup phase entry if owner
+    LANG_PHASE_LOOKUP_BAD_ARG                     = 70026, // Only mapid
+    LANG_PHASE_LOOKUP_ENTRY_DELETE                = 70027, // Entry deleted
+    LANG_PHASE_LOOKUP_NO_ENTRY                    = 70028, // No entry like this ID
+    LANG_PHASE_LOOKUP_NOT_OWNER                   = 70029, // Not owner of entry
 
     // Phase System
 
@@ -1243,7 +1248,7 @@ enum TrinityStrings
     // INVITE
     LANG_PHASE_INVITE_SUCCESS                     = 90005, // Success. Player %s is now a member of your phase.
     LANG_PHASE_INVITE_ERROR                       = 90006, // You're not the owner of this phase.
-    LANG_PHASE_PHASE_INVITE_INI                   = 90012, // Vous avez été invité dans la phase %u par %s. Afin de pouvoir rejoindre celle-ci, tapez la commande .phase ini.
+    LANG_PHASE_PHASE_INVITE_INI                   = 90012, // Vous avez Ã©tÃ© invitÃ© dans la phase %u par %s. Afin de pouvoir rejoindre celle-ci, tapez la commande .phase ini.
 
     // SKYBOX
     LANG_PHASE_SKYBOX_SUCCESS                     = 90007, // Sucess. Changed Y per Z
@@ -1258,12 +1263,12 @@ enum TrinityStrings
 
     // PHASE PLAYSOUND
     LANG_PHASE_PLAY_SOUND                         = 90015, // Vous jouez le Son: %u
-    LANG_PHASE_PLAY_SOUND_NO_AUTHORIZE            = 90016, // Vous n'êtes pas autorisé(e) à jouer un son en dehors de vos phases et des phases dans lesquelles vous êtes co-propriétaire.
-    LANG_PHASE_PLAY_SOUND_NOT_OWNER               = 90017, // Vous n'êtes pas le/la propriétaire de cette phase
+    LANG_PHASE_PLAY_SOUND_NO_AUTHORIZE            = 90016, // Vous n'Ãªtes pas autorisÃ©(e) Ã  jouer un son en dehors de vos phases et des phases dans lesquelles vous Ãªtes co-propriÃ©taire.
+    LANG_PHASE_PLAY_SOUND_NOT_OWNER               = 90017, // Vous n'Ãªtes pas le/la propriÃ©taire de cette phase
 
     // NPC ADD UPDATE
-    LANG_NPC_SPAWN_DIST                           = 90018, // Créature spawn aux coordonnées X: %f, Y: %f, Z: %f sur la Map: %u
-    LANG_NO_AUTHORIZATION                         = 90019, // Vous n'êtes pas autorisé(e) à spawn dans cette phase
+    LANG_NPC_SPAWN_DIST                           = 90018, // CrÃ©ature spawn aux coordonnÃ©es X: %f, Y: %f, Z: %f sur la Map: %u
+    LANG_NO_AUTHORIZATION                         = 90019, // Vous n'Ãªtes pas autorisÃ©(e) Ã  spawn dans cette phase
     LANG_MAP_NOT_EXISTS                           = 90020, // La Map %u n'existe pas
           
     //GOB DETAILS
@@ -1291,5 +1296,7 @@ enum TrinityStrings
     LANG_TICKET_RESULT_PLAYER_QUERY               = 90038,
     LANG_TICKET_RESULT_NONE_PLAYER                = 90039,
 
+    // PHASE DELETE
+    LANG_PLAYER_LIST                              = 90040,
 };
 #endif
