@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -3282,7 +3282,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mÃ¨tres (Ã  deux decimal pres, arrondi Ã  l'infÃ©rieur )
+        //Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3371,7 +3371,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3423,7 +3423,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3470,7 +3470,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÃ©]", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé]", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3506,7 +3506,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3514,11 +3514,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("ParamÃ¨tre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3907,7 +3907,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire dÃ©sactivÃ©e !");
+            handler->SendSysMessage("Nuit noire désactivée !");
             return true;
         }
         else if (argstr == "on")
@@ -3918,7 +3918,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activÃ©e ! Tapez .nuit off pour la dÃ©sactivÃ©e.");
+            handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
             return true;
         }
 
@@ -4210,7 +4210,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -4491,13 +4491,9 @@ public:
                 invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
 
                 QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
-<<<<<<< HEAD
                 if (alreadyInvit)
                     return false;
-=======
-                    if (alreadyInvit)
-                        return false;
->>>>>>> bb704509b0b78501569c3bc86e98a6f07c7a140e
+
 
                 WorldDatabase.Execute(invit);
 
@@ -4594,7 +4590,26 @@ public:
             uint32 replaceID = uint32(atoi(pId));
             uint32 lightId = fields[0].GetUInt32();
 
+            QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+            if (!checkSaved)
+            {
+                //Permamorph !
+                PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
+                getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                getSkybox->setUInt32(1, replaceID);
+                WorldDatabase.Execute(getSkybox);
+
+            }
+            else
+            {
+                PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
+                updSkybox->setUInt32(0, replaceID);
+                updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                WorldDatabase.Execute(updSkybox);
+            }
+
             sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
+
 
         }
         else
@@ -4616,9 +4631,30 @@ public:
             data << replaceID;
             data << 200;
 
+            QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+            if (!checkSaved)
+            {
+                //Permamorph !
+                PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
+                getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                getSkybox->setUInt32(1, replaceID);
+                WorldDatabase.Execute(getSkybox);
+
+            }
+            else
+            {
+                PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
+                updSkybox->setUInt32(0, replaceID);
+                updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                WorldDatabase.Execute(updSkybox);
+            }
+
             handler->GetSession()->SendPacket(&data, true);
 
+
         }
+
+    
 
 
 

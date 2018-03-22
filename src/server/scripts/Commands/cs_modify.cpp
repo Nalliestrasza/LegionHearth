@@ -34,6 +34,7 @@ EndScriptData */
 #include "SpellMgr.h"
 #include "SpellPackets.h"
 #include "WorldSession.h"
+#include "DatabaseEnv.h"
 
 class modify_commandscript : public CommandScript
 {
@@ -495,8 +496,29 @@ public:
         {
             NotifyModification(handler, target, LANG_YOU_CHANGE_SIZE, LANG_YOURS_SIZE_CHANGED, Scale);
             target->SetObjectScale(Scale);
-            return true;
+        
+
+			QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+			if (!checkSaved)
+			{
+				//Permamorph !
+				PreparedStatement* getScale = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASCALE);
+				getScale->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+				getScale->setFloat(1, Scale);
+				WorldDatabase.Execute(getScale);
+
+			}
+			else
+			{
+				PreparedStatement* updScale = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASCALE);
+				updScale->setFloat(0, Scale);
+				updScale->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+				WorldDatabase.Execute(updScale);
+			}
+
+			return true;
         }
+
         return false;
     }
 
@@ -837,6 +859,27 @@ public:
         if (Creature* crea = target->ToCreature())
             crea->SetOutfit(display_id);
 
+
+		Player* player;
+		QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+		if (!checkSaved)
+		{
+			//Permamorph !
+			PreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
+			getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+			getDisplay->setUInt32(1, display_id);
+			WorldDatabase.Execute(getDisplay);
+
+		}
+		else
+		{
+			PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+			updDisplay->setUInt32(0, display_id);
+			updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+			WorldDatabase.Execute(updDisplay);
+		}
+		
+
         return true;
     }
 
@@ -960,7 +1003,16 @@ public:
 			}
 		}
 
-        target->DeMorph();
+
+		Player* player;
+
+		PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+		updDisplay->setUInt32(0, 0);
+		updDisplay->setUInt32(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+		WorldDatabase.Execute(updDisplay);
+
+		target->DeMorph();
+
 
         return true;
     }

@@ -476,7 +476,7 @@ public:
             return false;
 
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
-        stmt->setUInt16(0, uint16(AT_LOGIN_CUSTOMIZE));
+        stmt->setUInt32(0, uint32(AT_LOGIN_CUSTOMIZE));
         if (target)
         {
             handler->PSendSysMessage(LANG_CUSTOMIZE_PLAYER, handler->GetNameLink(target).c_str());
@@ -507,7 +507,7 @@ public:
             return false;
 
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
-        stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_FACTION));
+        stmt->setUInt32(0, uint32(AT_LOGIN_CHANGE_FACTION));
         if (target)
         {
             handler->PSendSysMessage(LANG_CUSTOMIZE_PLAYER, handler->GetNameLink(target).c_str());
@@ -534,7 +534,7 @@ public:
             return false;
 
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
-        stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_RACE));
+        stmt->setUInt32(0, uint32(AT_LOGIN_CHANGE_RACE));
         if (target)
         {
             /// @todo add text into database

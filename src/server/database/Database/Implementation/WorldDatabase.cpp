@@ -161,6 +161,18 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // phaseown_map
     PrepareStatement(WORLD_INS_PHASEOWN_MAP, "INSERT INTO phaseown_map (position_x, position_y, position_z, orientation, map, name) VALUES (?,?,?,?,?,?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_PHASEOWN_MAP, "DELETE FROM phaseown_map WHERE map = ?", CONNECTION_ASYNC);
+
+	//perma
+	PrepareStatement(WORLD_INS_PERMAMORPH, "INSERT INTO player_custom (guid, displayId) VALUES (?,?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_PERMAMORPH, "UPDATE player_custom SET displayId = ? WHERE guid = ?", CONNECTION_ASYNC);
+
+	PrepareStatement(WORLD_INS_PERMASCALE, "INSERT INTO player_custom (guid, scale) VALUES (?,?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_PERMASCALE, "UPDATE player_custom SET scale = ? WHERE guid = ?", CONNECTION_ASYNC);
+
+	PrepareStatement(WORLD_INS_PERMASKYBOX, "INSERT INTO player_custom (guid, skybox) VALUES (?,?)", CONNECTION_ASYNC);
+	PrepareStatement(WORLD_UPD_PERMASKYBOX, "UPDATE player_custom SET skybox = ? WHERE guid = ?", CONNECTION_ASYNC);
+
+	
 }
 
 WorldDatabaseConnection::WorldDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
