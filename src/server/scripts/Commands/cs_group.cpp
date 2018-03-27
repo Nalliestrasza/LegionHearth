@@ -26,6 +26,7 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "Conversation.h"
 #include "RBAC.h"
@@ -354,7 +355,7 @@ public:
             {
                 // ... than, it prints information like "is online", where he is, etc...
                 onlineState = "online";
-                phases = StringJoin(p->GetPhases(), ", ");
+                phases = PhasingHandler::FormatPhases(p->GetPhaseShift());
 
                 AreaTableEntry const* area = sAreaTableStore.LookupEntry(p->GetAreaId());
                 if (area)

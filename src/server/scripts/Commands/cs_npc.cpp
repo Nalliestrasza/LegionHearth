@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -37,6 +37,7 @@ EndScriptData */
 #include "SpellAuras.h"
 #include "SpellMgr.h"
 #include "Spell.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "RBAC.h"
 #include "TargetedMovementGenerator.h"                      // for HandleNpcUnFollowCommand
@@ -482,7 +483,8 @@ public:
         if (!creature)
             return false;
 
-        creature->CopyPhaseFrom(chr);
+        PhasingHandler::InheritPhaseShift(creature, chr);
+
 
         if (map->GetId() > 5000) {
 
@@ -1000,17 +1002,7 @@ public:
         if (CreatureData const* data = sObjectMgr->GetCreatureData(target->GetSpawnId()))
         {
             handler->PSendSysMessage(LANG_NPCINFO_PHASES, data->phaseId, data->phaseGroup);
-            if (data->phaseGroup)
-            {
-                std::set<uint32> _phases = target->GetPhases();
-
-                if (!_phases.empty())
-                {
-                    handler->PSendSysMessage(LANG_NPCINFO_PHASE_IDS);
-                    for (uint32 phaseId : _phases)
-                        handler->PSendSysMessage("%u", phaseId);
-                }
-            }
+            PhasingHandler::PrintToChat(handler, target->GetPhaseShift());
         }
 
         handler->PSendSysMessage(LANG_NPCINFO_ARMOR, target->GetArmor());
@@ -1371,12 +1363,8 @@ public:
             return false;
         }
 
-        creature->ClearPhases();
-
-        for (uint32 id : sDB2Manager.GetPhasesForGroup(phaseGroupId))
-            creature->SetInPhase(id, false, true); // don't send update here for multiple phases, only send it once after adding all phases
-
-        creature->UpdateObjectVisibility();
+        PhasingHandler::ResetPhaseShift(creature);
+        PhasingHandler::AddPhaseGroup(creature, phaseGroupId, true);
         creature->SetDBPhase(-phaseGroupId);
 
         creature->SaveToDB();
@@ -1407,8 +1395,8 @@ public:
             return false;
         }
 
-        creature->ClearPhases();
-        creature->SetInPhase(phaseID, true, true);
+        PhasingHandler::ResetPhaseShift(creature);
+        PhasingHandler::AddPhase(creature, phaseID, true);
         creature->SetDBPhase(phaseID);
 
         creature->SaveToDB();
@@ -2001,7 +1989,7 @@ public:
 		}
 		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -2042,7 +2030,7 @@ public:
 
         target->SetAIAnimKitId(animkit);
 
-        //CotÃ© SQL
+        //Coté SQL
         guidLow = target->GetSpawnId();
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
@@ -2104,7 +2092,7 @@ public:
 
 		//.ToString().c_str()
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		std::string auraString = std::to_string(uint32(spellId));
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
@@ -2156,7 +2144,7 @@ public:
 		target->Mount(mount);
 
 
-		//CotÃ© SQL
+		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
@@ -2249,7 +2237,8 @@ public:
         if (!creature)
             return false;
 
-        creature->CopyPhaseFrom(chr);
+        //creature->CopyPhaseFrom(chr);
+        PhasingHandler::InheritPhaseShift(creature, chr);
         creature->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
 
         ObjectGuid::LowType db_guid = creature->GetSpawnId();

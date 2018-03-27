@@ -28,6 +28,7 @@ gets instead the deserter debuff.
 #include "InstanceScript.h"
 #include "Map.h"
 #include "endless_halls.h"
+#include "PhasingHandler.h"
 
 ObjectData const creatureData[] =
 {
@@ -200,42 +201,42 @@ public:
 
             if (GameObject* go = GetGameObject(DATA_RUNE_BLEU))
             {
-                if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == runeBluePos && BlueRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != runeBluePos && BlueRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == runeBluePos && BlueRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != runeBluePos && BlueRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
             }
 
             if (GameObject* go = GetGameObject(DATA_RUNE_ROUGE))
             {
-                if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == runeRedPos && RedRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));     
-                else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != runeRedPos && RedRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == runeRedPos && RedRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);     
+                else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != runeRedPos && RedRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
             }
 
             if (GameObject* go = GetGameObject(DATA_RUNE_VERT))
             {
-                if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == runeGreenPos && GreenRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != runeGreenPos && GreenRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == runeGreenPos && GreenRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != runeGreenPos && GreenRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
             }
 
             if (GameObject* go = GetGameObject(DATA_RUNE_JAUNE))
             {
-                if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == runeYellowPos && YellowRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != runeYellowPos && YellowRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == runeYellowPos && YellowRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != runeYellowPos && YellowRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
             }
 
             if (GameObject* go = GetGameObject(DATA_RUNE_VIOLET))
             {
-                if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == runeVioletPos && VioletRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != runeVioletPos && VioletRuneState != GO_STATE_READY)
-                    go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == runeVioletPos && VioletRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != runeVioletPos && VioletRuneState != GO_STATE_READY)
+                    PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
             }
 
             // Rocks position
@@ -263,72 +264,72 @@ public:
 
                 if (GameObject* go = instance->GetGameObject(BlueOrbsGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == orbBluePos && BlueRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != orbBluePos && BlueRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == orbBluePos && BlueRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != orbBluePos && BlueRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
 
                 if (GameObject* go = instance->GetGameObject(RedOrbsGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == orbRedPos && RedRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != orbRedPos && RedRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == orbRedPos && RedRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != orbRedPos && RedRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
 
                 if (GameObject* go = instance->GetGameObject(GreenOrbsGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == orbGreenPos && GreenRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != orbGreenPos && GreenRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == orbGreenPos && GreenRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != orbGreenPos && GreenRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
 
                 if (GameObject* go = instance->GetGameObject(YellowOrbsGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == orbYellowPos && YellowRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != orbYellowPos && YellowRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == orbYellowPos && YellowRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != orbYellowPos && YellowRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
 
                 if (GameObject* go = instance->GetGameObject(VioletOrbsGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && actualPos == orbVioletPos && VioletRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && actualPos != orbVioletPos && VioletRuneState != GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos == orbVioletPos && VioletRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && actualPos != orbVioletPos && VioletRuneState != GO_STATE_READY)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
 
                 // Rocks
                 if (GameObject* go = instance->GetGameObject(NorthRocksGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][0] == 0)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][0] == 1)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][0] == 0)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][0] == 1)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
                 if (GameObject* go = instance->GetGameObject(SouthRocksGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][2] == 0)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][2] == 1)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][2] == 0)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][2] == 1)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
                 if (GameObject* go = instance->GetGameObject(EastRocksGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][1] == 0)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][1] == 1)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][1] == 0)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][1] == 1)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
                 if (GameObject* go = instance->GetGameObject(WestRocksGUIDs[i]))
                 {
-                    if (go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][3] == 0)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
-                    else if (!go->IsInPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][3] == 1)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                    if (go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][3] == 0)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
+                    else if (!go->GetPhaseShift().HasPhase(PHASE_INVISIBLE) && mazeDefinition[k][v][3] == 1)
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                 }
             }
         }
@@ -366,7 +367,7 @@ public:
                         if (NorthRocksGUIDs[i].IsEmpty())
                         {
                             NorthRocksGUIDs[i] = go->GetGUID();
-                            go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                            PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -376,7 +377,7 @@ public:
                         if (SouthRocksGUIDs[i].IsEmpty())
                         {
                             SouthRocksGUIDs[i] = go->GetGUID();
-                            go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                            PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -386,7 +387,7 @@ public:
                         if (EastRocksGUIDs[i].IsEmpty())
                         {
                             EastRocksGUIDs[i] = go->GetGUID();
-                            go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                            PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -396,7 +397,7 @@ public:
                         if (WestRocksGUIDs[i].IsEmpty())
                         {
                             WestRocksGUIDs[i] = go->GetGUID();
-                            go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                            PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -407,7 +408,7 @@ public:
                         {
                             BlueOrbsGUIDs[i] = go->GetGUID();
                             if (BlueRuneState == GO_STATE_READY)
-                                go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                                PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -417,7 +418,7 @@ public:
                         {
                             RedOrbsGUIDs[i] = go->GetGUID();
                             if (RedRuneState == GO_STATE_READY)
-                                go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                                PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -427,7 +428,7 @@ public:
                         {
                             GreenOrbsGUIDs[i] = go->GetGUID();
                             if (GreenRuneState == GO_STATE_READY)
-                                go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                                PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -437,7 +438,7 @@ public:
                         {
                             YellowOrbsGUIDs[i] = go->GetGUID();
                             if (YellowRuneState == GO_STATE_READY)
-                                go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                                PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
@@ -447,34 +448,34 @@ public:
                         {
                             VioletOrbsGUIDs[i] = go->GetGUID();
                             if (VioletRuneState == GO_STATE_READY)
-                                go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                                PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                             break;
                         }
                     break;
                 case GO_RUNE_BLEU:
                     go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     if (BlueRuneState == GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                     break;
                 case GO_RUNE_ROUGE:
                     go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     if (RedRuneState == GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                     break;
                 case GO_RUNE_VERT:
                     go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     if (GreenRuneState == GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                     break;
                 case GO_RUNE_JAUNE:
                     go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     if (YellowRuneState == GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                     break;
                 case GO_RUNE_VIOLET:
                     go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                     if (VioletRuneState == GO_STATE_READY)
-                        go->SetInPhase(PHASE_INVISIBLE, true, !go->IsInPhase(PHASE_INVISIBLE));
+                        PhasingHandler::AddPhase(go, PHASE_INVISIBLE, true);
                     break;
                 default:
                     break;
@@ -542,50 +543,50 @@ public:
                         for (uint8 i = 0; i < OrbeCount; ++i)
                         {
                             if (GameObject* gob = instance->GetGameObject(BlueOrbsGUIDs[i]))
-                                gob->SetInPhase(PHASE_REMOVED, true, !gob->IsInPhase(PHASE_REMOVED));
+                                PhasingHandler::AddPhase(gob, PHASE_REMOVED, true);
                         }
                         if (GameObject* go = GetGameObject(DATA_RUNE_BLEU))
-                            go->SetInPhase(PHASE_REMOVED, true, !go->IsInPhase(PHASE_REMOVED));
+                            PhasingHandler::AddPhase(go, PHASE_REMOVED, true);
                         break;
                     case GO_RUNE_ROUGE: 
                         RedRuneState = GO_STATE_READY;
                         for (uint8 i = 0; i < OrbeCount; ++i)
                         {
                             if (GameObject* gob = instance->GetGameObject(RedOrbsGUIDs[i]))
-                                gob->SetInPhase(PHASE_REMOVED, true, !gob->IsInPhase(PHASE_REMOVED));
+                                PhasingHandler::AddPhase(gob, PHASE_REMOVED, true);
                         }
                         if (GameObject* go = GetGameObject(DATA_RUNE_ROUGE))
-                            go->SetInPhase(PHASE_REMOVED, true, !go->IsInPhase(PHASE_REMOVED));
+                            PhasingHandler::AddPhase(go, PHASE_REMOVED, true);
                         break;
                     case GO_RUNE_VERT:
                         GreenRuneState = GO_STATE_READY;
                         for (uint8 i = 0; i < OrbeCount; ++i)
                         {
                             if (GameObject* gob = instance->GetGameObject(GreenOrbsGUIDs[i]))
-                                gob->SetInPhase(PHASE_REMOVED, true, !gob->IsInPhase(PHASE_REMOVED));
+                                PhasingHandler::AddPhase(gob, PHASE_REMOVED, true);
                         }
                         if (GameObject* go = GetGameObject(DATA_RUNE_VERT))
-                            go->SetInPhase(PHASE_REMOVED, true, !go->IsInPhase(PHASE_REMOVED));
+                            PhasingHandler::AddPhase(go, PHASE_REMOVED, true);
                         break;
                     case GO_RUNE_JAUNE:
                         YellowRuneState = GO_STATE_READY;
                         for (uint8 i = 0; i < OrbeCount; ++i)
                         {
                             if (GameObject* gob = instance->GetGameObject(YellowOrbsGUIDs[i]))
-                                gob->SetInPhase(PHASE_REMOVED, true, !gob->IsInPhase(PHASE_REMOVED));
+                                PhasingHandler::AddPhase(gob, PHASE_REMOVED, true);
                         }
                         if (GameObject* go = GetGameObject(DATA_RUNE_JAUNE))
-                            go->SetInPhase(PHASE_REMOVED, true, !go->IsInPhase(PHASE_REMOVED));
+                            PhasingHandler::AddPhase(go, PHASE_REMOVED, true);
                         break;
                     case GO_RUNE_VIOLET:
                         VioletRuneState = GO_STATE_READY;
                         for (uint8 i = 0; i < OrbeCount; ++i)
                         {
                             if (GameObject* gob = instance->GetGameObject(VioletOrbsGUIDs[i]))
-                                gob->SetInPhase(PHASE_REMOVED, true, !gob->IsInPhase(PHASE_REMOVED));
+                                PhasingHandler::AddPhase(gob, PHASE_REMOVED, true);
                         }
                         if (GameObject* go = GetGameObject(DATA_RUNE_VIOLET))
-                            go->SetInPhase(PHASE_REMOVED, true, !go->IsInPhase(PHASE_REMOVED));
+                            PhasingHandler::AddPhase(go, PHASE_REMOVED, true);
                         break;
                 }
             }

@@ -55,6 +55,7 @@
 #include "PassiveAI.h"
 #include "Pet.h"
 #include "PetAI.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "PlayerAI.h"
 #include "QuestDef.h"
@@ -3044,12 +3045,12 @@ bool Unit::isInAccessiblePlaceFor(Creature const* c) const
 
 bool Unit::IsInWater() const
 {
-    return GetBaseMap()->IsInWater(GetPositionX(), GetPositionY(), GetPositionZ());
+    return GetBaseMap()->IsInWater(GetPhaseShift(), GetPositionX(), GetPositionY(), GetPositionZ());
 }
 
 bool Unit::IsUnderWater() const
 {
-    return GetBaseMap()->IsUnderWater(GetPositionX(), GetPositionY(), GetPositionZ());
+    return GetBaseMap()->IsUnderWater(GetPhaseShift(), GetPositionX(), GetPositionY(), GetPositionZ());
 }
 
 void Unit::UpdateUnderwaterState(Map* m, float x, float y, float z)
@@ -3058,7 +3059,7 @@ void Unit::UpdateUnderwaterState(Map* m, float x, float y, float z)
         return;
 
     LiquidData liquid_status;
-    ZLiquidStatus res = m->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
+    ZLiquidStatus res = m->getLiquidStatus(GetPhaseShift(), x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
     if (!res)
     {
         if (_lastLiquid && _lastLiquid->SpellID)
@@ -3849,7 +3850,7 @@ void Unit::RemoveAurasWithAttribute(uint32 flags)
     }
 }
 
-void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase, bool phaseid)
+void Unit::RemoveNotOwnSingleTargetAuras(bool onPhaseChange /*= false*/)
 {
     // single target auras from other casters
     // Iterate m_ownedAuras - aura is marked as single target in Unit::AddAura (and pushed to m_ownedAuras).
@@ -3866,12 +3867,12 @@ void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase, bool phaseid)
 
         if (aura->GetCasterGUID() != GetGUID() && aura->IsSingleTarget())
         {
-            if (!newPhase && !phaseid)
+            if (!onPhaseChange)
                 RemoveOwnedAura(iter);
             else
             {
                 Unit* caster = aura->GetCaster();
-                if (!caster || (newPhase && !caster->IsInPhase(newPhase)) || (!newPhase && !caster->IsInPhase(this)))
+                if (!caster || !caster->IsInPhase(this))
                     RemoveOwnedAura(iter);
                 else
                     ++iter;
@@ -3886,9 +3887,9 @@ void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase, bool phaseid)
     for (AuraList::iterator iter = scAuras.begin(); iter != scAuras.end();)
     {
         Aura* aura = *iter;
-        if (aura->GetUnitOwner() && aura->GetUnitOwner() != this && !aura->GetUnitOwner()->IsInPhase(newPhase))
+        if (aura->GetUnitOwner() && aura->GetUnitOwner() != this && (!onPhaseChange || !aura->GetUnitOwner()->IsInPhase(this)))
         {
-			if ((newPhase == 0x0 && !phaseid) ||
+			if ( /*(newPhase == 0x0 && !phaseid) || */
 				(!aura->GetEffect(0) || aura->GetEffect(0)->GetAuraType() != SPELL_AURA_CONTROL_VEHICLE) &&
 				(!aura->GetEffect(1) || aura->GetEffect(1)->GetAuraType() != SPELL_AURA_CONTROL_VEHICLE))
 			{
@@ -7586,7 +7587,7 @@ MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
         mountFlags = areaTable->MountFlags;
 
     LiquidData liquid;
-    ZLiquidStatus liquidStatus = GetMap()->getLiquidStatus(GetPositionX(), GetPositionY(), GetPositionZ(), MAP_ALL_LIQUIDS, &liquid);
+    ZLiquidStatus liquidStatus = GetMap()->getLiquidStatus(GetPhaseShift(), GetPositionX(), GetPositionY(), GetPositionZ(), MAP_ALL_LIQUIDS, &liquid);
     isSubmerged = (liquidStatus & LIQUID_MAP_UNDER_WATER) != 0 || HasUnitMovementFlag(MOVEMENTFLAG_SWIMMING);
     isInWater = (liquidStatus & (LIQUID_MAP_IN_WATER | LIQUID_MAP_UNDER_WATER)) != 0;
 
@@ -9473,15 +9474,6 @@ int32 Unit::GetCreatePowers(Powers power) const
     return 0;
 }
 
-void Unit::AddToWorld()
-{
-    if (!IsInWorld())
-    {
-        WorldObject::AddToWorld();
-    }
-    RebuildTerrainSwaps();
-}
-
 void Unit::RemoveFromWorld()
 {
     // cleanup
@@ -10758,7 +10750,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
         return false;
     }
 
-    pet->CopyPhaseFrom(this);
+    PhasingHandler::InheritPhaseShift(pet, this);
 
     pet->GetCharmInfo()->SetPetNumber(sObjectMgr->GeneratePetNumber(), true);
     // this enables pet details window (Shift+P)
@@ -10857,6 +10849,10 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
 
     if (isRewardAllowed && creature && creature->GetLootRecipient())
         player = creature->GetLootRecipient();
+
+    // Exploit fix
+    if (creature && creature->IsPet() && creature->GetOwnerGUID().IsPlayer())
+        isRewardAllowed = false;
 
     // Reward player, his pets, and group/raid members
     // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
@@ -11222,8 +11218,8 @@ void Unit::SetStunned(bool apply)
             SetTarget(EnsureVictim()->GetGUID());
 
         // don't remove UNIT_FLAG_STUNNED for pet when owner is mounted (disabled pet's interface)
-        Unit* owner = GetOwner();
-        if (!owner || (owner->GetTypeId() == TYPEID_PLAYER && !owner->ToPlayer()->IsMounted()))
+        Unit* owner = GetCharmerOrOwner();
+        if (!owner || owner->GetTypeId() != TYPEID_PLAYER || !owner->ToPlayer()->IsMounted())
             RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
 
         if (!HasUnitState(UNIT_STATE_ROOT))         // prevent moving if it also has root effect
@@ -11979,14 +11975,12 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
     return missChance;
 }
 
-bool Unit::SetInPhase(uint32 id, bool update, bool apply)
+void Unit::OnPhaseChange()
 {
-    bool res = WorldObject::SetInPhase(id, update, apply);
-
     if (!IsInWorld())
-        return res;
+        return;
 
-    if (GetTypeId() == TYPEID_UNIT || (!ToPlayer()->IsGameMaster() && !ToPlayer()->GetSession()->PlayerLogout()))
+    if (GetTypeId() == TYPEID_UNIT || !ToPlayer()->GetSession()->PlayerLogout())
     {
         HostileRefManager& refManager = getHostileRefManager();
         HostileReference* ref = refManager.getFirst();
@@ -12016,19 +12010,6 @@ bool Unit::SetInPhase(uint32 id, bool update, bool apply)
                     unit->getHostileRefManager().setOnlineOfflineState(ToCreature(), unit->IsInPhase(this));
         }
     }
-
-    for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)
-        if ((*itr)->GetTypeId() == TYPEID_UNIT)
-            (*itr)->SetInPhase(id, true, apply);
-
-    for (uint8 i = 0; i < MAX_SUMMON_SLOT; ++i)
-        if (!m_SummonSlot[i].IsEmpty())
-            if (Creature* summon = GetMap()->GetCreature(m_SummonSlot[i]))
-                summon->SetInPhase(id, true, apply);
-
-    RemoveNotOwnSingleTargetAuras(0, true);
-
-    return res;
 }
 
 void Unit::UpdateObjectVisibility(bool forced)
@@ -12851,7 +12832,7 @@ void Unit::_ExitVehicle(Position const* exitPosition)
     Movement::MoveSplineInit init(this);
 
     // Creatures without inhabit type air should begin falling after exiting the vehicle
-    if (GetTypeId() == TYPEID_UNIT && !CanFly() && height > GetMap()->GetWaterOrGroundLevel(GetPhases(), pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), &height) + 0.1f)
+    if (GetTypeId() == TYPEID_UNIT && !CanFly() && height > GetMap()->GetWaterOrGroundLevel(GetPhaseShift(), pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), &height) + 0.1f)
         init.SetFall();
 
     init.MoveTo(pos.GetPositionX(), pos.GetPositionY(), height, false);

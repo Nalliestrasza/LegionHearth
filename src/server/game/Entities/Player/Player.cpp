@@ -87,6 +87,7 @@
 #include "OutdoorPvPMgr.h"
 #include "Pet.h"
 #include "PetPackets.h"
+#include "PhasingHandler.h"
 #include "QueryHolder.h"
 #include "QuestDef.h"
 #include "QuestObjectiveCriteriaMgr.h"
@@ -2152,7 +2153,7 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid const& guid, Gameo
 bool Player::IsUnderWater() const
 {
     return IsInWater() &&
-        GetPositionZ() < (GetBaseMap()->GetWaterLevel(GetPositionX(), GetPositionY())-2);
+        GetPositionZ() < (GetBaseMap()->GetWaterLevel(GetPhaseShift(), GetPositionX(), GetPositionY()) - 2);
 }
 
 void Player::SetInWater(bool apply)
@@ -2175,8 +2176,15 @@ void Player::SetInWater(bool apply)
 
 bool Player::IsInAreaTriggerRadius(const AreaTriggerEntry* trigger) const
 {
-    if (!trigger || int32(GetMapId()) != trigger->ContinentID)
+    if (!trigger)
         return false;
+
+    if (int32(GetMapId()) != trigger->ContinentID && !GetPhaseShift().HasVisibleMapId(trigger->ContinentID))
+        return false;
+
+    if (trigger->PhaseID || trigger->PhaseGroupID || trigger->PhaseUseFlags)
+        if (!PhasingHandler::InDbPhaseShift(this, trigger->PhaseUseFlags, trigger->PhaseID, trigger->PhaseGroupID))
+            return false;
 
     if (trigger->Radius > 0.f)
     {
@@ -2216,10 +2224,13 @@ void Player::SetGameMaster(bool on)
         getHostileRefManager().setOnlineOfflineState(false);
         CombatStopWithPets();
 
+        PhasingHandler::SetAlwaysVisible(GetPhaseShift(), true);
         m_serverSideVisibilityDetect.SetValue(SERVERSIDE_VISIBILITY_GM, GetSession()->GetSecurity());
     }
     else
     {
+        PhasingHandler::SetAlwaysVisible(GetPhaseShift(), false);
+
         m_ExtraFlags &= ~ PLAYER_EXTRA_GM_ON;
         setFactionForRace(getRace());
         RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_GM);
@@ -4265,6 +4276,9 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     // update visibility
     UpdateObjectVisibility();
 
+    // recast lost by death auras of any items held in the inventory
+    CastAllObtainSpells();
+
     if (!applySickness)
         return;
 
@@ -4649,7 +4663,7 @@ void Player::RepopAtGraveyard()
         if (Battlefield* bf = sBattlefieldMgr->GetBattlefieldToZoneId(GetZoneId()))
             ClosestGrave = bf->GetClosestGraveYard(this);
         else
-            ClosestGrave = sObjectMgr->GetClosestGraveYard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId(), GetTeam());
+            ClosestGrave = sObjectMgr->GetClosestGraveYard(*this, GetTeam(), this);
     }
 
     // stop countdown until repop
@@ -4781,7 +4795,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
 
         if (removeChannel)
         {
-            removeChannel->LeaveChannel(this, sendRemove);                                      // Leave old channel
+            removeChannel->LeaveChannel(this, sendRemove, true);                                // Leave old channel
 
             LeftChannel(removeChannel);                                                         // Remove from player's channel list
             cMgr->LeftChannel(removeChannel->GetChannelId(), removeChannel->GetZoneEntry());    // Delete if empty
@@ -5952,7 +5966,7 @@ void Player::CheckAreaExploreAndOutdoor()
         return;
 
     bool isOutdoor;
-    uint32 areaId = GetBaseMap()->GetAreaId(GetPositionX(), GetPositionY(), GetPositionZ(), &isOutdoor);
+    uint32 areaId = GetBaseMap()->GetAreaId(GetPhaseShift(), GetPositionX(), GetPositionY(), GetPositionZ(), &isOutdoor);
     AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(areaId);
 
     if (sWorld->getBoolConfig(CONFIG_VMAP_INDOOR_CHECK) && !isOutdoor)
@@ -6960,7 +6974,7 @@ uint32 Player::GetZoneIdFromDB(ObjectGuid guid)
         if (!sMapStore.LookupEntry(map))
             return 0;
 
-        zone = sMapMgr->GetZoneId(map, posx, posy, posz);
+        zone = sMapMgr->GetZoneId(PhasingHandler::GetEmptyPhaseShift(), map, posx, posy, posz);
 
         if (zone > 0)
         {
@@ -7004,7 +7018,7 @@ void Player::UpdateArea(uint32 newArea)
     if (GetMapId() != (uint32)1764)
     {
         UpdateAreaDependentAuras(newArea);
-        UpdateAreaAndZonePhase();
+        PhasingHandler::OnAreaChange(this);
     }
 
     if (IsAreaThatActivatesPvpTalents(newArea))
@@ -7114,8 +7128,6 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
     UpdateLocalChannels(newZone);
 
     UpdateZoneDependentAuras(newZone);
-
-    UpdateAreaAndZonePhase();
 }
 
 //If players are too far away from the duel flag... they lose the duel
@@ -7653,6 +7665,46 @@ void Player::_ApplyWeaponDamage(uint8 slot, Item* item, bool apply)
 
     if (CanModifyStats() && (damage || proto->GetDelay()))
         UpdateDamagePhysical(attType);
+}
+
+void Player::CastAllObtainSpells()
+{
+    for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
+        if (Item* item = GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+            ApplyItemObtainSpells(item, true);
+
+    for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+    {
+        Bag* bag = GetBagByPos(i);
+        if (!bag)
+            continue;
+
+        for (uint32 slot = 0; slot < bag->GetBagSize(); ++slot)
+            if (Item* item = bag->GetItemByPos(slot))
+                ApplyItemObtainSpells(item, true);
+    }
+}
+
+void Player::ApplyItemObtainSpells(Item* item, bool apply)
+{
+    ItemTemplate const* itemTemplate = item->GetTemplate();
+    for (uint8 i = 0; i < itemTemplate->Effects.size(); ++i)
+    {
+        if (itemTemplate->Effects[i]->TriggerType != ITEM_SPELLTRIGGER_ON_OBTAIN) // On obtain trigger
+            continue;
+
+        int32 const spellId = itemTemplate->Effects[i]->SpellID;
+        if (spellId <= 0)
+            continue;
+
+        if (apply)
+        {
+            if (!HasAura(spellId))
+                CastSpell(this, spellId, true, item);
+        }
+        else
+            RemoveAurasDueToSpell(spellId);
+    }
 }
 
 void Player::ApplyItemDependentAuras(Item* item, bool apply)
@@ -11855,12 +11907,8 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
         AddEnchantmentDurations(pItem);
         AddItemDurations(pItem);
 
-        const ItemTemplate* proto = pItem->GetTemplate();
-        for (uint8 i = 0; i < proto->Effects.size(); ++i)
-            if (proto->Effects[i]->TriggerType == ITEM_SPELLTRIGGER_ON_OBTAIN) // On obtain trigger
-                if (bag == INVENTORY_SLOT_BAG_0 || (bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END))
-                    if (!HasAura(proto->Effects[i]->SpellID))
-                        CastSpell(this, proto->Effects[i]->SpellID, true, pItem);
+        if (bag == INVENTORY_SLOT_BAG_0 || (bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END))
+            ApplyItemObtainSpells(pItem, true);
 
         return pItem;
     }
@@ -11898,12 +11946,8 @@ Item* Player::_StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool
 
         pItem2->SetState(ITEM_CHANGED, this);
 
-        const ItemTemplate* proto = pItem2->GetTemplate();
-        for (uint8 i = 0; i < proto->Effects.size(); ++i)
-            if (proto->Effects[i]->TriggerType == ITEM_SPELLTRIGGER_ON_OBTAIN) // On obtain trigger
-                if (bag == INVENTORY_SLOT_BAG_0 || (bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END))
-                    if (!HasAura(proto->Effects[i]->SpellID))
-                        CastSpell(this, proto->Effects[i]->SpellID, true, pItem2);
+        if (bag == INVENTORY_SLOT_BAG_0 || (bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END))
+            ApplyItemObtainSpells(pItem2, true);
 
         return pItem2;
     }
@@ -12362,10 +12406,7 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
         pItem->ClearSoulboundTradeable(this);
         RemoveTradeableItem(pItem);
 
-        const ItemTemplate* proto = pItem->GetTemplate();
-        for (uint8 i = 0; i < proto->Effects.size(); ++i)
-            if (proto->Effects[i]->TriggerType == ITEM_SPELLTRIGGER_ON_OBTAIN) // On obtain trigger
-                RemoveAurasDueToSpell(proto->Effects[i]->SpellID);
+        ApplyItemObtainSpells(pItem, false);
 
         ItemRemovedQuestCheck(pItem->GetEntry(), pItem->GetCount());
         sScriptMgr->OnItemRemove(this, pItem);
@@ -13236,9 +13277,6 @@ void Player::SwapItem(uint16 src, uint16 dst)
     RemoveItem(dstbag, dstslot, false);
     RemoveItem(srcbag, srcslot, false);
 
-    if (srcbag == INVENTORY_SLOT_BAG_0 && srcslot < INVENTORY_SLOT_BAG_END)
-        ApplyItemDependentAuras(pSrcItem, false);
-
     // add to dest
     if (IsInventoryPos(dst))
         StoreItem(sDest, pSrcItem, true);
@@ -13251,9 +13289,6 @@ void Player::SwapItem(uint16 src, uint16 dst)
             EquipChildItem(srcbag, srcslot, pSrcItem);
     }
 
-    if (dstbag == INVENTORY_SLOT_BAG_0 && dstslot < INVENTORY_SLOT_BAG_END)
-        ApplyItemDependentAuras(pDstItem, false);
-
     // add to src
     if (IsInventoryPos(src))
         StoreItem(sDest2, pDstItem, true);
@@ -13261,6 +13296,11 @@ void Player::SwapItem(uint16 src, uint16 dst)
         BankItem(sDest2, pDstItem, true);
     else if (IsEquipmentPos(src))
         EquipItem(eDest2, pDstItem, true);
+
+    // if inventory item was moved, check if we can remove dependent auras, because they were not removed in Player::RemoveItem (update was set to false)
+    // do this after swaps are done, we pass nullptr because both weapons could be swapped and none of them should be ignored
+    if ((srcbag == INVENTORY_SLOT_BAG_0 && srcslot < INVENTORY_SLOT_BAG_END) || (dstbag == INVENTORY_SLOT_BAG_0 && dstslot < INVENTORY_SLOT_BAG_END))
+        ApplyItemDependentAuras((Item*)nullptr, false);
 
     // if player is moving bags and is looting an item inside this bag
     // release the loot
@@ -14092,6 +14132,11 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     // processed in Player::CastItemUseSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_PRISMATIC_SOCKET:
+                case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_BY_TYPE:
+                case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_BY_ID:
+                case ITEM_ENCHANTMENT_TYPE_BONUS_LIST_ID:
+                case ITEM_ENCHANTMENT_TYPE_BONUS_LIST_CURVE:
+                case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_PICKER:
                     // nothing do..
                     break;
                 default:
@@ -16187,7 +16232,7 @@ void Player::SendQuestUpdate(uint32 questId)
     }
 
     UpdateForQuestWorldObjects();
-    SendUpdatePhasing();
+    PhasingHandler::OnConditionChange(this);
 }
 
 QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
@@ -23134,7 +23179,7 @@ void Player::SetBattlegroundEntryPoint()
         // If map is dungeon find linked graveyard
         if (GetMap()->IsDungeon())
         {
-            if (const WorldSafeLocsEntry* entry = sObjectMgr->GetClosestGraveYard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId(), GetTeam()))
+            if (const WorldSafeLocsEntry* entry = sObjectMgr->GetClosestGraveYard(*this, GetTeam(), this))
                 m_bgData.joinPos = WorldLocation(entry->MapID, entry->Loc.X, entry->Loc.Y, entry->Loc.Z, 0.0f);
             else
                 TC_LOG_ERROR("entities.player", "Player::SetBattlegroundEntryPoint: Dungeon (MapID: %u) has no linked graveyard, setting home location as entry point.", GetMapId());
@@ -23822,6 +23867,8 @@ void Player::SendInitialPacketsAfterAddToMap()
         DifficultyEntry const* difficulty = sDifficultyStore.AssertEntry(m_prevMapDifficulty);
         SendRaidDifficulty((difficulty->Flags & DIFFICULTY_FLAG_LEGACY) != 0);
     }
+
+    PhasingHandler::OnMapChange(this);
 
     if (_garrison)
         _garrison->SendRemoteInfo();
@@ -25292,7 +25339,7 @@ int32 Player::NextGroupUpdateSequenceNumber(GroupCategory category)
 void Player::UpdateUnderwaterState(Map* m, float x, float y, float z)
 {
     LiquidData liquid_status;
-    ZLiquidStatus res = m->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
+    ZLiquidStatus res = m->getLiquidStatus(GetPhaseShift(), x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
     if (!res)
     {
         m_MirrorTimerFlags &= ~(UNDERWATER_INWATER | UNDERWATER_INLAVA | UNDERWATER_INSLIME | UNDERWARER_INDARKWATER);
@@ -26101,7 +26148,7 @@ TalentLearnResult Player::LearnTalent(uint32 talentId, int32* spellOnCooldown)
     if (IsInCombat())
         return TALENT_FAILED_AFFECTING_COMBAT;
 
-    if (isDead() || GetMap()->IsBattlegroundOrArena())
+    if (isDead())
         return TALENT_FAILED_CANT_DO_THAT_RIGHT_NOW;
 
     if (!GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID))
@@ -26150,7 +26197,10 @@ TalentLearnResult Player::LearnTalent(uint32 talentId, int32* spellOnCooldown)
     {
         for (TalentEntry const* talent : sDB2Manager.GetTalentsByPosition(getClass(), talentInfo->TierID, c))
         {
-            if (HasTalent(talent->ID, GetActiveTalentGroup()) && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC))
+            if (!HasTalent(talent->ID, GetActiveTalentGroup()))
+                continue;
+
+            if (!HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && !HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ALLOW_CHANGING_TALENTS))
                 return TALENT_FAILED_REST_AREA;
 
             if (GetSpellHistory()->HasCooldown(talent->SpellID))
@@ -27754,7 +27804,7 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
         return nullptr;
     }
 
-    pet->CopyPhaseFrom(this);
+    PhasingHandler::InheritPhaseShift(pet, this);
 
     pet->SetCreatorGUID(GetGUID());
     pet->SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, getFaction());
@@ -27896,16 +27946,6 @@ void Player::ValidateMovementInfo(MovementInfo* mi)
         mi->AddMovementFlag(MOVEMENTFLAG_SPLINE_ELEVATION);
 
     #undef REMOVE_VIOLATING_FLAGS
-}
-
-void Player::SendUpdatePhasing()
-{
-    if (!IsInWorld())
-        return;
-
-    RebuildTerrainSwaps(); // to set default map swaps
-
-    GetSession()->SendSetPhaseShift(GetPhases(), GetTerrainSwaps(), GetWorldMapAreaSwaps());
 }
 
 void Player::SendSupercededSpell(uint32 oldSpell, uint32 newSpell) const

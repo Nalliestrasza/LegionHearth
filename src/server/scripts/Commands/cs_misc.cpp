@@ -39,6 +39,7 @@
 #include "ObjectMgr.h"
 #include "Opcodes.h"
 #include "Pet.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "Realm.h"
 #include "ScriptMgr.h"
@@ -357,8 +358,8 @@ public:
         sDB2Manager.Map2ZoneCoordinates(zoneId, zoneX, zoneY);
 
         Map const* map = object->GetMap();
-        float groundZ = map->GetHeight(object->GetPhases(), object->GetPositionX(), object->GetPositionY(), MAX_HEIGHT);
-        float floorZ = map->GetHeight(object->GetPhases(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ());
+        float groundZ = map->GetHeight(object->GetPhaseShift(), object->GetPositionX(), object->GetPositionY(), MAX_HEIGHT);
+        float floorZ = map->GetHeight(object->GetPhaseShift(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ());
 
         GridCoord gridCoord = Trinity::ComputeGridCoord(object->GetPositionX(), object->GetPositionY());
 
@@ -371,7 +372,7 @@ public:
 
         if (haveVMap)
         {
-            if (map->IsOutdoors(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ()))
+            if (map->IsOutdoors(object->GetPhaseShift(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ()))
                 handler->PSendSysMessage(LANG_GPS_POSITION_OUTDOORS);
             else
                 handler->PSendSysMessage(LANG_GPS_POSITION_INDOORS);
@@ -385,7 +386,6 @@ public:
             mapId, (mapEntry ? mapEntry->MapName->Str[handler->GetSessionDbcLocale()] : unknown),
             zoneId, (zoneEntry ? zoneEntry->AreaName->Str[handler->GetSessionDbcLocale()] : unknown),
             areaId, (areaEntry ? areaEntry->AreaName->Str[handler->GetSessionDbcLocale()] : unknown),
-            StringJoin(object->GetPhases(), ", ").c_str(),
             object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         if (Transport* transport = object->GetTransport())
             handler->PSendSysMessage(LANG_TRANSPORT_POSITION,
@@ -396,25 +396,12 @@ public:
             zoneX, zoneY, groundZ, floorZ, haveMap, haveVMap, haveMMap);
 
         LiquidData liquidStatus;
-        ZLiquidStatus status = map->getLiquidStatus(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), MAP_ALL_LIQUIDS, &liquidStatus);
+        ZLiquidStatus status = map->getLiquidStatus(object->GetPhaseShift(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), MAP_ALL_LIQUIDS, &liquidStatus);
 
         if (status)
             handler->PSendSysMessage(LANG_LIQUID_STATUS, liquidStatus.level, liquidStatus.depth_level, liquidStatus.entry, liquidStatus.type_flags, status);
 
-        if (!object->GetTerrainSwaps().empty())
-        {
-            std::stringstream ss;
-            for (uint32 swap : object->GetTerrainSwaps())
-                ss << swap << " ";
-            handler->PSendSysMessage("Target's active terrain swaps: %s", ss.str().c_str());
-        }
-        if (!object->GetWorldMapAreaSwaps().empty())
-        {
-            std::stringstream ss;
-            for (uint32 swap : object->GetWorldMapAreaSwaps())
-                ss << swap << " ";
-            handler->PSendSysMessage("Target's active world map area swaps: %s", ss.str().c_str());
-        }
+        PhasingHandler::PrintToChat(handler, object->GetPhaseShift());
 
         return true;
     }
@@ -578,7 +565,8 @@ public:
             target->GetContactPoint(_player, x, y, z);
 
             _player->TeleportTo(target->GetMapId(), x, y, z, _player->GetAngle(target), TELE_TO_GM_MODE);
-            _player->CopyPhaseFrom(target, true);
+            PhasingHandler::InheritPhaseShift(_player, target);
+            _player->UpdateObjectVisibility();
         }
         else
         {
@@ -702,7 +690,8 @@ public:
             float x, y, z;
             handler->GetSession()->GetPlayer()->GetClosePoint(x, y, z, target->GetObjectSize());
             target->TeleportTo(handler->GetSession()->GetPlayer()->GetMapId(), x, y, z, target->GetOrientation());
-            target->CopyPhaseFrom(handler->GetSession()->GetPlayer(), true);
+            PhasingHandler::InheritPhaseShift(target, handler->GetSession()->GetPlayer());
+            target->UpdateObjectVisibility();
         }
         else
         {
@@ -1232,7 +1221,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 zone_id = player->GetZoneId();
 
-        WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveYard(player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(), team);
+        WorldSafeLocsEntry const* graveyard = sObjectMgr->GetClosestGraveYard(*player, team, nullptr);
         if (graveyard)
         {
             uint32 graveyardId = graveyard->ID;
@@ -1828,9 +1817,8 @@ public:
         // Position data print
         uint32 mapId;
         uint32 areaId;
-        std::set<uint32> phases;
-        std::string areaName = handler->GetTrinityString(LANG_UNKNOWN);
-        std::string zoneName = handler->GetTrinityString(LANG_UNKNOWN);
+        std::string areaName    = handler->GetTrinityString(LANG_UNKNOWN);
+        std::string zoneName    = handler->GetTrinityString(LANG_UNKNOWN);
 
         // Guild data print variables defined so that they exist, but are not necessarily used
         ObjectGuid::LowType guildId = UI64LIT(0);
@@ -1860,7 +1848,6 @@ public:
             areaId = target->GetAreaId();
             alive = target->IsAlive() ? handler->GetTrinityString(LANG_YES) : handler->GetTrinityString(LANG_NO);
             gender = target->GetByteValue(PLAYER_BYTES_3, PLAYER_BYTES_3_OFFSET_GENDER);
-            phases = target->GetPhases();
         }
         // get additional information from DB
         else
@@ -2045,9 +2032,9 @@ public:
         // Output XII. LANG_PINFO_CHR_ALIVE
         handler->PSendSysMessage(LANG_PINFO_CHR_ALIVE, alive.c_str());
 
-        // Output XIII. LANG_PINFO_CHR_PHASES
-        if (target && !phases.empty())
-            handler->PSendSysMessage(LANG_PINFO_CHR_PHASES, StringJoin(phases, ", ").c_str());
+        // Output XIII. phases
+        if (target)
+            PhasingHandler::PrintToChat(handler, target->GetPhaseShift());
 
         // Output XIV. LANG_PINFO_CHR_MONEY
         uint32 gold = money / GOLD;
@@ -4676,7 +4663,8 @@ public:
         handler->PSendSysMessage(LANG_PHASE_INI);
 
         // Send Terrain Swap to the player
-        handler->GetSession()->GetPlayer()->SendUpdatePhasing();
+        //handler->GetSession()->GetPlayer()->SendUpdatePhasing();
+        PhasingHandler::SendToPlayer(handler->GetSession()->GetPlayer());
 
         return true;
 
@@ -4731,6 +4719,7 @@ public:
             swap->setUInt32(1, terrainMap);
             WorldDatabase.Execute(swap);
 
+            /*
             TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
             sObjectMgr->LoadTerrainPhaseInfo();
 
@@ -4739,10 +4728,13 @@ public:
 
             TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
             sObjectMgr->LoadTerrainWorldMaps();
+            */
+            sObjectMgr->LoadPhases();
 
             // Actualize 
 
-            tp->SendUpdatePhasing();
+            //tp->SendUpdatePhasing();
+            PhasingHandler::SendToPlayer(tp);
 
         }
 
@@ -4789,18 +4781,22 @@ public:
 			remove->setUInt32(1, terrainMap);
 			WorldDatabase.Execute(remove);
 
-			TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
-			sObjectMgr->LoadTerrainPhaseInfo();
+            /*
+            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
+            sObjectMgr->LoadTerrainPhaseInfo();
 
-			TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
-			sObjectMgr->LoadTerrainSwapDefaults();
+            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
+            sObjectMgr->LoadTerrainSwapDefaults();
 
-			TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
-			sObjectMgr->LoadTerrainWorldMaps();
+            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
+            sObjectMgr->LoadTerrainWorldMaps();
+            */
+            sObjectMgr->LoadPhases();
 
 			// Actualize 
 
-			tp->SendUpdatePhasing();
+			//tp->SendUpdatePhasing();
+            PhasingHandler::SendToPlayer(tp);
 
 		}
 
