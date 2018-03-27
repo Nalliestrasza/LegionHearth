@@ -933,6 +933,8 @@ public:
             else
                 PhasingHandler::RemovePhase(target, phaseId, true);
         }
+        else
+            target->GetPhaseShift().ClearPhases();
 
         return true;
     }
