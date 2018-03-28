@@ -71,7 +71,7 @@ namespace MMAP
         }
         else
         {
-            if (thread_safe_environment)
+            if (thread_safe_environment || mapId >= 5000)
                 itr = loadedMMaps.insert(MMapDataSet::value_type(mapId, nullptr)).first;
             else
                 ASSERT(false, "Invalid mapId %u passed to MMapManager after startup in thread unsafe environment", mapId);

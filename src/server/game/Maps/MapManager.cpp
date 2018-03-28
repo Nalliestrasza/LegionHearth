@@ -84,8 +84,11 @@ Map* MapManager::CreateBaseMap(uint32 id)
             CreateBaseMap(entry->ParentMapID);
 
             // must have been created by parent map
-            map = FindBaseMap(id);
-            return ASSERT_NOTNULL(map);
+            if (id < 5000)
+            {
+                map = FindBaseMap(id);
+                return ASSERT_NOTNULL(map);
+            }
         }
 
         std::lock_guard<std::mutex> lock(_mapsLock);
