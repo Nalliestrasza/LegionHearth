@@ -4734,6 +4734,10 @@ public:
             // Actualize 
 
             //tp->SendUpdatePhasing();
+            if (!tp->GetPhaseShift().HasVisibleMapId(terrainMap))
+                PhasingHandler::AddVisibleMapId(tp, terrainMap);
+
+            //PhasingHandler::OnConditionChange(tp);
             PhasingHandler::SendToPlayer(tp);
 
         }
@@ -4796,6 +4800,9 @@ public:
 			// Actualize 
 
 			//tp->SendUpdatePhasing();
+            if (tp->GetPhaseShift().HasVisibleMapId(terrainMap))
+                PhasingHandler::RemoveVisibleMapId(tp, terrainMap);
+
             PhasingHandler::SendToPlayer(tp);
 
 		}
