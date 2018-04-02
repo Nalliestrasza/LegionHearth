@@ -4477,7 +4477,7 @@ public:
 
             //sql
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -4530,7 +4530,7 @@ public:
             if (handler->HasLowerSecurity(NULL, targetGuid))
                 return false;
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5626,7 +5626,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             //sql
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5688,7 +5688,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (handler->HasLowerSecurity(NULL, targetGuid))
                 return false;
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5761,7 +5761,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         {
             //sql
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5804,7 +5804,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (handler->HasLowerSecurity(NULL, targetGuid))
                 return false;
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5877,7 +5877,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         {
             //sql
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5920,7 +5920,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (handler->HasLowerSecurity(NULL, targetGuid))
                 return false;
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", phaseId);
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5950,7 +5950,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     static bool HandlePhaseSetPublicCommand(ChatHandler * handler, char const* args)
     {
   
-        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
+        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
         Field* field = checksql->Fetch();
         uint32 accId = field[0].GetUInt32();
 

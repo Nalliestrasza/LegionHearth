@@ -750,7 +750,7 @@ public:
     {
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
@@ -1127,7 +1127,7 @@ public:
     {
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
@@ -1552,7 +1552,7 @@ public:
 
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
