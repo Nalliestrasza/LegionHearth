@@ -754,44 +754,53 @@ public:
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
-            if (accId == handler->GetSession()->GetAccountId())
+            if (checksql)
             {
-                Creature* unit = nullptr;
-
-                if (*args)
+                if (accId == handler->GetSession()->GetAccountId())
                 {
-                    // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
-                    char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
-                    if (!cId)
-                        return false;
+                    Creature* unit = nullptr;
 
-                    ObjectGuid::LowType lowguid = atoull(cId);
-                    if (!lowguid)
+                    if (*args)
+                    {
+                        // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+                        char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
+                        if (!cId)
+                            return false;
+
+                        ObjectGuid::LowType lowguid = atoull(cId);
+                        if (!lowguid)
+                            return false;
+                        unit = handler->GetCreatureFromPlayerMapByDbGuid(lowguid);
+                    }
+                    else
+                        unit = handler->getSelectedCreature();
+
+                    if (!unit || unit->IsPet() || unit->IsTotem())
+                    {
+                        handler->SendSysMessage(LANG_SELECT_CREATURE);
+                        handler->SetSentErrorMessage(true);
                         return false;
-                    unit = handler->GetCreatureFromPlayerMapByDbGuid(lowguid);
+                    }
+
+                    // Delete the creature
+                    unit->CombatStop();
+                    unit->DeleteFromDB();
+                    unit->AddObjectToRemoveList();
+
+                    handler->SendSysMessage(LANG_COMMAND_DELCREATMESSAGE);
                 }
                 else
-                    unit = handler->getSelectedCreature();
-
-                if (!unit || unit->IsPet() || unit->IsTotem())
                 {
-                    handler->SendSysMessage(LANG_SELECT_CREATURE);
-                    handler->SetSentErrorMessage(true);
-                    return false;
+                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+
                 }
-
-                // Delete the creature
-                unit->CombatStop();
-                unit->DeleteFromDB();
-                unit->AddObjectToRemoveList();
-
-                handler->SendSysMessage(LANG_COMMAND_DELCREATMESSAGE);
             }
             else
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-           
             }
+
+           
         }
         else
         {
@@ -1131,86 +1140,97 @@ public:
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
-            if (accId == handler->GetSession()->GetAccountId())
+            if (checksql)
             {
-                ObjectGuid::LowType lowguid = UI64LIT(0);
-
-                Creature* creature = handler->getSelectedCreature();
-
-                if (!creature)
+                if (accId == handler->GetSession()->GetAccountId())
                 {
-                    // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
-                    char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
-                    if (!cId)
-                        return false;
+                    ObjectGuid::LowType lowguid = UI64LIT(0);
 
-                    lowguid = atoull(cId);
+                    Creature* creature = handler->getSelectedCreature();
 
-                    // Attempting creature load from DB data
-                    CreatureData const* data = sObjectMgr->GetCreatureData(lowguid);
-                    if (!data)
+                    if (!creature)
                     {
-                        handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, std::to_string(lowguid).c_str());
-                        handler->SetSentErrorMessage(true);
-                        return false;
+                        // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+                        char* cId = handler->extractKeyFromLink((char*)args, "Hcreature");
+                        if (!cId)
+                            return false;
+
+                        lowguid = atoull(cId);
+
+                        // Attempting creature load from DB data
+                        CreatureData const* data = sObjectMgr->GetCreatureData(lowguid);
+                        if (!data)
+                        {
+                            handler->PSendSysMessage(LANG_COMMAND_CREATGUIDNOTFOUND, std::to_string(lowguid).c_str());
+                            handler->SetSentErrorMessage(true);
+                            return false;
+                        }
+
+                        uint32 map_id = data->mapid;
+
+                        if (handler->GetSession()->GetPlayer()->GetMapId() != map_id)
+                        {
+                            handler->PSendSysMessage(LANG_COMMAND_CREATUREATSAMEMAP, std::to_string(lowguid).c_str());
+                            handler->SetSentErrorMessage(true);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        lowguid = creature->GetSpawnId();
                     }
 
-                    uint32 map_id = data->mapid;
+                    float x = handler->GetSession()->GetPlayer()->GetPositionX();
+                    float y = handler->GetSession()->GetPlayer()->GetPositionY();
+                    float z = handler->GetSession()->GetPlayer()->GetPositionZ();
+                    float o = handler->GetSession()->GetPlayer()->GetOrientation();
 
-                    if (handler->GetSession()->GetPlayer()->GetMapId() != map_id)
+                    if (creature)
                     {
-                        handler->PSendSysMessage(LANG_COMMAND_CREATUREATSAMEMAP, std::to_string(lowguid).c_str());
-                        handler->SetSentErrorMessage(true);
-                        return false;
+                        if (CreatureData const* data = sObjectMgr->GetCreatureData(creature->GetSpawnId()))
+                        {
+                            const_cast<CreatureData*>(data)->posX = x;
+                            const_cast<CreatureData*>(data)->posY = y;
+                            const_cast<CreatureData*>(data)->posZ = z;
+                            const_cast<CreatureData*>(data)->orientation = o;
+                        }
+                        creature->SetPosition(x, y, z, o);
+                        creature->GetMotionMaster()->Initialize();
+                        creature->AI()->EnterEvadeMode(); // LegionHearth
+                        if (creature->IsAlive())                            // dead creature will reset movement generator at respawn
+                        {
+                            creature->setDeathState(JUST_DIED);
+                            creature->Respawn();
+                            creature->AI()->EnterEvadeMode(); // LegionHearth
+                        }
                     }
+
+                    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
+
+                    stmt->setFloat(0, x);
+                    stmt->setFloat(1, y);
+                    stmt->setFloat(2, z);
+                    stmt->setFloat(3, o);
+                    stmt->setUInt64(4, lowguid);
+
+                    WorldDatabase.Execute(stmt);
+
+                    handler->PSendSysMessage(LANG_COMMAND_CREATUREMOVED);
+                    return true;
                 }
                 else
                 {
-                    lowguid = creature->GetSpawnId();
+                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
                 }
-
-                float x = handler->GetSession()->GetPlayer()->GetPositionX();
-                float y = handler->GetSession()->GetPlayer()->GetPositionY();
-                float z = handler->GetSession()->GetPlayer()->GetPositionZ();
-                float o = handler->GetSession()->GetPlayer()->GetOrientation();
-
-                if (creature)
-                {
-                    if (CreatureData const* data = sObjectMgr->GetCreatureData(creature->GetSpawnId()))
-                    {
-                        const_cast<CreatureData*>(data)->posX = x;
-                        const_cast<CreatureData*>(data)->posY = y;
-                        const_cast<CreatureData*>(data)->posZ = z;
-                        const_cast<CreatureData*>(data)->orientation = o;
-                    }
-                    creature->SetPosition(x, y, z, o);
-                    creature->GetMotionMaster()->Initialize();
-                    creature->AI()->EnterEvadeMode(); // LegionHearth
-                    if (creature->IsAlive())                            // dead creature will reset movement generator at respawn
-                    {
-                        creature->setDeathState(JUST_DIED);
-                        creature->Respawn();
-                        creature->AI()->EnterEvadeMode(); // LegionHearth
-                    }
-                }
-
-                PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
-
-                stmt->setFloat(0, x);
-                stmt->setFloat(1, y);
-                stmt->setFloat(2, z);
-                stmt->setFloat(3, o);
-                stmt->setUInt64(4, lowguid);
-
-                WorldDatabase.Execute(stmt);
-
-                handler->PSendSysMessage(LANG_COMMAND_CREATUREMOVED);
-                return true;
             }
             else
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+      
             }
+
+
+            
         }
         else
         {
@@ -1556,43 +1576,52 @@ public:
             Field* field1 = checksql->Fetch();
             uint32 accId = field1[0].GetUInt32();
 
-            if (accId == handler->GetSession()->GetAccountId())
+            if (checksql)
             {
-                Creature* creature = handler->getSelectedCreature();
-                if (!creature)
+                if (accId == handler->GetSession()->GetAccountId())
                 {
-                    handler->SendSysMessage(LANG_SELECT_CREATURE);
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
+                    Creature* creature = handler->getSelectedCreature();
+                    if (!creature)
+                    {
+                        handler->SendSysMessage(LANG_SELECT_CREATURE);
+                        handler->SetSentErrorMessage(true);
+                        return false;
+                    }
 
-                if (creature->IsPet())
-                {
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
+                    if (creature->IsPet())
+                    {
+                        handler->SetSentErrorMessage(true);
+                        return false;
+                    }
 
-                float scale = (float)atof((char*)args);
+                    float scale = (float)atof((char*)args);
 
-                if (scale <= 0.0f)
-                {
-                    scale = creature->GetCreatureTemplate()->scale;
-                    const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
+                    if (scale <= 0.0f)
+                    {
+                        scale = creature->GetCreatureTemplate()->scale;
+                        const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
+                    }
+                    else
+                    {
+                        const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
+                    }
+
+                    creature->SetObjectScale(scale);
+                    if (!creature->IsPet())
+                        creature->SaveToDB();
+                    return true;
                 }
                 else
                 {
-                    const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
+                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
                 }
-
-                creature->SetObjectScale(scale);
-                if (!creature->IsPet())
-                    creature->SaveToDB();
-                return true;
             }
             else
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
             }
+
+            
         }
         else
         {
