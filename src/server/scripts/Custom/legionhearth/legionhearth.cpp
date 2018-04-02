@@ -150,6 +150,72 @@ public:
            
         }
 	}
+
+};
+
+class LightPoint : public PlayerScript //Dis no respect sneaky case
+{
+public:
+	LightPoint() : PlayerScript("Light_point") {}
+	void Update(Player* player) 
+	{
+		//Select
+		QueryResult getContents = WorldDatabase.PQuery("SELECT * FROM light_point");
+		if (!getContents)
+			return;
+		
+
+			Field* field = getContents->Fetch();
+
+			float pos_x = field[0].GetFloat();
+			float pos_y = field[1].GetFloat();
+			float pos_z = field[2].GetFloat();
+			float o = field[3].GetFloat();
+			uint16 mapId = field[4].GetUInt16();
+			uint16 zoneId = field[5].GetUInt16();
+			uint16 areaId = field[6].GetUInt16();
+			uint32 skyboxId = field[7].GetUInt32();
+			uint32 accId = field[8].GetUInt32();
+
+			if (player->GetZoneId() == zoneId || player->GetAreaId() == areaId)
+			{
+				QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", player->GetMapId());
+
+				if (!results)
+				{
+					return;
+				}
+
+				Field* fields = results->Fetch();
+				uint32 lightId = fields[0].GetUInt32();
+
+				WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+				data << lightId;
+				data << skyboxId;
+				data << 200;
+
+				player->GetSession()->SendPacket(&data, true);
+			}
+			else
+			{
+				QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", player->GetMapId());
+
+				if (!results)
+				{
+					return;
+				}
+
+				Field* fields = results->Fetch();
+				uint32 lightId = fields[0].GetUInt32();
+
+				WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+				data << lightId;
+				data << 0;
+				data << 200;
+
+				player->GetSession()->SendPacket(&data, true);
+		}
+	}
 };
 
 
@@ -158,4 +224,5 @@ public:
 void AddSC_legionhearth()
 {
 	new Player_perm();
+	new LightPoint();
 }

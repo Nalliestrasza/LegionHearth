@@ -136,14 +136,7 @@ enum WorldDatabaseStatements : uint32
    // phase allow when you create ur phase
     WORLD_INS_PHASE_ALLOW,
 
-    // PHASE DELETE
-    WORLD_DEL_PHASE_GOB,
-    WORLD_DEL_PHASE_NPC,
-    WORLD_DEL_PHASE_OWNER,
-    WORLD_DEL_PHASE_ALLOW,
-    WORLD_DEL_PHASE_TERRAIN_CMD,
-    WORLD_DEL_PHASE_GAMETELE,
-
+ 
     // ticket system
     WORLD_INS_NEW_TICKET,
     WORLD_UPD_CANCEL_TICKET,
@@ -161,6 +154,15 @@ enum WorldDatabaseStatements : uint32
     WORLD_INS_PHASEOWN_MAP,
     WORLD_DEL_PHASEOWN_MAP,
 
+    //permission
+    WORLD_INS_PHASE_SET_OWNER,
+    WORLD_DEL_PHASE_SET_OWNER,
+    WORLD_DEL_PHASE_INVITE,
+
+    // private & public
+    WORLD_UPD_PHASE_SET_TYPE,
+
+
 	// perma
 	WORLD_INS_PERMAMORPH,
 	WORLD_UPD_PERMAMORPH,
@@ -170,6 +172,12 @@ enum WorldDatabaseStatements : uint32
 
 	WORLD_INS_PERMASKYBOX,
 	WORLD_UPD_PERMASKYBOX,
+
+    // PHASE PERM
+    WORLD_DEL_SET_OWNER,
+
+
+
 
 
     MAX_WORLDDATABASE_STATEMENTS
