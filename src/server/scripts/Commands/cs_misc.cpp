@@ -5971,6 +5971,10 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         Field* field = checksql->Fetch();
         uint32 accId = field[0].GetUInt32();
 
+        // Fix for mangolian
+        if (handler->GetSession()->GetPlayer()->GetMapId() <= 5000)
+            return false;
+
         if (accId == handler->GetSession()->GetAccountId())
         {
             PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
@@ -5995,6 +5999,10 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
         Field* field = checksql->Fetch();
         uint32 accId = field[0].GetUInt32();
+
+        // Fix for mangolian
+        if (handler->GetSession()->GetPlayer()->GetMapId() <= 5000)
+            return false;
 
         if (accId == handler->GetSession()->GetAccountId())
         {
