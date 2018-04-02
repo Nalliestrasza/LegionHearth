@@ -4447,6 +4447,7 @@ public:
 
         std::string pName = targetName;
         uint32 phaseId = uint32(atoi(phId));
+        
 
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
             return false;
@@ -4470,11 +4471,13 @@ public:
 
         if (target)
         {
-     
+
             // check online security
             if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
                 return false;
 
+           
+                
             //sql
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
@@ -4492,6 +4495,7 @@ public:
                 if (alreadyInvit)
                     return false;
 
+                
 
                 WorldDatabase.Execute(invit);
 
@@ -4507,6 +4511,8 @@ public:
 
                     if (handler->needReportToTarget(target))
                     {
+                       
+
                         // Send Packet to target player
                         sDB2Manager.LoadHotfixData();
                         sMapStore.LoadFromDB();
@@ -4571,43 +4577,54 @@ public:
 
         if (map >= 5000)
         {
-            QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
-            Field* mapfields = mapresult->Fetch();
-            map = mapfields[0].GetUInt16();
+            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", map, handler->GetSession()->GetAccountId());
+            Field* field1 = checksql->Fetch();
+            uint32 OwnerId = field1[0].GetUInt32();
 
-            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-            if (!results)
+            if (OwnerId == handler->GetSession()->GetAccountId())
             {
-                handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
-                return false;
-            }
 
-            Field* fields = results->Fetch();
+                QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
+                Field* mapfields = mapresult->Fetch();
+                map = mapfields[0].GetUInt16();
 
-            uint32 replaceID = uint32(atoi(pId));
-            uint32 lightId = fields[0].GetUInt32();
+                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
 
-            QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-            if (!checkSaved)
-            {
-                //Permamorph !
-                PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
-                getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                getSkybox->setUInt32(1, replaceID);
-                WorldDatabase.Execute(getSkybox);
+                if (!results)
+                {
+                    handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
+                    return false;
+                }
 
+                Field* fields = results->Fetch();
+
+                uint32 replaceID = uint32(atoi(pId));
+                uint32 lightId = fields[0].GetUInt32();
+
+                QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                if (!checkSaved)
+                {
+                    //Permamorph !
+                    PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
+                    getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                    getSkybox->setUInt32(1, replaceID);
+                    WorldDatabase.Execute(getSkybox);
+
+                }
+                else
+                {
+                    PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
+                    updSkybox->setUInt32(0, replaceID);
+                    updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                    WorldDatabase.Execute(updSkybox);
+                }
+
+                sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
             }
             else
             {
-                PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
-                updSkybox->setUInt32(0, replaceID);
-                updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                WorldDatabase.Execute(updSkybox);
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
             }
-
-            sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
-
 
         }
         else

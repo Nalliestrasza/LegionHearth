@@ -1311,6 +1311,10 @@ enum TrinityStrings
     LANG_PHASE_IS_NOW_PRIVATE                     = 90046,
     LANG_PHASE_IS_NOW_PUBLIC                      = 90047,
 
+    // PHASE INVIT FIX
+    LANG_PHASE_PLAYER_IS_ON_PHASE                 = 90048,
+
+
 
 };
 #endif

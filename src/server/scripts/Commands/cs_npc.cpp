@@ -751,11 +751,12 @@ public:
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-            Field* field1 = checksql->Fetch();
-            uint32 accId = field1[0].GetUInt32();
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     Creature* unit = nullptr;
@@ -1137,11 +1138,13 @@ public:
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-            Field* field1 = checksql->Fetch();
-            uint32 accId = field1[0].GetUInt32();
+
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     ObjectGuid::LowType lowguid = UI64LIT(0);
@@ -1573,11 +1576,13 @@ public:
         if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
         {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-            Field* field1 = checksql->Fetch();
-            uint32 accId = field1[0].GetUInt32();
+
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     Creature* creature = handler->getSelectedCreature();

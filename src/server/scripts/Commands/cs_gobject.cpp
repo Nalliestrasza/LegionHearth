@@ -117,11 +117,13 @@ public:
 		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-			Field* field1 = checksql->Fetch();
-			uint32 accId = field1[0].GetUInt32();
+			
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
@@ -484,11 +486,12 @@ public:
 		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-			Field* field1 = checksql->Fetch();
-			uint32 accId = field1[0].GetUInt32();
-
+			
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
@@ -603,11 +606,12 @@ public:
 		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-			Field* field1 = checksql->Fetch();
-			uint32 accId = field1[0].GetUInt32();
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
@@ -764,11 +768,12 @@ public:
 		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-			Field* field1 = checksql->Fetch();
-			uint32 accId = field1[0].GetUInt32();
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
@@ -1095,11 +1100,13 @@ public:
 		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-			Field* field1 = checksql->Fetch();
-			uint32 accId = field1[0].GetUInt32();
+		
 
             if (checksql)
             {
+                Field* field = checksql->Fetch();
+                uint32 accId = field[0].GetUInt32();
+
                 if (accId == handler->GetSession()->GetAccountId())
                 {
                     // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
