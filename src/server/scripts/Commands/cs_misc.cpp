@@ -5963,6 +5963,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             handler->PSendSysMessage(LANG_PHASE_IS_NOW_PUBLIC);
         }
+        else
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
 
         return true;
 
@@ -5982,6 +5987,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             WorldDatabase.Execute(set);
 
             handler->PSendSysMessage(LANG_PHASE_IS_NOW_PRIVATE);
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
         }
 
         return true;
