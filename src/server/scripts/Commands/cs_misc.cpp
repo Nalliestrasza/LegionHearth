@@ -4749,6 +4749,13 @@ public:
 
 
 		QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
+
+        if (!checkSql)
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
+
 		Field* field = checkSql->Fetch();
 		uint32 accId = field[0].GetUInt32();
 
