@@ -5035,8 +5035,6 @@ static bool HandleCreateTicketCommand(ChatHandler* handler, const char* args)
     if (!*args)
         return false;
 
-    Player* player;
-
     char* msg = (char*)args;
     std::string playerName = handler->GetSession()->GetPlayer()->GetName();
   
@@ -5067,8 +5065,6 @@ static bool HandleCreateTicketCommand(ChatHandler* handler, const char* args)
 
 static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 {
-    Player* player;
-
     QueryResult listTicket = WorldDatabase.PQuery("SELECT ticketId, ticketContents, ticketOwner from ticket WHERE ticketStatus = 0");
     Field* field = listTicket->Fetch();
     uint32 ticketId = field[0].GetUInt32();
@@ -5438,7 +5434,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (!*args)
             return false;
 
-        Player* player;
         char const* tId = strtok((char*)args, " ");
         uint32 ticketId = uint32(atoi(tId));
         std::string playerName = handler->GetSession()->GetPlayer()->GetName();
@@ -5689,10 +5684,10 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                     {
                         // Sanctuaire Coords
                         uint32 mapId = 1374;
-                        float x = 2018.339355;
-                        float y = 2953.082031;
-                        float z = 25.213768;
-                        float o = 6.224421;
+                        float x = 2018.339355f;
+                        float y = 2953.082031f;
+                        float z = 25.213768f;
+                        float o = 6.224421f;
       
                         // Send Packet to target player
                         sDB2Manager.LoadHotfixData();
