@@ -4481,6 +4481,13 @@ public:
             //sql
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
+            }
+
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -4578,6 +4585,13 @@ public:
         if (map >= 5000)
         {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", map, handler->GetSession()->GetAccountId());
+
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
+            }
+                
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
