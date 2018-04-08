@@ -4590,6 +4590,8 @@ public:
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
                 return false;
+
+    
             }
                 
             Field* field1 = checksql->Fetch();
