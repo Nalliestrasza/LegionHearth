@@ -449,17 +449,16 @@ public:
             handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
 
             QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
-            Field* fields = getName->Fetch();
-            std::string spawnerName;
-            spawnerName = fields[0].GetString();
-
-
+            
             if (!getName)
             {
                 handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_DELETE_PNAME);
             }
             else
             {
+				Field* fields = getName->Fetch();
+				std::string spawnerName;
+				spawnerName = fields[0].GetString();
                 handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PNAME, spawnerName);
             }
         }
