@@ -4544,25 +4544,34 @@ public:
                 return false;
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
 
-            if (OwnerId == handler->GetSession()->GetAccountId())
+            if (!checksql)
             {
-                // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
-                return true;
-
-            }
-            else {
-
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
                 return false;
+            }
+            else
+            {
+                Field* field1 = checksql->Fetch();
+                uint32 OwnerId = field1[0].GetUInt32();
+
+                if (OwnerId == handler->GetSession()->GetAccountId())
+                {
+                    // ajouter
+                    PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+                    invit->setUInt32(0, phaseId);
+                    invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                    WorldDatabase.Execute(invit);
+
+                    handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
+                    return true;
+
+                }
+                else {
+
+                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                    return false;
+                }
             }
 
 
