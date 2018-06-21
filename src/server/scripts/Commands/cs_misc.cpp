@@ -5671,6 +5671,12 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             //sql
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5733,6 +5739,12 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                 return false;
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5744,7 +5756,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                 invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
                 WorldDatabase.Execute(invit);
 
-                handler->PSendSysMessage(LANG_PHASE_INVITE_DEL_TARGET, nameLink);
+                //handler->PSendSysMessage(LANG_PHASE_INVITE_DEL_TARGET, phaseId, ownerLink);
                 return true;
 
             }
@@ -5806,6 +5818,12 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             //sql
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5849,6 +5867,12 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                 return false;
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5965,6 +5989,12 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                 return false;
 
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+            if (!checksql)
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
             Field* field1 = checksql->Fetch();
             uint32 OwnerId = field1[0].GetUInt32();
 
@@ -5993,7 +6023,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     }
     static bool HandlePhaseSetPublicCommand(ChatHandler * handler, char const* args)
     {
-  
         QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
         Field* field = checksql->Fetch();
         uint32 accId = field[0].GetUInt32();
@@ -6003,24 +6032,29 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
             return false;
         }
-
-        // Fix for mangolian
-        if (handler->GetSession()->GetPlayer()->GetMapId() <= 5000)
-            return false;
-
-        if (accId == handler->GetSession()->GetAccountId())
-        {
-            PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
-            set->setUInt16(0, 1);
-            set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
-            WorldDatabase.Execute(set);
-
-            handler->PSendSysMessage(LANG_PHASE_IS_NOW_PUBLIC);
-        }
         else
         {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            return false;
+            Field* field = checksql->Fetch();
+            uint32 accId = field[0].GetUInt32();
+        
+            // Fix for mangolian
+            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+                return false;
+
+            if (accId == handler->GetSession()->GetAccountId())
+            {
+                PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
+                set->setUInt16(0, 1);
+                set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
+                WorldDatabase.Execute(set);
+
+                handler->PSendSysMessage(LANG_PHASE_IS_NOW_PUBLIC);
+            }
+            else
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
+            }
         }
 
         return true;
@@ -6029,7 +6063,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
     static bool HandlePhaseSetPrivateCommand(ChatHandler * handler, char const* args)
     {
-        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u", handler->GetSession()->GetPlayer()->GetMapId());
+        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
         Field* field = checksql->Fetch();
         uint32 accId = field[0].GetUInt32();
 
@@ -6038,24 +6072,29 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
             return false;
         }
-
-        // Fix for mangolian
-        if (handler->GetSession()->GetPlayer()->GetMapId() <= 5000)
-            return false;
-
-        if (accId == handler->GetSession()->GetAccountId())
-        {
-            PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
-            set->setUInt16(0, 0);
-            set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
-            WorldDatabase.Execute(set);
-
-            handler->PSendSysMessage(LANG_PHASE_IS_NOW_PRIVATE);
-        }
         else
-        {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            return false;
+        { 
+            Field* field = checksql->Fetch();
+            uint32 accId = field[0].GetUInt32();
+
+            // Fix for mangolian
+            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+                return false;
+
+            if (accId == handler->GetSession()->GetAccountId())
+            {
+                PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
+                set->setUInt16(0, 0);
+                set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
+                WorldDatabase.Execute(set);
+
+                handler->PSendSysMessage(LANG_PHASE_IS_NOW_PRIVATE);
+            }
+            else
+            {
+                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                return false;
+            }
         }
 
         return true;
