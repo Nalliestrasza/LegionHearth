@@ -997,19 +997,12 @@ public:
 
         char* arg1 = strtok((char*)args, " ");
         char* arg2 = strtok((char*)nullptr, "");
-        uint32 data = 0;
 
         if (arg1)
-        {
-            data = (uint32)atoi(arg1);
-            distance = static_cast<float>(data);
-        }
+            distance = ((float)atoi(arg1))*(M_PI / 180); // to deg
 
         if (arg2)
-        {
-            data = (uint32)atoi(arg2);
-            angle = static_cast<float>(data);
-        }
+            angle = ((float)atoi(arg2))*(M_PI / 180); // to deg
 
         if (!creature)
         {
