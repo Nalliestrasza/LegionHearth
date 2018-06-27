@@ -999,7 +999,7 @@ public:
         char* arg2 = strtok((char*)nullptr, "");
 
         if (arg1)
-            distance = ((float)atoi(arg1))*(M_PI / 180); // to deg
+            distance = ((float)atoi(arg1));
 
         if (arg2)
             angle = ((float)atoi(arg2))*(M_PI / 180); // to deg
