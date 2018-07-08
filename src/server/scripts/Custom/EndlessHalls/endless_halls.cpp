@@ -28,6 +28,7 @@
 #include "SpellScript.h"
 #include "endless_halls.h"
 #include "TemporarySummon.h"
+#include "PhasingHandler.h"
 
 uint32 SpellOrbEntries[] =
 {
@@ -109,6 +110,12 @@ public:
             if (GetHitPlayer())
             {
                 GetHitPlayer()->RemoveAllAuras();
+				PhasingHandler::RemovePhase(GetHitPlayer()->ToPlayer(), PHASE_GAME, true);
+				GetHitPlayer()->CastSpell(GetHitPlayer(), SPELL_DIRECT_BLACKOUT, false);
+
+				//GetHitPlayer()->TeleportTo(LET_IT_GO);
+				
+				//GetHitPlayer()->CastSpell(GetHitPlayer(), SPELL_EXIT_MAZE, false);
             }
         }
 
