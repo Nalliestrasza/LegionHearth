@@ -109,13 +109,9 @@ public:
         {
             if (GetHitPlayer())
             {
+                GetHitPlayer()->SetGameMaster(true);
                 GetHitPlayer()->RemoveAllAuras();
 				PhasingHandler::RemovePhase(GetHitPlayer()->ToPlayer(), PHASE_GAME, true);
-				GetHitPlayer()->CastSpell(GetHitPlayer(), SPELL_DIRECT_BLACKOUT, false);
-
-				//GetHitPlayer()->TeleportTo(LET_IT_GO);
-				
-				//GetHitPlayer()->CastSpell(GetHitPlayer(), SPELL_EXIT_MAZE, false);
             }
         }
 
