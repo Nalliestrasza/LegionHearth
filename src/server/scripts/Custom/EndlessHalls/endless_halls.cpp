@@ -110,7 +110,6 @@ public:
             if (GetHitPlayer())
             {
                 GetHitPlayer()->RemoveAllAuras();
-				PhasingHandler::RemovePhase(GetHitPlayer()->ToPlayer(), PHASE_GAME, true);
             }
         }
 

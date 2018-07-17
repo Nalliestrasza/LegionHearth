@@ -658,6 +658,7 @@ public:
                             // Try to delete instance when leave
                             reachFinal = true;
                             player->TeleportTo(1764,-1748.07f,354.195f,116.615f,(float)M_PI); // Final room
+                            player->RemoveAurasDueToSpell(SPELL_HIDDEN_AURA_1SEC);
                         }
 
                 }
