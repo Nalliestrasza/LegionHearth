@@ -115,11 +115,9 @@ public:
 
             player->BindToInstance();
 
-            if(!reachFinal)
-                player->AddAura(SPELL_MUTE_PLAYER, player);
-
             phaseMaze();
             player->CastSpell(player, SPELL_HIDDEN_AURA_1SEC, true);
+            player->AddAura(SPELL_MUTE_PLAYER, player);
         }
 
         // genere maze from template
