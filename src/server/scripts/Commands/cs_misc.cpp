@@ -227,6 +227,7 @@ public:
             { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
             { "delete",           rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", phaseCommandTable },
             { "invisible",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleInvisibleCommand,        "" },
+            { "power",        rbac::RBAC_PERM_COMMAND_AURA,                  false, &HandleSetPowerCommand,        "" },
      
         };
         return commandTable;
@@ -6527,6 +6528,68 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         }
 
         formatAndSpread(player, str, type);
+        return true;
+    }
+
+    static bool HandleSetPowerCommand(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+            return false;
+
+        Player* player = handler->GetSession()->GetPlayer();
+        Powers type = handler->GetSession()->GetPlayer()->GetPowerType();
+
+
+        if (type != POWER_MANA)
+        {
+            handler->SendSysMessage("Pour le moment, cette commande est utilisable uniquement sur des personnages ayant une barre de mana");
+            return true;
+        }
+
+        uint32 index = player->GetPowerIndex(type);
+        bool add = false, minus = false;
+        std::string str = std::string(args);
+
+        if (str.size() > 1 && str.find("-") != std::string::npos)
+        {
+            minus = true;
+            str.erase(0, 1);
+        }
+        else if (str.size() > 1 && str.find("+") != std::string::npos)
+        {
+            add = true;
+            str.erase(0, 1);
+        }
+
+        size_t pos = getPositionFirstChar(str);
+
+        if (pos != std::string::npos || type == MAX_POWERS) 
+        {
+            handler->SendSysMessage("Entrees invalides");
+            return true;
+        }
+
+        int32 value = stoi(str);
+
+        if (minus)
+        {
+            value = player->GetPower(type) - value;
+        }
+        else if (add)
+        {
+            value = player->GetPower(type) + value;
+        }
+
+        if (value > player->GetMaxPower(type) || player->GetMaxPower(type) + value < 0 )
+        {
+            handler->SendSysMessage("Entrees invalides : pas de negatif ni valeur superieur au maximum de votre barre");
+            return true;
+        }
+
+        player->SetPower(type, value);
+        player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
+        player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+ 
         return true;
     }
 };
