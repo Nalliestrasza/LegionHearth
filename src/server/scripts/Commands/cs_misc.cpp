@@ -193,7 +193,7 @@ public:
             { "mount",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleMountCommand,            "" },
             { "distance",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleDistanceCommand,         "" },
             { "move",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleMoveCommand,             "" },
-            { "randsay",          rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomSayCommand,        "" },
+            { "rand",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomCommand,           "" },
             { "randmp",           rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRandomMPCommand,         "" },
             { "pandaren",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandlePandarenCommand,         "" },
             { "death",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleMortCommand,             "" },
@@ -6104,9 +6104,431 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         return true;
     }
 
-    
- 
-       
+    /*
+    *  Check if the argument is correct for a rand
+    *
+    *  @pre: str, then argument for rand
+    *        validArg other character than digit accepted
+    *		 bool digitExpect if it expect digit for the first value in str (defaut false)
+    *        index, the length of argument already checked (default 0)
+    *
+    *  @post: true, str must null or be digit(s) or
+    * its characters (if it have) != digits is in validArg and have minimum a digit between them
+    * and its characters respect partially the order of validArg
+    *         false, else
+    */
+    static bool checkRandParsing(std::string str, std::string validArg, bool digitExpected = false, int index = 0)
+    {
+        if (str.size() == index)
+        {
+            if (!digitExpected)
+                return true;
+            else
+                return false;
+        }
+        else
+        {
+            char arg = str.at(index);
+            size_t pos = validArg.find(arg);
+
+            if (isdigit(arg))
+                return checkRandParsing(str, validArg, false, index + 1);
+            else if (pos != std::string::npos && !digitExpected)
+                return checkRandParsing(str, validArg.substr(pos + 1, std::string::npos), true, index + 1);
+            else
+                return false;
+        }
+    }
+
+
+    /*
+    *   Get position of the first character (!= digit) from a string (str)
+    *   who is made up by digits and, possibly, characters
+    *   @pre : str, string to check
+    *          pos, length of str already checked (default 0)
+    *
+    *   @post: pos, the position of the first character that is not a digit
+    *          std::string::npos if there is no character != digit
+    */
+    static size_t getPositionFirstChar(std::string str, size_t pos = 0)
+    {
+        if (pos == str.size())
+            return std::string::npos;
+        else if (isdigit(str.at(pos)))
+            return getPositionFirstChar(str, pos + 1);
+        else
+            return pos;
+    }
+
+
+    /*
+    *   Get position of the first digit from a string (str)
+    *   who is made up by digits and, possibly, characters
+    *   @pre : str, string to check
+    *          pos, length of str already checked (default 0)
+    *
+    *   @post: pos, the position of the first digit
+    *          std::string::npos if no digit
+    */
+    static size_t getPositionFirstDigit(std::string str, size_t pos = 0)
+    {
+        if (pos == str.size())
+            return std::string::npos;
+        else if (!isdigit(str.at(pos)))
+            return getPositionFirstDigit(str, pos + 1);
+        else
+            return pos;
+    }
+
+    /*
+    *   Parse a roll argument from a random command to get all values needed
+    *   @pre :   arg, argument from a rand command who's respect checkParseRand conditions
+    *            min, minimum roll
+    *            max, maximum roll
+    *            dice, number of rolls
+    *            bonus, bonus after roll
+    *
+    *   @post :  min, max, dice, bonus changed according to args
+    *            true if numbers used respected basics conditions of a roll
+    *            false if min > max && dice > 30 && max >= 10000 && bonus >= 1000
+    */
+    static bool parseRand(std::string str, int& min, int& max, int& dice, int& bonus, int& expected)
+    {
+        size_t pos;
+        pos = str.find("d");
+        if (pos != std::string::npos)
+        {
+            dice = atoi(str.substr(0, pos).c_str());
+            str.erase(0, pos + 1);
+        }
+
+        pos = str.find("-");
+
+        if (pos != std::string::npos)
+        {
+            min = atoi(str.substr(0, pos).c_str());
+            str.erase(0, pos + 1);
+        }
+
+        pos = getPositionFirstChar(str); // Get max from arg if it exists
+        
+        if (str.size() != 0 && pos != 0)
+            max = atoi(str.substr(0, pos).c_str());
+
+        pos = str.find("+");
+
+        if (pos != std::string::npos)
+        {
+            str.erase(0, pos);
+            pos = str.find(";");
+
+            if (pos != std::string::npos)
+            {
+                bonus = atoi(str.substr(0, pos).c_str());
+                str.erase(0, pos + 1);
+                expected = atoi(str.c_str());
+            }
+            else
+            {
+                expected = min;
+                bonus = atoi(str.c_str());
+            }
+        }
+
+        if (min > max || dice >= 30 || max >= 10000 || bonus >= 1000 || expected > max)
+            return false;
+        else
+            return true;
+    }
+
+    /*
+    *   Create sentence according to parameters for a roll command argument
+    *   @pre : playerName, the name of player
+    *          args, argument from a roll command
+    *
+    *   @post : "Entrées invalides" if args does not respect checkRandParsing conditions
+    *and min > max && dice > 30 && max >= 10000 && bonus >= 1000
+    *           else, the sentence to send for a roll command.
+    */
+    static std::string interpretRand(ChatHandler* handler, std::string str, std::string nameRoll = std::string(""))
+    {
+        std::string playerName = handler->GetSession()->GetPlayer()->GetName();
+        std::string result = std::string("[CHECK_ROLL_ERROR] Entrees invalides");
+        int min = 1, max = 100, dice = 0, bonus = 0, randResult = 0, expected = min;
+
+        if (!checkRandParsing(str, std::string("d-+;")))
+            return result;
+
+        if (!parseRand(str, min, max, dice, bonus, expected))
+            return result;
+
+        if (handler->GetSession()->GetSecurity() < 3 && expected > min)
+            return result;
+
+        result = playerName;
+        result.append(" a fait ");
+   
+        if (dice < 2)
+        {
+            if (nameRoll.size() > 0)
+            {
+                result.append("un jet de |cffffffff< ");
+                result.append(nameRoll);
+                result.append(" >|r ");
+            }
+            else
+            {
+                result.append("un jet de ");
+            }
+
+            if (expected <= min)
+                randResult = urand((uint32)min, (uint32)max);
+            else
+                randResult = urand((uint32)expected, (uint32)max);
+
+            result.append(std::to_string(randResult));
+        }
+        else
+        {
+            int tmp;
+            result.append(std::to_string(dice));
+
+            if (nameRoll.size() > 0)
+            {
+                result.append(" jets de |cffffffff< ");
+                result.append(nameRoll);
+                result.append(" >|r: ");
+            }
+            else
+            {
+                result.append(" jets : ");
+            }
+
+            do
+            {
+                if (expected <= min)
+                    tmp = urand((uint32)min, (uint32) max);
+                else
+                    tmp = urand((uint32)expected, (uint32)max);
+
+                randResult += tmp;
+                result.append("[");
+                result.append(std::to_string(tmp));
+                result.append("]");
+                dice--;
+
+                if (dice != 0)
+                    result.append(" + ");
+                else if (bonus == 0)
+                    result.append(" = ");
+                else
+                    result.append("  ");
+
+            } while (dice > 0);
+            
+            result.append(std::to_string(randResult));
+        }
+
+        if (bonus > 0)
+        {
+            result.append("+");
+            result.append(std::to_string(bonus));
+            result.append(" = ");
+            result.append(std::to_string(randResult + bonus));
+            result.append(" !");
+        }
+        result.append(" (");
+        result.append(std::to_string(min));
+        result.append("-");
+        result.append(std::to_string(max));
+        result.append(")");
+        return result;
+    }
+
+    /*
+    *   Format and spread a message from player to a range depends on the type chosen.
+    *
+    *   @pre : player, Player who's spread the message
+    *          str, the message
+    *          type, type of spread (i.e : party, say, etc.)
+    *          limit, number of 255 characters is used to limit spam
+    *          maxLimit, the number maximum of messages (1 msg = 255 characters).
+    *
+    */
+    static void formatAndSpread(Player* player, std::string str, int type, int maxSpread = 1, int limit = 0)
+    {
+
+        if (str.size() > maxSpread * 255 || limit >= maxSpread)
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("[SPAM_DETECTED] Arret de la commande");
+            return;
+        }
+
+        if (str.size() > 255)
+        {
+            int limitNeeded = spread(player, str.substr(0, 254), type, limit);
+            formatAndSpread(player, str.substr(255, std::string::npos), type, maxSpread, limitNeeded);
+        }
+        else
+        {
+            spread(player, str.substr(0, 254), type, limit);
+        }
+
+    }
+
+    /*
+    *   Spread a message from player to a range depends on the type chosen.
+    *
+    *   @pre : player, Player who's spread the message
+    *          str, the message ( < 255 characters)
+    *          type, type of spread (i.e : party, say, etc.)
+    *          limit, number of 255 characters is used to limit spam
+    *
+    *   @post: the limit used after spread the message.
+    */
+    static int spread(Player* player, std::string str, int type, int limit = 0)
+    {
+
+        switch (type)
+        {
+            case CHAT_MSG_SAY:
+            {
+                player->Talk(str.c_str(), CHAT_MSG_SYSTEM, LANG_UNIVERSAL, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), nullptr);
+                break;
+            }
+            case CHAT_MSG_PARTY:
+            case CHAT_MSG_RAID:
+            {
+                Group* group = player->GetGroup();
+
+                if (!group)
+                {
+                    ChatHandler(player->GetSession()).PSendSysMessage("%s", str.c_str());
+                    break;
+                }
+
+                for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+                {
+                    Player* receiver = itr->GetSource();
+                    if (!receiver || receiver->GetGroup() != group)
+                        continue;
+
+                    if (receiver->GetSession())
+                        ChatHandler(receiver->GetSession()).PSendSysMessage("%s", str.c_str());
+                  
+                }
+
+            break;
+            
+        }
+        case CHAT_MSG_GUILD: // Idea : by GuildID => checkConnectedPlayer
+        default:
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("%s", str.c_str());
+            break;
+        }
+    }
+
+        return limit + 1;
+    }
+
+    /*
+    * Extract all information from a roll command
+    * @pre : str the argument from a roll command
+    *        typeSpread, nameRoll, rollToParse : informations to extract
+    *
+    * @post : true always for the moment (in the future it will be useful)
+    *         + informations extracted if there exist in str
+    */
+    static bool parseRandCommandInfo(std::string str, int& typeSpread, std::string& nameRoll, std::string& rollToParse)
+    {
+        if (str.size() == 0)
+            return true;
+
+        size_t pos = getPositionFirstDigit(str); // extract rollToParse
+
+        if (pos == 0)
+        {
+            rollToParse = str;
+            return true;
+        }
+        else if (pos != std::string::npos)
+        {
+            rollToParse = str.substr(pos, std::string::npos);
+            str.erase(pos, std::string::npos);
+        }
+
+        pos = str.find(" ");
+
+        if (pos != std::string::npos) // Can be spread and nameRoll, at this point we are not sure
+        {
+            std::string spreadStr = str.substr(0, pos);
+
+            if (spreadStr.find("say") == 0 || spreadStr.find("dire") == 0)
+            {
+                typeSpread = CHAT_MSG_SAY;
+                str.erase(0, pos + 1);
+                nameRoll = str;
+                str.erase(0, std::string::npos);
+            }
+            else
+            {
+                typeSpread = CHAT_MSG_PARTY;
+                nameRoll = str;
+                str.erase(0, std::string::npos);
+            }
+        }
+        else if (str.find("say") == 0 || str.find("dire") == 0) // Only spread none nameRoll
+        {
+            typeSpread = CHAT_MSG_SAY;
+            str.erase(0, std::string::npos);
+        }
+
+        if (str.size() > 0) // Only nameRoll
+            nameRoll = str;
+
+        if (nameRoll.size() > 0)
+        {
+            if (nameRoll.find(" ") == 0)  // Suppress useless first char if it's space
+                nameRoll.erase(0, 1);
+
+            if (nameRoll.back() == ' ') // Suppress useless last char if it's space
+                nameRoll = nameRoll.substr(0, nameRoll.size() - 1);
+        }
+
+        return true;
+    }
+
+    /*
+    *   Main command for a rand
+    *   @pre : handler, args..I don't really need explain theses
+    *
+    *   @post : the answer of "Do you think Helnesis is planning to invade Poland ?".
+    */
+    static bool HandleRandomCommand(ChatHandler* handler, const char* args)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+        std::string str = std::string(args);
+        std::string nameRoll, rollToParse;
+        int type = CHAT_MSG_PARTY;
+
+        if (!parseRandCommandInfo(str, type, nameRoll, rollToParse))
+        {
+            handler->SendSysMessage("[RAND_PARSEINFO_ERROR] Entrees invalides");
+            return true;
+        }
+
+        str = interpretRand(handler, rollToParse, nameRoll);
+
+        if (str.compare("Entrees invalides") == 0)
+        {
+            handler->PSendSysMessage("%s", str.c_str());
+            return true;
+        }
+
+        formatAndSpread(player, str, type);
+        return true;
+    }
 };
 
 void AddSC_misc_commandscript()
