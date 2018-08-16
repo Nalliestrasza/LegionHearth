@@ -227,8 +227,9 @@ public:
             { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
             { "delete",           rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", phaseCommandTable },
             { "invisible",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleInvisibleCommand,        "" },
-            { "power",        rbac::RBAC_PERM_COMMAND_AURA,                  false, &HandleSetPowerCommand,        "" },
-     
+            { "power",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleSetPowerCommand,         "" },
+            { "hp",        rbac::RBAC_PERM_COMMAND_AURA,                    false, &HandleSetHealthCommand,        "" },
+            { "regen",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleRegenCommand,            "" },
         };
         return commandTable;
     }
@@ -6530,25 +6531,41 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         formatAndSpread(player, str, type);
         return true;
     }
-
-    static bool HandleSetPowerCommand(ChatHandler* handler, const char* args)
+    /*
+    *   Base on type of power, get its name
+    *
+    *   @pre : type, the type of power
+    *
+    *   @post : the name of the power, if not found : power
+    */
+    static std::string getPowerName(int type)
     {
-        if (!*args)
-            return false;
-
-        Player* player = handler->GetSession()->GetPlayer();
-        Powers type = handler->GetSession()->GetPlayer()->GetPowerType();
-
-
-        if (type != POWER_MANA)
+        std::string typeName;
+        switch (type)
         {
-            handler->SendSysMessage("Pour le moment, cette commande est utilisable uniquement sur des personnages ayant une barre de mana");
-            return true;
-        }
-
-        uint32 index = player->GetPowerIndex(type);
+        case POWER_MANA: typeName.append("mana"); break;
+        case POWER_ENERGY: typeName.append("energie"); break;
+        case POWER_RAGE: typeName.append("rage"); break;
+        case POWER_FURY: typeName.append("furie"); break;
+        case POWER_RUNIC_POWER: typeName.append("pouvoir runique"); break;
+        case POWER_FOCUS: typeName.append("focus"); break;
+        case POWER_CHI: typeName.append("chi"); break;
+        default: typeName.append("power"); break;
+        };
+        return typeName;
+    }
+    /*
+    *   Parse value to set, the value can be a fix value or add/minus to current
+    *   @pre : str, string to parse
+    *          current, current value
+    *          max, max value to reach
+    *
+    *   @post : value = max if value > max
+    *           value = 0 if value < 0
+    */
+    static int parseValueToSet(std::string str, int current, int max)
+    {
         bool add = false, minus = false;
-        std::string str = std::string(args);
 
         if (str.size() > 1 && str.find("-") != std::string::npos)
         {
@@ -6563,34 +6580,147 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         size_t pos = getPositionFirstChar(str);
 
-        if (pos != std::string::npos || type == MAX_POWERS) 
-        {
-            handler->SendSysMessage("Entrees invalides");
-            return true;
-        }
+        if (pos != std::string::npos)
+            return current;
 
-        int32 value = stoi(str);
+        int32 value;
 
-        if (minus)
-        {
-            value = player->GetPower(type) - value;
-        }
+        if (str.size() > 6)
+            value = max;
+        else
+            value = stoi(str);
+
+        if ((minus && current - value <= 0) || value < 0)
+            value = 0;
+        else if (minus)
+            value = current - value;
+        else if (add && current + value >= max || value >= max)
+            value = max;
         else if (add)
+            value = current + value;
+        return value;
+    }
+
+    static bool HandleSetPowerCommand(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+            return false;
+        std::string str = std::string(args);
+        Player* player = handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayerOrSelf();
+        Powers type = target->GetPowerType();
+        int value = parseValueToSet(str, target->GetPower(type), target->GetMaxPower(type));
+
+        if (value == target->GetPower(type))
+            return false;
+
+        target->SetPower(type, value);
+        target->CustomSetRegen(false); // Stop all regen, even HP
+
+        if (type == POWER_MANA)
         {
-            value = player->GetPower(type) + value;
+            uint32 index = target->GetPowerIndex(POWER_MANA);
+            target->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
+            target->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
         }
 
-        if (value > player->GetMaxPower(type) || player->GetMaxPower(type) + value < 0 )
+        handler->PSendSysMessage("Points de mana de %s : %d / %u", target->GetName().c_str(), value, target->GetMaxPower(type));
+        ChatHandler(target->GetSession()).PSendSysMessage("%s change vos points de mana : %d / %u", player->GetName().c_str(), value, target->GetMaxPower(type));
+        return true;
+    }
+
+    static bool HandleSetHealthCommand(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+            return false;
+
+        Player* player = handler->GetSession()->GetPlayer();
+        Unit* target = player->GetSelectedUnit();
+        if (!target)
+            target = player;
+
+        std::string str = std::string(args);
+        int value = parseValueToSet(str, target->GetHealth(), target->GetMaxHealth());
+
+        if (value == target->GetHealth())
         {
-            handler->SendSysMessage("Entrees invalides : pas de negatif ni valeur superieur au maximum de votre barre");
+            handler->SendSysMessage("Cela ne change rien");
+            return true;
+        }
+        else if (value <= 0)
+        {
+            handler->SendSysMessage("Vous ne pouvez pas tuer avec cette commande");
             return true;
         }
 
-        player->SetPower(type, value);
-        player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
-        player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
- 
+        target->SetHealth(value);
+
+        if (target->IsCreature())
+        {
+            target->ToCreature()->setRegeneratingHealth(false);
+            handler->PSendSysMessage("Points de vie de %s : %d / %u", target->GetName().c_str(), value, target->GetMaxHealth());
+            return true;
+        }
+
+        Player* receiver = target->ToPlayer();
+        receiver->CustomSetRegen(false); // Stop all regen, even power
+
+        if (receiver->GetPowerType() == POWER_MANA)
+        {
+            uint32 index = receiver->GetPowerIndex(POWER_MANA);
+            receiver->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
+            receiver->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+        }
+
+        handler->PSendSysMessage("Points de vie de %s : %d / %u", target->GetName().c_str(), value, receiver->GetMaxHealth());
+        ChatHandler(receiver->GetSession()).PSendSysMessage("%s change vos points de vie : %d / %u", player->GetName().c_str(), value, receiver->GetMaxHealth());
         return true;
+    }
+    
+    static bool HandleRegenCommand(ChatHandler* handler, const char* args)
+    {
+        bool isRegen;
+        Player* player = handler->GetSession()->GetPlayer();
+        bool hasMana = player->GetPowerType() == POWER_MANA;
+
+        if (!*args)
+            return false;
+        else
+        {
+            std::string str = std::string(args);
+
+            if (str.find("on") != std::string::npos)
+                isRegen = true;
+            else if (str.find("off") != std::string::npos)
+                isRegen = false;
+            else
+                return false;
+        }
+
+        if (isRegen)
+        {
+            player->CustomSetRegen(true);
+
+            if (hasMana)
+                player->UpdateManaRegen();
+
+            handler->SendSysMessage("Regeneration ON");
+        }
+        else
+        {
+            player->CustomSetRegen(false);
+
+            if (hasMana)
+            {
+                uint32 index = player->GetPowerIndex(POWER_MANA);
+                player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
+                player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+            }
+
+            handler->SendSysMessage("Regeneration OFF");
+        }
+
+        return true; 
     }
 };
 

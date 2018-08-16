@@ -128,10 +128,58 @@ public:
         return true;
     }
 
+    /*
+    *   Get position of the first character (!= digit) from a string (str)
+    *   who is made up by digits and, possibly, characters
+    *   @pre : str, string to check
+    *          pos, length of str already checked (default 0)
+    *
+    *   @post: pos, the position of the first character that is not a digit
+    *          std::string::npos if there is no character != digit
+    */
+    static size_t getPositionFirstChar(std::string str, size_t pos = 0)
+    {
+        if (pos == str.size())
+            return std::string::npos;
+        else if (isdigit(str.at(pos)))
+            return getPositionFirstChar(str, pos + 1);
+        else
+            return pos;
+    }
+
+    static bool modifyNpcHP(ChatHandler* handler, const char* args, Creature* target)
+    {
+        if (!*args)
+            return false;
+        std::string str = std::string(args);
+        int64 value;
+
+        if (str.size() > 6)
+            return false;
+
+        if (getPositionFirstChar(str) != std::string::npos)
+            return false;
+        else
+            value = atoi(str.c_str());
+
+        if (value <= 0)
+            return false;
+
+        target->SetMaxHealth(value);
+        target->setRegeneratingHealth(false);
+        handler->PSendSysMessage("Point de vie de %s : %u / %d", target->GetName().c_str(), target->GetHealth(), value);
+        return true;
+    }
+
     //Edit Player HP
     static bool HandleModifyHPCommand(ChatHandler* handler, const char* args)
     {
         int32 hp, hpmax;
+        Unit* unit = handler->GetSession()->GetPlayer()->GetSelectedUnit();
+
+        if (unit && unit->IsCreature())
+            return modifyNpcHP(handler, args, unit->ToCreature());
+
         Player* target = handler->getSelectedPlayerOrSelf();
         if (CheckModifyResources(handler, args, target, hp, hpmax))
         {

@@ -2260,6 +2260,15 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         uint32 GetLastPetNumber() const { return m_lastpetnumber; }
         void SetLastPetNumber(uint32 petnumber) { m_lastpetnumber = petnumber; }
 
+
+        /*********************************************************/
+        /***                  CUSTOM KURETAR                   ***/
+        /*********************************************************/
+        bool m_isRegen = true;
+        void CustomSetRegen(bool new_isRegen) { m_isRegen = new_isRegen; }
+        /*==============*/
+
+
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/
         /*********************************************************/
