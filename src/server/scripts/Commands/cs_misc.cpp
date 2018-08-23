@@ -61,6 +61,20 @@
 #include "Position.h"
 #include "Object.h"
 #include "Bag.h"
+//
+#include "GossipDef.h"
+#include "Creature.h"
+#include "DB2Stores.h"
+#include "Log.h"
+#include "NPCPackets.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
+#include "Player.h"
+#include "QuestDef.h"
+#include "QuestPackets.h"
+#include "World.h"
+#include "WorldSession.h"
+#include "GameEventMgr.h"
 
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
@@ -230,6 +244,9 @@ public:
             { "power",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleSetPowerCommand,         "" },
             { "hp",        rbac::RBAC_PERM_COMMAND_AURA,                    false, &HandleSetHealthCommand,        "" },
             { "regen",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleRegenCommand,            "" },
+            { "selfunaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
+            { "selfaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleAuraSelfCommand,       "" }, // For Brikabrok addon
+           
         };
         return commandTable;
     }
@@ -6721,6 +6738,50 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         }
 
         return true; 
+    }
+
+
+    static bool HandleUnAuraSelfCommand(ChatHandler* handler, char const* args)
+    {
+        Player* target = handler->GetSession()->GetPlayer();
+
+        std::string argstr = args;
+        if (argstr == "all")
+        {
+            target->RemoveAllAuras();
+            return true;
+        }
+
+        // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+        uint32 spellId = handler->extractSpellIdFromLink((char*)args);
+        if (!spellId)
+            return false;
+
+        target->RemoveAurasDueToSpell(spellId);
+
+        return true;
+    }
+
+    static bool HandleAuraSelfCommand(ChatHandler* handler, char const* args)
+    {
+        Unit* target = handler->GetSession()->GetPlayer();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+        uint32 spellId = handler->extractSpellIdFromLink((char*)args);
+
+        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+        {
+            ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
+            Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+        }
+
+        return true;
     }
 };
 
