@@ -3409,9 +3409,9 @@ struct NPCModelItemSlotDisplayInfoLoadInfo
         static DB2FieldMeta const fields[] =
         {   
             { false, FT_INT, "ID" },
-            { false, FT_INT, "DisplayID" },
-            { false, FT_BYTE, "Slot" },
-            { false, FT_INT, "ExtendedDisplayID" },
+            { true, FT_INT, "DisplayID" },
+            { true, FT_BYTE, "Slot" },                     
+            { true, FT_INT, "ExtendedDisplayID" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, NPCModelItemSlotDisplayInfoMeta::Instance(), HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO);
         return &loadInfo;
