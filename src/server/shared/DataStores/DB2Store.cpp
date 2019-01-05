@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -107,7 +107,7 @@ bool DB2StorageBase::Load(std::string const& path, uint32 locale, char**& indexT
 
     // load strings from db2 data
     if (!_stringPool.empty())
-        if (char* stringBlock = db2.AutoProduceStrings(_dataTable, locale))
+        if (char* stringBlock = db2.AutoProduceStrings(indexTable, _indexTableSize, locale))
             _stringPool.push_back(stringBlock);
 
     db2.AutoProduceRecordCopies(_indexTableSize, indexTable, _dataTable);
@@ -132,7 +132,7 @@ bool DB2StorageBase::LoadStringsFrom(std::string const& path, uint32 locale, cha
 
     // load strings from another locale db2 data
     if (_loadInfo->GetStringFieldCount(true))
-        if (char* stringBlock = db2.AutoProduceStrings(_dataTable, locale))
+        if (char* stringBlock = db2.AutoProduceStrings(indexTable, _indexTableSize, locale))
             _stringPool.push_back(stringBlock);
 
     return true;

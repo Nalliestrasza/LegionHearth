@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -31,13 +31,13 @@ namespace VMAP
     class WorldModel;
     struct AreaInfo;
     struct LocationInfo;
+    enum class ModelIgnoreFlags : uint32;
 
     enum ModelFlags
     {
         MOD_M2 = 1,
-        MOD_WORLDSPAWN = 1 << 1,
-        MOD_HAS_BOUND = 1 << 2,
-        MOD_PARENT_SPAWN = 1 << 3
+        MOD_HAS_BOUND = 1 << 1,
+        MOD_PARENT_SPAWN = 1 << 2
     };
 
     class TC_COMMON_API ModelSpawn
@@ -67,7 +67,7 @@ namespace VMAP
             ModelInstance(): iInvScale(0.0f), iModel(nullptr) { }
             ModelInstance(const ModelSpawn &spawn, WorldModel* model);
             void setUnloaded() { iModel = nullptr; }
-            bool intersectRay(const G3D::Ray& pRay, float& pMaxDist, bool pStopAtFirstHit) const;
+            bool intersectRay(const G3D::Ray& pRay, float& pMaxDist, bool pStopAtFirstHit, ModelIgnoreFlags ignoreFlags) const;
             void intersectPoint(const G3D::Vector3& p, AreaInfo &info) const;
             bool GetLocationInfo(const G3D::Vector3& p, LocationInfo &info) const;
             bool GetLiquidLevel(const G3D::Vector3& p, LocationInfo &info, float &liqHeight) const;

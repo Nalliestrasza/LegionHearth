@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -204,6 +204,14 @@ struct adt_MH2O
             return { 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF };
         }
         return { 0, 0 };
+    }
+
+    uint16 GetLiquidType(adt_liquid_instance const* h) const
+    {
+        if (GetLiquidVertexFormat(h) == LiquidVertexFormatType::Depth)
+            return 2;
+
+        return h->LiquidType;
     }
 
     float GetLiquidHeight(adt_liquid_instance const* h, int32 pos) const

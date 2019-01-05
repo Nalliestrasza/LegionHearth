@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -37,7 +37,7 @@ class instance_forge_of_souls : public InstanceMapScript
 
         struct instance_forge_of_souls_InstanceScript : public InstanceScript
         {
-            instance_forge_of_souls_InstanceScript(Map* map) : InstanceScript(map)
+            instance_forge_of_souls_InstanceScript(InstanceMap* map) : InstanceScript(map)
             {
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);

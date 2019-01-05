@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -118,7 +118,6 @@ public:
 		{
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
 			
-
             if (checksql)
             {
                 Field* field = checksql->Fetch();
@@ -172,7 +171,7 @@ public:
                     }
 
                     // fill the gameobject data and save to the db
-                    object->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+                    object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
                     ObjectGuid::LowType spawnId = object->GetSpawnId();
 
                     // delete the old object and do a clean load from DB with a fresh new GameObject instance.
@@ -260,7 +259,7 @@ public:
 			}
 
 			// fill the gameobject data and save to the db
-			object->SaveToDB(map->GetId(), UI64LIT(1) << map->GetSpawnMode());
+            object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
 			ObjectGuid::LowType spawnId = object->GetSpawnId();
 
 			// delete the old object and do a clean load from DB with a fresh new GameObject instance.
@@ -602,7 +601,6 @@ public:
     //turn selected object
     static bool HandleGameObjectTurnCommand(ChatHandler* handler, char const* args)
     {
-
 			// number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
 			char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
 			if (!id)
@@ -664,7 +662,6 @@ public:
 
             handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
 			return true;
-        
     }
 
     //move selected object

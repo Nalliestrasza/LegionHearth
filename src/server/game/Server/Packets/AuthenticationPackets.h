@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -83,8 +83,6 @@ namespace WorldPackets
                 Digest.fill(0);
             }
 
-            uint16 Build = 0;
-            int8 BuildType = 0;
             uint32 RegionID = 0;
             uint32 BattlegroupID = 0;
             uint32 RealmID = 0;
@@ -135,6 +133,7 @@ namespace WorldPackets
                 {
                     uint32 BillingPlan = 0;
                     uint32 TimeRemain = 0;
+                    uint32 Unknown735 = 0;
                     bool InGameRoom = false;
                 };
 
@@ -158,6 +157,7 @@ namespace WorldPackets
                 bool ForceCharacterTemplate = false; ///< forces the client to always use a character template when creating a new character. @see Templates. @todo implement
                 Optional<uint16> NumPlayersHorde; ///< number of horde players in this realm. @todo implement
                 Optional<uint16> NumPlayersAlliance; ///< number of alliance players in this realm. @todo implement
+                Optional<int32> ExpansionTrialExpiration; ///< expansion trial expiration unix timestamp
             };
 
             AuthResponse();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -145,21 +145,23 @@ public:
             handler->SendSysMessage("Automatic database updates are disabled for all databases!");
         else
         {
-            static char const* const databaseNames[3 /*TOTAL_DATABASES*/] =
+            static char const* const databaseNames[] =
             {
                 "Auth",
                 "Characters",
-                "World"
+                "World",
+                "Hotfixes"
             };
+            static size_t constexpr databaseCount = std::extent<decltype(databaseNames)>::value;
 
             std::string availableUpdateDatabases;
-            for (uint32 i = 0; i < 3 /* TOTAL_DATABASES*/; ++i)
+            for (uint32 i = 0; i < databaseCount; ++i)
             {
                 if (!(updateFlags & (1 << i)))
                     continue;
 
                 availableUpdateDatabases += databaseNames[i];
-                if (i != 3 /*TOTAL_DATABASES*/ - 1)
+                if (i != databaseCount - 1)
                     availableUpdateDatabases += ", ";
             }
 

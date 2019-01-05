@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -62,7 +62,7 @@ class instance_gundrak : public InstanceMapScript
 
         struct instance_gundrak_InstanceMapScript : public InstanceScript
         {
-            instance_gundrak_InstanceMapScript(Map* map) : InstanceScript(map)
+            instance_gundrak_InstanceMapScript(InstanceMap* map) : InstanceScript(map)
             {
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);

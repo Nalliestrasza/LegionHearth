@@ -65,7 +65,7 @@ public:
 
     struct instance_endless_halls_InstanceMapScript : public InstanceScript
     {
-        instance_endless_halls_InstanceMapScript(Map* map) : InstanceScript(map)
+        instance_endless_halls_InstanceMapScript(InstanceMap* map) : InstanceScript(map)
         {
             SetHeaders(DataHeader);
             LoadObjectData(creatureData, gameObjectData);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -1106,10 +1106,12 @@ public:
         TC_LOG_INFO("misc", "Re-Loading Quest Locale ... ");
         sObjectMgr->LoadQuestTemplateLocale();
         sObjectMgr->LoadQuestObjectivesLocale();
+        sObjectMgr->LoadQuestGreetingLocales();
         sObjectMgr->LoadQuestOfferRewardLocale();
         sObjectMgr->LoadQuestRequestItemsLocale();
         handler->SendGlobalGMSysMessage("DB table `quest_template_locale` reloaded.");
         handler->SendGlobalGMSysMessage("DB table `quest_objectives_locale` reloaded.");
+        handler->SendGlobalGMSysMessage("DB table `quest_greeting_locale` reloaded.");
         handler->SendGlobalGMSysMessage("DB table `quest_offer_reward_locale` reloaded.");
         handler->SendGlobalGMSysMessage("DB table `quest_request_items_locale` reloaded.");
         return true;
@@ -1370,7 +1372,7 @@ public:
 		sSkillLineAbilityStore.LoadFromDB();
 		sSkillRaceClassInfoStore.LoadFromDB();
 		sSoundKitStore.LoadFromDB();
-		sSpellStore.LoadFromDB();
+	//	sSpellStore.LoadFromDB();
 		sSpellAuraOptionsStore.LoadFromDB();
 		sSpellAuraRestrictionsStore.LoadFromDB();
 		sSpellCastTimesStore.LoadFromDB();

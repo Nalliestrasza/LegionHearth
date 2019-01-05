@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -927,7 +927,9 @@ enum TrinityStrings
     LANG_ACCOUNT_BNET_UNLINKED          = 1188,
     LANG_ACCOUNT_BNET_NOT_LINKED        = 1189,
     LANG_DISALLOW_TICKETS_CONFIG        = 1190,
-    // Room for more level 3              1191-1198 not used
+    LANG_BAN_EXISTS                     = 1191,
+	LANG_CHANGEACCOUNT_SUCCESS          = 1192,
+    // Room for more level 3              1193-1198 not used
 
     // Debug commands
     LANG_DEBUG_AREATRIGGER_LEFT         = 1999,
