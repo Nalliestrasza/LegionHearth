@@ -122,19 +122,19 @@ uint32 CreatureTemplate::GetFirstInvisibleModel() const
 
 uint32 CreatureTemplate::GetFirstVisibleModel() const
 {
-    CreatureModelInfo const* modelInfo = sObjectMgr->GetCreatureModelInfo(sObjectMgr->GetCreatureDisplay(Modelid1));
+    CreatureModelInfo const* modelInfo = sObjectMgr->GetCreatureModelInfo(Modelid1);
     if (modelInfo && !modelInfo->is_trigger)
         return Modelid1;
 
-    modelInfo = sObjectMgr->GetCreatureModelInfo(sObjectMgr->GetCreatureDisplay(Modelid2));
+    modelInfo = sObjectMgr->GetCreatureModelInfo(Modelid2);
     if (modelInfo && !modelInfo->is_trigger)
         return Modelid2;
 
-    modelInfo = sObjectMgr->GetCreatureModelInfo(sObjectMgr->GetCreatureDisplay(Modelid3));
+    modelInfo = sObjectMgr->GetCreatureModelInfo(Modelid3);
     if (modelInfo && !modelInfo->is_trigger)
         return Modelid3;
 
-    modelInfo = sObjectMgr->GetCreatureModelInfo(sObjectMgr->GetCreatureDisplay(Modelid4));
+    modelInfo = sObjectMgr->GetCreatureModelInfo(Modelid4);
     if (modelInfo && !modelInfo->is_trigger)
         return Modelid4;
 
