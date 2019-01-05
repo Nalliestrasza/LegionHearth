@@ -367,8 +367,8 @@ struct TC_GAME_API CreatureTemplate
     uint32  MechanicImmuneMask;
     uint32  flags_extra;
     uint32  ScriptID;
-    int32  GetRandomValidModelId() const;
-    int32  GetFirstValidModelId() const;
+    uint32  GetRandomValidModelId() const;
+    uint32  GetFirstValidModelId() const;
     uint32  GetFirstInvisibleModel() const;
     uint32  GetFirstVisibleModel() const;
 

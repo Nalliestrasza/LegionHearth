@@ -1361,17 +1361,8 @@ public:
             return false;
 		}
 
-		//no morph if creature outfit
-		if (creature->GetOutfit() < 0)
-		{
-			handler->SendSysMessage(LANG_MORPH_DRESSNPC);
-			return false;
-		}
-
         creature->SetDisplayId(displayId);
         creature->SetNativeDisplayId(displayId);
-        creature->SetOutfit(displayId);
-        creature->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
 
         creature->SaveToDB();
 

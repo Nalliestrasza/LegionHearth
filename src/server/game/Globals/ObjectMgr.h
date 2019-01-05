@@ -169,28 +169,6 @@ struct GameTele
 
 typedef std::unordered_map<uint32, GameTele > GameTeleContainer;
 
-struct CreatureOutfit
-{
-	static constexpr uint32 max_outfit_displays = 11;
-	static constexpr uint32 max_custom_displays = 3;
-
-    uint8 race;
-    uint8 Class;
-    uint8 gender;
-    uint8 face;
-    uint8 skin;
-    uint8 hair;
-    uint8 facialhair;
-    uint8 haircolor;
-	uint8 customdisplay[3];
-	uint64 guild;
-    uint32 displayId;
-	uint32 outfit[max_outfit_displays];
-
-};
-
-typedef std::unordered_map<uint32, CreatureOutfit> CreatureOutfitContainer;
-
 enum ScriptsType
 {
     SCRIPTS_FIRST = 1,
@@ -993,7 +971,7 @@ class TC_GAME_API ObjectMgr
         CreatureModelInfo const* GetCreatureModelInfo(uint32 modelId) const;
         CreatureModelInfo const* GetCreatureModelRandomGender(uint32* displayID) const;
 
-        static int32 ChooseDisplayId(CreatureTemplate const* cinfo, CreatureData const* data = nullptr);
+        static uint32 ChooseDisplayId(CreatureTemplate const* cinfo, CreatureData const* data = nullptr);
         static void ChooseCreatureFlags(CreatureTemplate const* cInfo, uint64& npcFlags, uint32& unitFlags, uint32& unitFlags2, uint32& unitFlags3, uint32& dynamicFlags, CreatureData const* data = nullptr);
 
         EquipmentInfo const* GetEquipmentInfo(uint32 entry, int8& id) const;
@@ -1003,7 +981,6 @@ class TC_GAME_API ObjectMgr
         CreatureAddon const* GetCreatureTemplateAddon(uint32 entry) const;
         ItemTemplate const* GetItemTemplate(uint32 entry) const;
         ItemTemplateContainer const* GetItemTemplateStore() const { return &_itemTemplateStore; }
-        uint32 GetCreatureDisplay(int32 modelid) const;
 
         InstanceTemplate const* GetInstanceTemplate(uint32 mapId) const;
 
@@ -1278,7 +1255,6 @@ class TC_GAME_API ObjectMgr
 
         void LoadNPCSpellClickSpells();
 
-        void LoadCreatureOutfits();
         void LoadGameTele();
 
         void LoadGossipMenu();
@@ -1509,8 +1485,6 @@ class TC_GAME_API ObjectMgr
         bool AddGameTele(GameTele& data);
         bool DeleteGameTele(std::string const& name);
 
-        const CreatureOutfitContainer& GetCreatureOutfitMap() const { return _creatureOutfitStore; }
-
         Trainer::Trainer const* GetTrainer(uint32 trainerId) const;
         uint32 GetCreatureDefaultTrainer(uint32 creatureId) const;
 
@@ -1696,8 +1670,6 @@ class TC_GAME_API ObjectMgr
 
         PageTextContainer _pageTextStore;
         InstanceTemplateContainer _instanceTemplateStore;
-
-        CreatureOutfitContainer _creatureOutfitStore;
 
     public:
         PhaseInfoStruct const* GetPhaseInfo(uint32 phaseId) const;
