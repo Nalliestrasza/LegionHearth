@@ -4117,7 +4117,7 @@ public:
                     NPCModelItemSlotDisplayInfoEntry const* armorEntry = sNPCModelItemSlotDisplayInfoStore.LookupEntry(id);
                     if (armorEntry)
                     {
-                        if (armorEntry->ExtendedDisplayID == entryExtra)
+                        if (armorEntry->DisplayID == entryExtra)
                         {
                             if (armorEntry->Slot == 0)
                                 eqqList[0] = armorEntry->DisplayID;
