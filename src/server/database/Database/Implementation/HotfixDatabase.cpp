@@ -688,7 +688,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_NAMES_RESERVED_LOCALE, "SELECT ID, Name, LocaleMask FROM names_reserved_locale ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // NPCModelItemSlotDisplayInfo.db2
-    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, DisplayID, Slot FROM npc_model_item_slot_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, DisplayID, Slot, ExtendedDisplayID FROM npc_model_item_slot_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // NumTalentsAtLevel.db2
     PrepareStatement(HOTFIX_SEL_NUM_TALENTS_AT_LEVEL, "SELECT ID, NumTalents, NumTalentsDeathKnight, NumTalentsDemonHunter FROM num_talents_at_level"
