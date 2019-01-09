@@ -126,6 +126,7 @@ public:
             { "creature_queststarter",         rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_QUESTSTARTER,            true,  &HandleReloadCreatureQuestStarterCommand,       "" },
             { "creature_summon_groups",        rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_SUMMON_GROUPS,           true,  &HandleReloadCreatureSummonGroupsCommand,       "" },
             { "creature_template",             rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadCreatureTemplateCommand,           "" },
+            { "creature_template_outfits",     rbac::RBAC_PERM_COMMAND_RELOAD_CREATURE_TEMPLATE,                true,  &HandleReloadCreatureTemplateOutfitsCommand,    "" },
             { "criteria_data",                 rbac::RBAC_PERM_COMMAND_RELOAD_CRITERIA_DATA,                    true,  &HandleReloadCriteriaDataCommand,               "" },
             { "disables",                      rbac::RBAC_PERM_COMMAND_RELOAD_DISABLES,                         true,  &HandleReloadDisablesCommand,                   "" },
             { "disenchant_loot_template",      rbac::RBAC_PERM_COMMAND_RELOAD_DISENCHANT_LOOT_TEMPLATE,         true,  &HandleReloadLootTemplatesDisenchantCommand,    "" },
@@ -241,6 +242,7 @@ public:
         HandleReloadGameTeleCommand(handler, "");
 
         HandleReloadCreatureSummonGroupsCommand(handler, "");
+        HandleReloadCreatureTemplateOutfitsCommand(handler, "");
 
         HandleReloadVehicleAccessoryCommand(handler, "");
         HandleReloadVehicleTemplateAccessoryCommand(handler, "");
