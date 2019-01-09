@@ -13756,7 +13756,7 @@ void Unit::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* target)
 
                     if (cinfo->flags_extra & CREATURE_FLAG_EXTRA_TRIGGER)
                         if (target->IsGameMaster())
-                            displayId = cinfo->GetFirstVisibleModel()->CreatureDisplayID;
+                            displayId = sObjectMgr->GetRealDisplayId(cinfo->GetFirstVisibleModel()->CreatureDisplayID);
                 }
 
                 *data << uint32(displayId);

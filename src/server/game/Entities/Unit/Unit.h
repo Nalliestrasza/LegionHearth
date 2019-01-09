@@ -1683,7 +1683,7 @@ class TC_GAME_API Unit : public WorldObject
         }
         void UpdateInterruptMask();
 
-        uint32 GetDisplayId() const { return GetUInt32Value(UNIT_FIELD_DISPLAYID); }
+        virtual uint32 GetDisplayId() const { return GetUInt32Value(UNIT_FIELD_DISPLAYID); }
         virtual void SetDisplayId(uint32 modelId, float displayScale = 1.f);
         uint32 GetNativeDisplayId() const { return GetUInt32Value(UNIT_FIELD_NATIVEDISPLAYID); }
         float GetNativeDisplayScale() const { return GetFloatValue(UNIT_FIELD_NATIVE_X_DISPLAY_SCALE); }

@@ -917,7 +917,6 @@ public:
 			updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 			WorldDatabase.Execute(updDisplay);
 		}
-		
 
         return true;
     }

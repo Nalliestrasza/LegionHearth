@@ -23,6 +23,7 @@
 #include "IteratorPair.h"
 #include "Log.h"
 #include "ObjectDefines.h"
+#include "ObjectMgr.h"
 #include "Regex.h"
 #include "Timer.h"
 #include "Util.h"
@@ -79,7 +80,10 @@ DB2Storage<CinematicCameraEntry>                sCinematicCameraStore("Cinematic
 DB2Storage<CinematicSequencesEntry>             sCinematicSequencesStore("CinematicSequences.db2", CinematicSequencesLoadInfo::Instance());
 DB2Storage<ContentTuningEntry>                  sContentTuningStore("ContentTuning.db2", ContentTuningLoadInfo::Instance());
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", ConversationLineLoadInfo::Instance());
-DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", CreatureDisplayInfoLoadInfo::Instance());
+DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStoreRaw("CreatureDisplayInfo.db2", CreatureDisplayInfoLoadInfo::Instance());
+CreatureDisplayInfoStore                        sCreatureDisplayInfoStore;
+bool CreatureDisplayInfoStore::HasRecord(uint32 id) const { return sCreatureDisplayInfoStoreRaw.HasRecord(sObjectMgr->GetRealDisplayId(id)); }
+const CreatureDisplayInfoEntry * CreatureDisplayInfoStore::LookupEntry(uint32 id) const { return sCreatureDisplayInfoStoreRaw.LookupEntry(sObjectMgr->GetRealDisplayId(id)); }
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", CreatureDisplayInfoExtraLoadInfo::Instance());
 DB2Storage<CreatureFamilyEntry>                 sCreatureFamilyStore("CreatureFamily.db2", CreatureFamilyLoadInfo::Instance());
 DB2Storage<CreatureModelDataEntry>              sCreatureModelDataStore("CreatureModelData.db2", CreatureModelDataLoadInfo::Instance());
@@ -184,6 +188,7 @@ DB2Storage<NamesProfanityEntry>                 sNamesProfanityStore("NamesProfa
 DB2Storage<NamesReservedEntry>                  sNamesReservedStore("NamesReserved.db2", NamesReservedLoadInfo::Instance());
 DB2Storage<NamesReservedLocaleEntry>            sNamesReservedLocaleStore("NamesReservedLocale.db2", NamesReservedLocaleLoadInfo::Instance());
 DB2Storage<NPCModelItemSlotDisplayInfoEntry>    sNPCModelItemSlotDisplayInfoStore("NPCModelItemSlotDisplayInfo.db2", NPCModelItemSlotDisplayInfoLoadInfo::Instance());
+DB2Storage<NPCSoundsEntry>                      sNPCSoundsStore("NPCSounds.db2", NPCSoundsLoadInfo::Instance());
 DB2Storage<NumTalentsAtLevelEntry>              sNumTalentsAtLevelStore("NumTalentsAtLevel.db2", NumTalentsAtLevelLoadInfo::Instance());
 DB2Storage<OverrideSpellDataEntry>              sOverrideSpellDataStore("OverrideSpellData.db2", OverrideSpellDataLoadInfo::Instance());
 DB2Storage<PhaseEntry>                          sPhaseStore("Phase.db2", PhaseLoadInfo::Instance());
@@ -537,7 +542,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sCinematicSequencesStore);
     LOAD_DB2(sContentTuningStore);
     LOAD_DB2(sConversationLineStore);
-    LOAD_DB2(sCreatureDisplayInfoStore);
+    LOAD_DB2(sCreatureDisplayInfoStoreRaw);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
     LOAD_DB2(sCreatureFamilyStore);
     LOAD_DB2(sCreatureModelDataStore);
@@ -642,6 +647,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sNamesReservedStore);
     LOAD_DB2(sNamesReservedLocaleStore);
     LOAD_DB2(sNPCModelItemSlotDisplayInfoStore);
+    LOAD_DB2(sNPCSoundsStore);
     LOAD_DB2(sNumTalentsAtLevelStore);
     LOAD_DB2(sOverrideSpellDataStore);
     LOAD_DB2(sPhaseStore);

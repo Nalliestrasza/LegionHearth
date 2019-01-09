@@ -30,6 +30,8 @@ EndScriptData */
 #include "CharacterTemplateDataStore.h"
 #include "Chat.h"
 #include "ConversationDataStore.h"
+#include "Creature.h"
+#include "CreatureOutfit.h"
 #include "CreatureTextMgr.h"
 #include "DatabaseEnv.h"
 #include "DisableMgr.h"
@@ -498,6 +500,7 @@ public:
     }
 	*/
 
+
 	static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* /*args*/)
 	{
 		TC_LOG_INFO("misc", "Reloading creature template...");
@@ -505,6 +508,25 @@ public:
 		handler->SendGlobalGMSysMessage("DB table `creature_template` reloaded.");
 		return true;
 	}
+
+    static bool HandleReloadCreatureTemplateOutfitsCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Loading Creature Outfits... (`creature_template_outfits`)");
+        sObjectMgr->LoadCreatureOutfits();
+        sMapMgr->DoForAllMaps([](Map* map)
+        {
+            for (auto e : map->GetCreatureBySpawnIdStore())
+            {
+                auto const & outfit = e.second->GetOutfit();
+                if (outfit && outfit->GetId())
+                    e.second->SetDisplayId(outfit->GetId());
+            }
+        });
+
+        handler->SendGlobalGMSysMessage("DB table `creature_template_outfits` reloaded.");
+        return true;
+    }
+
 
     static bool HandleReloadCreatureQuestStarterCommand(ChatHandler* handler, const char* /*args*/)
     {
@@ -1275,7 +1297,7 @@ public:
 		sCinematicCameraStore.LoadFromDB();
 		sCinematicSequencesStore.LoadFromDB();
 		sConversationLineStore.LoadFromDB();
-		sCreatureDisplayInfoStore.LoadFromDB();
+		//sCreatureDisplayInfoStore.LoadFromDB(); disabled because npcdress changes in db2store.cpp
 		sCreatureDisplayInfoExtraStore.LoadFromDB();
 		sCreatureFamilyStore.LoadFromDB();
 		sCreatureModelDataStore.LoadFromDB();
