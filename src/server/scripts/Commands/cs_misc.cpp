@@ -6783,6 +6783,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
     }
+
 };
 
 void AddSC_misc_commandscript()
