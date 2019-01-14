@@ -1843,7 +1843,7 @@ void Player::RegenerateAll()
     /* --- CUSTOM KURETAR : REGEN ON/OFF HANDLING --- */
     if (!m_isRegen)
         return;
-    else
+    else if (GetPowerType() == POWER_MANA)
         SetPower(GetPowerType(), GetMaxPower(GetPowerType())); // Terrible temporary fix
     /* ---  END CUSTOM  --- */
 
