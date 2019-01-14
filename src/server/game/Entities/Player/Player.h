@@ -2260,7 +2260,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         /*********************************************************/
         /***                  CUSTOM KURETAR                   ***/
         /*********************************************************/
-        bool m_isRegen = true;
+        bool m_isRegen = false;
         void CustomSetRegen(bool new_isRegen) { m_isRegen = new_isRegen; }
         /*==============*/
 
