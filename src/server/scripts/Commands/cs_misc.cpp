@@ -76,7 +76,7 @@
 #include "World.h"
 #include "WorldSession.h"
 #include "GameEventMgr.h"
-
+#include <regex>
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
 #undef GetClassName
@@ -247,6 +247,7 @@ public:
             { "regen",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleRegenCommand,            "" },
             { "selfunaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
             { "selfaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleAuraSelfCommand,       "" }, // For Brikabrok addon
+        { "addonhelper",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleAddonHelper,       "" }, // For Brikabrok and the other
            
         };
         return commandTable;
@@ -3293,7 +3294,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
+        //Phase 3 : Calcul des positions et distance en m?res (?deux decimal pres, arrondi ?l'inf?ieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3382,7 +3383,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd ?retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3434,7 +3435,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd ?retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3481,7 +3482,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé]", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en priv?", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3517,7 +3518,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous ?es d?ormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3525,11 +3526,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous ?es d?ormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Param?re incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3918,7 +3919,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire désactivée !");
+            handler->SendSysMessage("Nuit noire d?activ? !");
             return true;
         }
         else if (argstr == "on")
@@ -3929,7 +3930,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
+            handler->SendSysMessage("Nuit noire activ? ! Tapez .nuit off pour la d?activ?.");
             return true;
         }
 
@@ -4221,7 +4222,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd ?retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -6259,7 +6260,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     *   @pre : playerName, the name of player
     *          args, argument from a roll command
     *
-    *   @post : "Entrées invalides" if args does not respect checkRandParsing conditions
+    *   @post : "Entr?s invalides" if args does not respect checkRandParsing conditions
     *and min > max && dice > 30 && max >= 10000 && bonus >= 1000
     *           else, the sentence to send for a roll command.
     */
@@ -6777,7 +6778,87 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
     }
+    /*
+    * ADDON HELPER 
+    */
+    static std::queue<std::string> parseParameters(const char* args) {
+        std::string str = std::string(args);
+        std::queue<std::string> q;
+        std::regex reg("([^ ]+)");
+        std::sregex_iterator currentMatch(str.begin(), str.end(), reg);
+        std::smatch match = *currentMatch;
+        std::sregex_iterator lastMatch;
 
+
+        while (currentMatch != lastMatch) {
+            match = *currentMatch;
+            q.push(match.str());
+            currentMatch++;
+        }
+            
+        return q;
+    }
+
+    static bool brikabrokGobPosInfo(ChatHandler* handler, std::queue<std::string> q) {
+        if (q.empty())
+            return false;
+
+        uint64 guid;
+        std::string guidStr = q.front();
+        q.pop();
+
+        if (getPositionFirstDigit(guidStr) == std::string::npos)
+            return false;
+
+        ObjectGuid::LowType guidLow = std::stoi(guidStr);
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+
+        if (!object) {
+            handler->SendSysMessage("Guid invalid");
+            return false;
+        }
+        handler->PSendSysMessage("%s %f %f %f %f", object->GetName().c_str(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        return true;
+    }
+
+    static bool brikabrok(ChatHandler* handler, std::queue<std::string> q) {
+        if (q.empty()) {
+            handler->SendSysMessage("No method called");
+            return false;
+        }
+
+        std::string methodCalled = q.front();
+        q.pop();
+
+        if (methodCalled.compare("gobpos") == 0)
+            return brikabrokGobPosInfo(handler, q);
+        else
+            return false;
+    }
+
+    static bool HandleAddonHelper(ChatHandler* handler, const char* args) {
+        if (!*args) 
+            return false;
+
+        std::string params = std::string(args);
+        std::queue<std::string> q = parseParameters(args);
+        
+        if (q.empty())
+            return false;
+
+        std::string nameAddon = q.front();
+        q.pop();
+
+        if (nameAddon.compare("brikabrok") == 0)
+            return brikabrok(handler, q);
+        else
+            return false;
+    }
+
+    /*
+    * END OF ADDON HELPER
+    */
+    
 };
 
 void AddSC_misc_commandscript()
