@@ -3294,7 +3294,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en m?res (?deux decimal pres, arrondi ?l'inf?ieur )
+        //Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3383,7 +3383,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd ?retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3435,7 +3435,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd ?retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3482,7 +3482,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en priv?", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3518,7 +3518,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous ?es d?ormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3526,11 +3526,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous ?es d?ormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("Param?re incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3919,7 +3919,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire d?activ? !");
+            handler->SendSysMessage("Nuit noire désactivée !");
             return true;
         }
         else if (argstr == "on")
@@ -3930,7 +3930,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activ? ! Tapez .nuit off pour la d?activ?.");
+            handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
             return true;
         }
 
@@ -4222,7 +4222,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd ?retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -6260,7 +6260,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     *   @pre : playerName, the name of player
     *          args, argument from a roll command
     *
-    *   @post : "Entr?s invalides" if args does not respect checkRandParsing conditions
+    *   @post : "Entrées invalides" if args does not respect checkRandParsing conditions
     *and min > max && dice > 30 && max >= 10000 && bonus >= 1000
     *           else, the sentence to send for a roll command.
     */
