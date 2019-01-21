@@ -4344,7 +4344,13 @@ public:
         uint32 tId = field[0].GetUInt32();
         ++tId;
 
-  
+		// Check if parentmap values is aphase map
+		if (pMap >= 5000)
+		{
+			handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, pMap);
+			handler->SetSentErrorMessage(true);
+			return false;
+		}
 
         // check if parentmap values is an existing map	
         MapEntry const* mapEntry = sMapStore.LookupEntry(pMap);
