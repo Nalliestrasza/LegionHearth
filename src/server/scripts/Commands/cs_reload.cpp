@@ -1299,6 +1299,7 @@ public:
 		sCinematicCameraStore.LoadFromDB();
 		sCinematicSequencesStore.LoadFromDB();
 		sConversationLineStore.LoadFromDB();
+		//sCreatureDisplayInfoStoreRaw.LoadFromDB();
 		//sCreatureDisplayInfoStore.LoadFromDB(); disabled because npcdress changes in db2store.cpp
 		sCreatureDisplayInfoExtraStore.LoadFromDB();
 		sCreatureFamilyStore.LoadFromDB();

@@ -506,6 +506,14 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
 	else if (getRace() >= RACE_NIGHTBORNE)
 		start_level = 120;
 
+	// set spell
+	else if (getRace() == RACE_DARK_IRON_DWARF)
+		LearnSpell(668, true);
+	else if (getRace() == RACE_MAGHAR_ORC)
+		LearnSpell(669, true);
+	
+
+
 
     if (createInfo->TemplateSet)
     {
