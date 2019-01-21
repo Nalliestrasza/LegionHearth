@@ -1378,6 +1378,7 @@ public:
 		sMountCapabilityStore.LoadFromDB();
 		sMountStore.LoadFromDB();
 		sMovieStore.LoadFromDB();
+        sNPCSoundsStore.LoadFromDB();
 		sOverrideSpellDataStore.LoadFromDB();
 		sPhaseStore.LoadFromDB();
 		sPlayerConditionStore.LoadFromDB();

@@ -1848,8 +1848,12 @@ bool Player::IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index, Un
 
 void Player::RegenerateAll()
 {
+    /* --- CUSTOM KURETAR : REGEN ON/OFF HANDLING --- */
     if (!m_isRegen)
         return;
+    else if (GetPowerType() == POWER_MANA)
+        SetPower(GetPowerType(), GetMaxPower(GetPowerType())); // Terrible temporary fix
+    /* ---  END CUSTOM  --- */
 
     m_regenTimerCount += m_regenTimer;
 
@@ -1892,8 +1896,6 @@ void Player::RegenerateAll()
 
 void Player::Regenerate(Powers power)
 {
-    if (!m_isRegen)
-        return;
 
     // Skip regeneration for power type we cannot have
     uint32 powerIndex = GetPowerIndex(power);
