@@ -194,8 +194,8 @@ enum Races
      (UI64LIT(1)<<(RACE_VOID_ELF-1))            | \
      (UI64LIT(1)<<(RACE_LIGHTFORGED_DRAENEI-1)) | \
      (UI64LIT(1)<<(RACE_DARK_IRON_DWARF-1))     | \
-     (UI64LIT(1)<<(RACE_MAGHAR_ORC-1)))			| \
-	 (UI64LIT(1)<<(RACE_KUL_TIRAN-1)))			| \
+     (UI64LIT(1)<<(RACE_MAGHAR_ORC-1))			| \
+	 (UI64LIT(1)<<(RACE_KUL_TIRAN-1))			| \
 	(UI64LIT(1)<<(RACE_ZANDALARI_TROLL-1)))	
 
 
