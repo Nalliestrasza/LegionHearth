@@ -242,13 +242,12 @@ public:
             { "unset",            rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", unsetCommandTable },
             { "delete",           rbac::RBAC_PERM_COMMAND_AURA,             false, nullptr, "", phaseCommandTable },
             { "invisible",        rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleInvisibleCommand,        "" },
-            { "power",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleSetPowerCommand,         "" },
-            { "hp",        rbac::RBAC_PERM_COMMAND_AURA,                    false, &HandleSetHealthCommand,        "" },
-            { "regen",        rbac::RBAC_PERM_COMMAND_AURA,                 false, &HandleRegenCommand,            "" },
-            { "selfunaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
-            { "selfaura",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleAuraSelfCommand,       "" }, // For Brikabrok addon
-        { "addonhelper",        rbac::RBAC_PERM_COMMAND_AURA,            false, &HandleAddonHelper,       "" }, // For Brikabrok and the other
-           
+            { "power",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSetPowerCommand,         "" },
+            { "hp",               rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleSetHealthCommand,        "" },
+            { "regen",            rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleRegenCommand,            "" },
+            { "selfunaura",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
+            { "selfaura",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAuraSelfCommand,         "" }, // For Brikabrok addon
+            { "addonhelper",      rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAddonHelper,             "" }, // For Brikabrok and the other
         };
         return commandTable;
     }
@@ -6784,6 +6783,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         return true;
     }
+
     /*
     * ADDON HELPER 
     */

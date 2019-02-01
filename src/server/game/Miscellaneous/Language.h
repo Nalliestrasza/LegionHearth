@@ -1316,7 +1316,9 @@ enum TrinityStrings
     // PHASE INVIT FIX
     LANG_PHASE_PLAYER_IS_ON_PHASE                 = 90048,
 
-
+    // CHAR SET RACE
+    LANG_BAD_RACE                                 = 90049,
+    LANG_BAD_SET_RACE_COMMAND                     = 90050,
 
 };
 #endif

@@ -20,7 +20,6 @@ void AddSC_instance_endless_halls();
 void AddSC_endless_halls();
 void AddSC_legionhearth();
 
-
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()

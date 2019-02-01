@@ -8436,10 +8436,10 @@ void ObjectMgr::LoadCreatureOutfits()
         {/*RACE_VOID_ELF*/              29, RACE_BLOODELF},
         {/*RACE_LIGHTFORGED_DRAENEI*/   30, RACE_DRAENEI},
         {/*RACE_ZANDALARI_TROLL*/       31, RACE_TROLL},
-        {/*RACE_KUL_TIRAN*/             32, RACE_DRAENEI},
-        {/*RACE_THIN_HUMAN*/            33, RACE_NIGHTELF},
+        {/*RACE_KUL_TIRAN*/             32, RACE_HUMAN},
+        {/*RACE_THIN_HUMAN*/            33, RACE_UNDEAD_PLAYER},
         {/*RACE_DARK_IRON_DWARF*/       34, RACE_DWARF},
-        {/*RACE_VULPERA*/               35, RACE_GNOME},
+        {/*RACE_VULPERA*/               35, RACE_GOBLIN},
         {/*RACE_MAGHAR_ORC*/            36, RACE_ORC},
     };
 

@@ -15,12 +15,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ScriptData
-Name: character_commandscript
-%Complete: 100
-Comment: All character related commands
-Category: commandscripts
-EndScriptData */
+ /* ScriptData
+ Name: character_commandscript
+ %Complete: 100
+ Comment: All character related commands
+ Category: commandscripts
+ EndScriptData */
 
 #include "AccountMgr.h"
 #include "Chat.h"
@@ -54,11 +54,13 @@ public:
             { "list",          rbac::RBAC_PERM_COMMAND_CHARACTER_DELETED_LIST,    true,  &HandleCharacterDeletedListCommand,    "" },
             { "restore",       rbac::RBAC_PERM_COMMAND_CHARACTER_DELETED_RESTORE, true,  &HandleCharacterDeletedRestoreCommand, "" },
             { "old",           rbac::RBAC_PERM_COMMAND_CHARACTER_DELETED_OLD,     true,  &HandleCharacterDeletedOldCommand,     "" },
+            { "race",          rbac::RBAC_PERM_COMMAND_CHARACTER_CUSTOMIZE,       true,  &HandleCharacterSetRaceCommand,        "" },
         };
 
         static std::vector<ChatCommand> characterCommandTable =
         {
             { "customize",     rbac::RBAC_PERM_COMMAND_CHARACTER_CUSTOMIZE,       true,  &HandleCharacterCustomizeCommand,      "", },
+            { "set",           rbac::RBAC_PERM_COMMAND_CHARACTER_CUSTOMIZE,       true,  NULL,                                  "", characterDeletedCommandTable },
             { "changefaction", rbac::RBAC_PERM_COMMAND_CHARACTER_CHANGEFACTION,   true,  &HandleCharacterChangeFactionCommand,  "", },
             { "changerace",    rbac::RBAC_PERM_COMMAND_CHARACTER_CHANGERACE,      true,  &HandleCharacterChangeRaceCommand,     "", },
             { "changeaccount", rbac::RBAC_PERM_COMMAND_CHARACTER_CHANGEACCOUNT,   true,  &HandleCharacterChangeAccountCommand,  "", },
@@ -136,16 +138,15 @@ public:
 
                 DeletedInfo info;
 
-                info.guid       = ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64());
-                info.name       = fields[1].GetString();
-                info.accountId  = fields[2].GetUInt32();
+                info.guid = ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64());
+                info.name = fields[1].GetString();
+                info.accountId = fields[2].GetUInt32();
 
                 // account name will be empty for nonexisting account
                 AccountMgr::GetName(info.accountId, info.accountName);
                 info.deleteDate = time_t(fields[3].GetUInt32());
                 foundList.push_back(info);
-            }
-            while (result->NextRow());
+            } while (result->NextRow());
         }
 
         return true;
@@ -282,8 +283,8 @@ public:
                     continue;
 
                 char const* activeStr = target->GetInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->MaskID
-                ? handler->GetTrinityString(LANG_ACTIVE)
-                : "";
+                    ? handler->GetTrinityString(LANG_ACTIVE)
+                    : "";
 
                 std::string titleNameStr = Trinity::StringFormat(name.c_str(), targetName);
 
@@ -678,16 +679,16 @@ public:
         return true;
     }
 
-   /**
-    * Handles the '.character deleted list' command, which shows all deleted characters which matches the given search string
-    *
-    * @see HandleCharacterDeletedListHelper
-    * @see HandleCharacterDeletedRestoreCommand
-    * @see HandleCharacterDeletedDeleteCommand
-    * @see DeletedInfoList
-    *
-    * @param args the search string which either contains a player GUID or a part fo the character-name
-    */
+    /**
+     * Handles the '.character deleted list' command, which shows all deleted characters which matches the given search string
+     *
+     * @see HandleCharacterDeletedListHelper
+     * @see HandleCharacterDeletedRestoreCommand
+     * @see HandleCharacterDeletedDeleteCommand
+     * @see DeletedInfoList
+     *
+     * @param args the search string which either contains a player GUID or a part fo the character-name
+     */
     static bool HandleCharacterDeletedListCommand(ChatHandler* handler, char const* args)
     {
         DeletedInfoList foundList;
@@ -912,13 +913,13 @@ public:
         if (newlevel < 1)
             newlevel = 1;
 
-		/*
+        /*
         if (newlevel > STRONG_MAX_LEVEL)                         // hardcoded maximum level
             newlevel = STRONG_MAX_LEVEL;
-		*/
+        */
 
-		if (newlevel > 120)                         // bye 255 faggots
-			newlevel = 120;
+        if (newlevel > 120)                         // bye 255 faggots
+            newlevel = 120;
 
         HandleCharacterLevel(target, targetGuid, oldlevel, newlevel, handler);
 
@@ -1018,25 +1019,25 @@ public:
 
         switch (PlayerDumpReader().LoadDump(fileStr, accountId, name, guid))
         {
-            case DUMP_SUCCESS:
-                handler->PSendSysMessage(LANG_COMMAND_IMPORT_SUCCESS);
-                break;
-            case DUMP_FILE_OPEN_ERROR:
-                handler->PSendSysMessage(LANG_FILE_OPEN_FAIL, fileStr);
-                handler->SetSentErrorMessage(true);
-                return false;
-            case DUMP_FILE_BROKEN:
-                handler->PSendSysMessage(LANG_DUMP_BROKEN, fileStr);
-                handler->SetSentErrorMessage(true);
-                return false;
-            case DUMP_TOO_MANY_CHARS:
-                handler->PSendSysMessage(LANG_ACCOUNT_CHARACTER_LIST_FULL, accountName.c_str(), accountId);
-                handler->SetSentErrorMessage(true);
-                return false;
-            default:
-                handler->PSendSysMessage(LANG_COMMAND_IMPORT_FAILED);
-                handler->SetSentErrorMessage(true);
-                return false;
+        case DUMP_SUCCESS:
+            handler->PSendSysMessage(LANG_COMMAND_IMPORT_SUCCESS);
+            break;
+        case DUMP_FILE_OPEN_ERROR:
+            handler->PSendSysMessage(LANG_FILE_OPEN_FAIL, fileStr);
+            handler->SetSentErrorMessage(true);
+            return false;
+        case DUMP_FILE_BROKEN:
+            handler->PSendSysMessage(LANG_DUMP_BROKEN, fileStr);
+            handler->SetSentErrorMessage(true);
+            return false;
+        case DUMP_TOO_MANY_CHARS:
+            handler->PSendSysMessage(LANG_ACCOUNT_CHARACTER_LIST_FULL, accountName.c_str(), accountId);
+            handler->SetSentErrorMessage(true);
+            return false;
+        default:
+            handler->PSendSysMessage(LANG_COMMAND_IMPORT_FAILED);
+            handler->SetSentErrorMessage(true);
+            return false;
         }
 
         return true;
@@ -1079,24 +1080,186 @@ public:
 
         switch (PlayerDumpWriter().WriteDump(fileStr, guid.GetCounter()))
         {
-            case DUMP_SUCCESS:
-                handler->PSendSysMessage(LANG_COMMAND_EXPORT_SUCCESS);
-                break;
-            case DUMP_FILE_OPEN_ERROR:
-                handler->PSendSysMessage(LANG_FILE_OPEN_FAIL, fileStr);
-                handler->SetSentErrorMessage(true);
-                return false;
-            case DUMP_CHARACTER_DELETED:
-                handler->PSendSysMessage(LANG_COMMAND_EXPORT_DELETED_CHAR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            default:
-                handler->PSendSysMessage(LANG_COMMAND_EXPORT_FAILED);
-                handler->SetSentErrorMessage(true);
-                return false;
+        case DUMP_SUCCESS:
+            handler->PSendSysMessage(LANG_COMMAND_EXPORT_SUCCESS);
+            break;
+        case DUMP_FILE_OPEN_ERROR:
+            handler->PSendSysMessage(LANG_FILE_OPEN_FAIL, fileStr);
+            handler->SetSentErrorMessage(true);
+            return false;
+        case DUMP_CHARACTER_DELETED:
+            handler->PSendSysMessage(LANG_COMMAND_EXPORT_DELETED_CHAR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        default:
+            handler->PSendSysMessage(LANG_COMMAND_EXPORT_FAILED);
+            handler->SetSentErrorMessage(true);
+            return false;
         }
 
         return true;
+    }
+
+    static bool HandleCharacterSetRaceCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+        {
+            handler->PSendSysMessage(LANG_BAD_SET_RACE_COMMAND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        const char* race = strtok((char*)args, " ");
+        const char* sexe = strtok(NULL, " ");
+        uint8 IdRace = 0;
+        uint8 len = 0;
+        std::string raceStr = "";
+        std::string sexeStr = "";
+        Gender gender;
+
+        if (!race || !sexe)
+        {
+            handler->PSendSysMessage(LANG_BAD_SET_RACE_COMMAND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        raceStr = race;
+        sexeStr = sexe;
+
+        len = strlen(raceStr.c_str());
+
+        for (uint8 i = 0; i < len; ++i)
+        {
+            raceStr[i] = tolower(raceStr[i]);
+        }
+
+        len = strlen(sexeStr.c_str());
+
+        for (uint8 i = 0; i < len; ++i)
+        {
+            sexeStr[i] = tolower(sexeStr[i]);
+        }
+
+#pragma region RaceID
+        if (raceStr.compare("humain") == 0)
+            IdRace = RACE_HUMAN;
+        else if (raceStr.compare("orc") == 0)
+            IdRace = RACE_ORC;
+        else if (raceStr.compare("nain") == 0)
+            IdRace = RACE_DWARF;
+        else if (raceStr.compare("edn") == 0)
+            IdRace = RACE_NIGHTELF;
+        else if (raceStr.compare("undead") == 0)
+            IdRace = RACE_UNDEAD_PLAYER;
+        else if (raceStr.compare("tauren") == 0)
+            IdRace = RACE_TAUREN;
+        else if (raceStr.compare("gnome") == 0)
+            IdRace = RACE_GNOME;
+        else if (raceStr.compare("troll") == 0)
+            IdRace = RACE_TROLL;
+        else if (raceStr.compare("goblin") == 0)
+            IdRace = RACE_GOBLIN;
+        else if (raceStr.compare("eds") == 0)
+            IdRace = RACE_BLOODELF;
+        else if (raceStr.compare("draenei") == 0)
+            IdRace = RACE_DRAENEI;
+        else if (raceStr.compare("naga") == 0)
+            IdRace = RACE_NAGA;
+        else if (raceStr.compare("broken") == 0)
+            IdRace = RACE_BROKEN;
+        else if (raceStr.compare("squelette") == 0)
+            IdRace = RACE_SKELETON;
+        else if (raceStr.compare("vrykul") == 0)
+            IdRace = RACE_VRYKUL;
+        else if (raceStr.compare("rohart") == 0)
+            IdRace = RACE_TUSKARR;
+        else if (raceStr.compare("foresttroll") == 0)
+            IdRace = RACE_FOREST_TROLL;
+        else if (raceStr.compare("taunka") == 0)
+            IdRace = RACE_TAUNKA;
+        else if (raceStr.compare("northskeleton") == 0)
+            IdRace = RACE_NORTHREND_SKELETON;
+        else if (raceStr.compare("icetroll") == 0)
+            IdRace = RACE_ICE_TROLL;
+        else if (raceStr.compare("worgen") == 0)
+            IdRace = RACE_WORGEN;
+        else if (raceStr.compare("pandaren") == 0)
+            if (handler->GetSession()->GetPlayer()->getFaction() == 1)
+                IdRace = RACE_PANDAREN_ALLIANCE;
+            else if (handler->GetSession()->GetPlayer()->getFaction() == 1)
+                IdRace = RACE_PANDAREN_HORDE;
+            else
+                IdRace = RACE_PANDAREN_ALLIANCE;
+        else if (raceStr.compare("sacrenuit") == 0)
+            IdRace = RACE_NIGHTBORNE;
+        else if (raceStr.compare("hmtauren") == 0)
+            IdRace = RACE_HIGHMOUNTAIN_TAUREN;
+        else if (raceStr.compare("voidelf") == 0)
+            IdRace = RACE_VOID_ELF;
+        else if (raceStr.compare("lfdraenei") == 0)
+            IdRace = RACE_LIGHTFORGED_DRAENEI;
+        else if (raceStr.compare("zandalari") == 0)
+            IdRace = RACE_ZANDALARI_TROLL;
+        else if (raceStr.compare("kultiran") == 0)
+            IdRace = RACE_KUL_TIRAN;
+        else if (raceStr.compare("maigre") == 0)
+            IdRace = RACE_THIN_HUMAN;
+        else if (raceStr.compare("sombrefer") == 0)
+            IdRace = RACE_DARK_IRON_DWARF;
+        else if (raceStr.compare("vulpera") == 0)
+            IdRace = RACE_VULPERA;
+        else if (raceStr.compare("maghar") == 0)
+            IdRace = RACE_MAGHAR_ORC;
+        else
+        {
+            handler->PSendSysMessage(LANG_BAD_RACE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+#pragma endregion
+
+        if (sexeStr.compare("male") == 0)
+            gender = GENDER_MALE;
+        else if (sexeStr.compare("femelle") == 0)
+            gender = GENDER_FEMALE;
+        else if (sexeStr.compare("male") != 0 && sexeStr.compare("femelle") != 0)
+        {
+            handler->PSendSysMessage(LANG_BAD_RACE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (IdRace == RACE_TAUNKA || IdRace == RACE_FEL_ORC ||
+            IdRace == RACE_ICE_TROLL || IdRace == RACE_TUSKARR ||
+            IdRace == RACE_VRYKUL || IdRace == RACE_FOREST_TROLL ||
+            IdRace == RACE_SKELETON || IdRace == RACE_NORTHREND_SKELETON ||
+            IdRace == RACE_BROKEN || IdRace == RACE_THIN_HUMAN)
+        {
+            gender = GENDER_MALE;
+        }
+
+        Player* player = handler->GetSession()->GetPlayer();
+        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, IdRace);
+        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, gender);
+        player->SetByteValue(PLAYER_BYTES_3, PLAYER_BYTES_3_OFFSET_GENDER, gender);
+        if (IdRace == RACE_VULPERA)
+        {
+            player->setFaction(2);
+        }
+        else
+        {
+            player->setFaction(1);
+        }
+        player->SaveToDB();
+
+        if (WorldSession* session = player->GetSession())
+            session->KickPlayer();
+
+        sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), gender, IdRace);
+
+        return true;
+
     }
 };
 

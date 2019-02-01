@@ -1984,6 +1984,7 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
                     stmt->setUInt16(1, 791);
                     break;
                 case RACE_UNDEAD_PLAYER:
+                case RACE_THIN_HUMAN:
                     stmt->setUInt16(1, 673);
                     break;
                 case RACE_TAUREN:
@@ -1991,6 +1992,7 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
                     stmt->setUInt16(1, 115);
                     break;
                 case RACE_TROLL:
+                case RACE_ZANDALARI_TROLL:
                     stmt->setUInt16(1, 315);
                     break;
                 case RACE_BLOODELF:
@@ -1998,6 +2000,7 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
                     stmt->setUInt16(1, 137);
                     break;
                 case RACE_GOBLIN:
+                case RACE_VULPERA:
                     stmt->setUInt16(1, 792);
                     break;
                 case RACE_NIGHTBORNE:
