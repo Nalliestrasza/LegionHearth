@@ -1182,15 +1182,15 @@ public:
             IdRace = RACE_NORTHREND_SKELETON;
         else if (raceStr.compare("icetroll") == 0)
             IdRace = RACE_ICE_TROLL;
-        else if (raceStr.compare("worgen") == 0)
-            IdRace = RACE_WORGEN;
-        else if (raceStr.compare("pandaren") == 0)
-            if (handler->GetSession()->GetPlayer()->getFaction() == 1)
-                IdRace = RACE_PANDAREN_ALLIANCE;
-            else if (handler->GetSession()->GetPlayer()->getFaction() == 1)
-                IdRace = RACE_PANDAREN_HORDE;
-            else
-                IdRace = RACE_PANDAREN_ALLIANCE;
+        //else if (raceStr.compare("worgen") == 0)
+        //    IdRace = RACE_WORGEN;
+        //else if (raceStr.compare("pandaren") == 0)
+        //    if (handler->GetSession()->GetPlayer()->getFaction() == 1)
+        //        IdRace = RACE_PANDAREN_ALLIANCE;
+        //    else if (handler->GetSession()->GetPlayer()->getFaction() == 1)
+        //        IdRace = RACE_PANDAREN_HORDE;
+        //    else
+        //        IdRace = RACE_PANDAREN_ALLIANCE;
         else if (raceStr.compare("sacrenuit") == 0)
             IdRace = RACE_NIGHTBORNE;
         else if (raceStr.compare("hmtauren") == 0)
