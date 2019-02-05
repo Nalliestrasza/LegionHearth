@@ -1187,7 +1187,7 @@ public:
         else if (raceStr.compare("pandaren") == 0)
             if (handler->GetSession()->GetPlayer()->getFaction() == 1)
                 IdRace = RACE_PANDAREN_ALLIANCE;
-            else if (handler->GetSession()->GetPlayer()->getFaction() == 1)
+            else if (handler->GetSession()->GetPlayer()->getFaction() == 2)
                 IdRace = RACE_PANDAREN_HORDE;
             else
                 IdRace = RACE_PANDAREN_ALLIANCE;
@@ -1243,14 +1243,51 @@ public:
         player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, IdRace);
         player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, gender);
         player->SetByteValue(PLAYER_BYTES_3, PLAYER_BYTES_3_OFFSET_GENDER, gender);
-        if (IdRace == RACE_VULPERA)
+
+        switch (IdRace)
         {
-            player->setFaction(2);
+            case RACE_ORC:
+                player->setFaction(2);
+            case RACE_UNDEAD_PLAYER:
+                player->setFaction(2);
+            case RACE_TAUREN:
+                player->setFaction(2);
+            case RACE_TROLL:
+                player->setFaction(2);
+            case RACE_GOBLIN:
+                player->setFaction(2);
+            case RACE_BLOODELF:
+                player->setFaction(2);
+            case RACE_NAGA:
+                player->setFaction(2);
+            case RACE_SKELETON:
+                player->setFaction(2);
+            case RACE_VRYKUL:
+                player->setFaction(2);
+            case RACE_FOREST_TROLL:
+                player->setFaction(2);
+            case RACE_TAUNKA:
+                player->setFaction(2);
+            case RACE_NORTHREND_SKELETON:
+                player->setFaction(2);
+            case RACE_ICE_TROLL:
+                player->setFaction(2);
+            case RACE_PANDAREN_HORDE:
+                player->setFaction(2);
+            case RACE_HIGHMOUNTAIN_TAUREN:
+                player->setFaction(2);
+            case RACE_NIGHTBORNE:
+                player->setFaction(2);
+            case RACE_ZANDALARI_TROLL:
+                player->setFaction(2);
+            case RACE_VULPERA:
+                player->setFaction(2);
+            case RACE_MAGHAR_ORC:
+                player->setFaction(2);
+            default:
+                player->setFaction(1);
         }
-        else
-        {
-            player->setFaction(1);
-        }
+
         player->SaveToDB();
 
         if (WorldSession* session = player->GetSession())
