@@ -1586,91 +1586,47 @@ public:
         {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
 
-
-            if (checksql)
-            {
-                Field* field = checksql->Fetch();
-                uint32 accId = field[0].GetUInt32();
-
-                if (accId == handler->GetSession()->GetAccountId())
-                {
-                    Creature* creature = handler->getSelectedCreature();
-                    if (!creature)
-                    {
-                        handler->SendSysMessage(LANG_SELECT_CREATURE);
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-
-                    if (creature->IsPet())
-                    {
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-
-                    float scale = (float)atof((char*)args);
-
-                    if (scale <= 0.0f)
-                    {
-                        scale = creature->GetCreatureTemplate()->scale;
-                        const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
-                    }
-                    else
-                    {
-                        const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
-                    }
-
-                    creature->SetObjectScale(scale);
-                    if (!creature->IsPet())
-                        creature->SaveToDB();
-                    return true;
-                }
-                else
-                {
-                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                }
-            }
-            else
+            if (!checksql)
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            }
+                handler->SetSentErrorMessage(true);
+                return false;
+            }           
+        }
 
-            
+        Creature* creature = handler->getSelectedCreature();
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (creature->IsPet())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (!creature->GetSpawnId())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        float scale = (float)atof((char*)args);
+        if (scale <= 0.0f)
+        {
+            scale = creature->GetCreatureTemplate()->scale;
+            const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
         }
         else
-        {
-            Creature* creature = handler->getSelectedCreature();
-            if (!creature)
-            {
-                handler->SendSysMessage(LANG_SELECT_CREATURE);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
+            const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
 
-            if (creature->IsPet())
-            {
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-
-            float scale = (float)atof((char*)args);
-
-            if (scale <= 0.0f)
-            {
-                scale = creature->GetCreatureTemplate()->scale;
-                const_cast<CreatureData*>(creature->GetCreatureData())->size = -1.0f;
-            }
-            else
-            {
-                const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
-            }
-
-            creature->SetObjectScale(scale);
-            if (!creature->IsPet())
-                creature->SaveToDB();
-            return true;
-        }
-
+        creature->SetObjectScale(scale);
+        if (!creature->IsPet())
+            creature->SaveToDB();
+        return true;
     
     }
 
