@@ -161,6 +161,10 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_CHAR_BASE_SECTION, "SELECT ID, LayoutResType, VariationEnum, ResolutionVariationEnum FROM char_base_section"
         " ORDER BY ID DESC", CONNECTION_SYNCH);
 
+    // CharHairGeosets.db2
+    PrepareStatement(HOTFIX_SEL_CHAR_HAIR_GEOSETS, "SELECT ID,RaceID,SexID,VariationID,GeosetID,Showscalp,VariationType,GeosetType,ColorIndex, "
+        "CustomGeoFileDataID,HdCustomGeoFileDataID FROM char_hair_geosets ORDER BY ID DESC", CONNECTION_SYNCH);
+
     // CharSections.db2
     PrepareStatement(HOTFIX_SEL_CHAR_SECTIONS, "SELECT ID, RaceID, SexID, BaseSection, VariationIndex, ColorIndex, Flags, MaterialResourcesID1, "
         "MaterialResourcesID2, MaterialResourcesID3 FROM char_sections ORDER BY ID DESC", CONNECTION_SYNCH);

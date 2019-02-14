@@ -664,6 +664,29 @@ struct CharBaseSectionLoadInfo
     }
 };
 
+struct CharHairGeosetsLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_BYTE, "RaceID" },
+            { false, FT_BYTE, "SexID" },
+            { true, FT_BYTE, "VariationID" },
+            { false, FT_BYTE, "GeosetID" },
+            { false, FT_BYTE, "Showscalp" },
+            { true, FT_BYTE, "VariationType" },
+            { true, FT_BYTE, "GeosetType" },
+            { true, FT_BYTE, "ColorIndex" },
+            { true, FT_INT, "CustomGeoFileDataID" },
+            { true, FT_INT, "HdCustomGeoFileDataID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, CharHairGeosetsMeta::Instance(), HOTFIX_SEL_CHAR_HAIR_GEOSETS);
+        return &loadInfo;
+    }
+};
+
 struct CharSectionsLoadInfo
 {
     static DB2LoadInfo const* Instance()

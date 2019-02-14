@@ -1624,8 +1624,7 @@ public:
             const_cast<CreatureData*>(creature->GetCreatureData())->size = scale;
 
         creature->SetObjectScale(scale);
-        if (!creature->IsPet())
-            creature->SaveToDB();
+        creature->SaveToDB();
         return true;
     
     }

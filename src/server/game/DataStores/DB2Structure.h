@@ -387,6 +387,21 @@ struct CharBaseSectionEntry
     uint8 ResolutionVariationEnum;
 };
 
+struct CharHairGeosetsEntry
+{
+    uint32 ID;
+    uint8 RaceID;
+    uint8 SexID;
+    int8 VariationID;
+    uint8 GeosetID;
+    uint8 Showscalp;
+    int8 VariationType;
+    int8 GeosetType;
+    int8 ColorIndex;
+    int32 CustomGeoFileDataID;
+    int32 HdCustomGeoFileDataID;
+};
+
 struct CharSectionsEntry
 {
     uint32 ID;
