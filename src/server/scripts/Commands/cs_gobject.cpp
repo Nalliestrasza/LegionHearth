@@ -927,18 +927,13 @@ public:
 
     static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, char const* args)
     {
-        if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
         {
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
+            handler->SetSentErrorMessage(true);
+            return false;
         }
-
+            
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)

@@ -28352,3 +28352,18 @@ uint8 Player::GetItemLimitCategoryQuantity(ItemLimitCategoryEntry const* limitEn
 
     return limit;
 }
+
+bool Player::IsPhaseOwner()
+{
+    if (GetMapId() >= MAP_CUSTOM_PHASE)
+    {
+        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", GetMapId(), GetSession()->GetAccountId());
+
+        if (!checksql)
+        {
+            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
+    }
+    return true;
+}

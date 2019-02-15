@@ -2262,6 +2262,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         /*********************************************************/
         bool m_isRegen = true;
         void CustomSetRegen(bool new_isRegen) { m_isRegen = new_isRegen; }
+        bool IsPhaseOwner();
         /*==============*/
 
 
