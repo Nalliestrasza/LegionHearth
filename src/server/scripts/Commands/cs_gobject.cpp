@@ -927,155 +927,75 @@ public:
 
     static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, char const* args)
     {
-		if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
-		{
+        if (handler->GetSession()->GetPlayer()->GetMapId() >= 5000)
+        {
             QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-		
 
-            if (checksql)
-            {
-                Field* field = checksql->Fetch();
-                uint32 accId = field[0].GetUInt32();
-
-                if (accId == handler->GetSession()->GetAccountId())
-                {
-                    // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
-                    char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
-                    if (!id)
-                        return false;
-
-                    ObjectGuid::LowType guidLow = atoull(id);
-                    if (!guidLow)
-                        return false;
-
-                    GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
-                    if (!object)
-                    {
-                        handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-
-                    char* scale_temp = strtok(NULL, " ");
-                    if (!scale_temp)
-                    {
-                        handler->SendSysMessage(LANG_BAD_VALUE);
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-
-                    float scale = atof(scale_temp);
-
-                    if (scale <= 0.0f)
-                    {
-                        scale = object->GetGOInfo()->size;
-                        const_cast<GameObjectData*>(object->GetGOData())->size = -1.0f;
-                    }
-                    else
-                    {
-                        const_cast<GameObjectData*>(object->GetGOData())->size = scale;
-                    }
-
-                    object->SetObjectScale(scale);
-                    object->DestroyForNearbyPlayers();
-                    object->UpdateObjectVisibility();
-                    object->SaveToDB();
-
-
-
-                    //Geoffrey, the son of a bitch.
-                    Player* _caller = handler->GetSession()->GetPlayer();
-                    Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
-                    for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
-                        if (Player* _player = itr->GetSource())
-                        {
-                            // fix and fdp de meunier
-                            if (_player->GetDistance2d(object) < (1600 / 3) && !_player->GetVehicle())
-                            {
-                                _player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
-                            }
-                        }
-
-
-                    handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
-                    return true;
-                }
-                else
-                {
-                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                }
-            }
-            else
+            if (!checksql)
             {
                 handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
             }
+        }
 
-			
-		}
-		else
-		{
-			// number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
-			char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
-			if (!id)
-				return false;
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
+        if (!id)
+            return false;
 
-			ObjectGuid::LowType guidLow = atoull(id);
-			if (!guidLow)
-				return false;
+        ObjectGuid::LowType guidLow = atoull(id);
+        if (!guidLow)
+            return false;
 
-			GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
-			if (!object)
-			{
-				handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
-				handler->SetSentErrorMessage(true);
-				return false;
-			}
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-			char* scale_temp = strtok(NULL, " ");
-			if (!scale_temp)
-			{
-				handler->SendSysMessage(LANG_BAD_VALUE);
-				handler->SetSentErrorMessage(true);
-				return false;
-			}
+        char* scale_temp = strtok(NULL, " ");
+        if (!scale_temp)
+        {
+            handler->SendSysMessage(LANG_BAD_VALUE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-			float scale = atof(scale_temp);
+        float scale = atof(scale_temp);
 
-			if (scale <= 0.0f)
-			{
-				scale = object->GetGOInfo()->size;
-				const_cast<GameObjectData*>(object->GetGOData())->size = -1.0f;
-			}
-			else
-			{
-				const_cast<GameObjectData*>(object->GetGOData())->size = scale;
-			}
-
-			object->SetObjectScale(scale);
-			object->DestroyForNearbyPlayers();
-			object->UpdateObjectVisibility();
-			object->SaveToDB();
+        if (scale <= 0.0f)
+        {
+            scale = object->GetGOInfo()->size;
+            const_cast<GameObjectData*>(object->GetGOData())->size = -1.0f;
+        }
+        else
+        {
+            const_cast<GameObjectData*>(object->GetGOData())->size = scale;
+        }
 
 
+        Map* map = object->GetMap();
 
-			//Geoffrey, the son of a bitch.
-			Player* _caller = handler->GetSession()->GetPlayer();
-			Map::PlayerList const& PlayerList = _caller->GetMap()->GetPlayers();
-			for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
-				if (Player* _player = itr->GetSource())
-				{
-					// fix and fdp de meunier
-					if (_player->GetDistance2d(object) < (1600 / 3) && !_player->GetVehicle())
-					{
-						_player->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetOrientation());
-					}
-				}
+        object->SetObjectScale(scale);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB();
 
+        // Generate a completely new spawn with new guid
+        // 3.3.5a client caches recently deleted objects and brings them back to life
+        // when CreateObject block for this guid is received again
+        // however it entirely skips parsing that block and only uses already known location
+        object->Delete();
 
-			handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
-			return true;
-		}
-        
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+        if (!object)
+            return false;
+
+        handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
+        return true;
+
     }
 
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)
