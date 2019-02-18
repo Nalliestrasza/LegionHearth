@@ -4232,7 +4232,7 @@ void Spell::EffectCharge(SpellEffIndex /*effIndex*/)
         return;
 
     // CRASH FIX FACTION TEMP FIX
-    if (m_caster->IsFriendlyTo(unitTarget) || unitTarget->IsFriendlyTo(m_caster))
+    if (!(m_caster)->IsValidAttackTarget(unitTarget))
         return;
 
     if (effectHandleMode == SPELL_EFFECT_HANDLE_LAUNCH_TARGET)
