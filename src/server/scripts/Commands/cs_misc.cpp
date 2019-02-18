@@ -4605,117 +4605,66 @@ public:
         if (!*args)
             return false;
 
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         char const* pId = strtok((char*)args, " ");
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
         uint32 mapCache = player->GetMapId();
 
-        if (map >= 5000)
+        if (player->GetMapId() >= 5000)
         {
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", map, handler->GetSession()->GetAccountId());
+            QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
+            Field* mapfields = mapresult->Fetch();
+            map = mapfields[0].GetUInt16();
+        }
 
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
+        QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
+        if (!results)
+        {
+            handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
+            return false;
+        }
+        
+        Field* fields = results->Fetch();
 
-    
-            }
-                
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
+        uint32 replaceID = uint32(atoi(pId));
+        uint32 lightId = fields[0].GetUInt32();
 
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-
-                QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
-                Field* mapfields = mapresult->Fetch();
-                map = mapfields[0].GetUInt16();
-
-                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-                if (!results)
-                {
-                    handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
-                    return false;
-                }
-
-                Field* fields = results->Fetch();
-
-                uint32 replaceID = uint32(atoi(pId));
-                uint32 lightId = fields[0].GetUInt32();
-
-                QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                if (!checkSaved)
-                {
-                    //Permamorph !
-                    PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
-                    getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                    getSkybox->setUInt32(1, replaceID);
-                    WorldDatabase.Execute(getSkybox);
-
-                }
-                else
-                {
-                    PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
-                    updSkybox->setUInt32(0, replaceID);
-                    updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                    WorldDatabase.Execute(updSkybox);
-                }
-
-                sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
-            }
-            else
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-            }
+        QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+        if (!checkSaved)
+        {
+            //Permamorph !
+            PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
+            getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+            getSkybox->setUInt32(1, replaceID);
+            WorldDatabase.Execute(getSkybox);
 
         }
         else
         {
-            QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", player->GetMapId());
-            if (!results)
-            {
-                handler->PSendSysMessage(LANG_PHASE_SKYBOX_ERROR);
-                return false;
-            }
+            PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
+            updSkybox->setUInt32(0, replaceID);
+            updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+            WorldDatabase.Execute(updSkybox);
+        }
 
-            Field* fields = results->Fetch();
-
-            uint32 replaceID = uint32(atoi(pId));
-            uint32 lightId = fields[0].GetUInt32();
-
+        if (player->GetMapId() >= 5000)
+            sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
+        else
+        {
             WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
             data << lightId;
             data << replaceID;
             data << 200;
-
-            QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-            if (!checkSaved)
-            {
-                //Permamorph !
-                PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
-                getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                getSkybox->setUInt32(1, replaceID);
-                WorldDatabase.Execute(getSkybox);
-
-            }
-            else
-            {
-                PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
-                updSkybox->setUInt32(0, replaceID);
-                updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-                WorldDatabase.Execute(updSkybox);
-            }
-
             handler->GetSession()->SendPacket(&data, true);
-
-
         }
-
-    
-
-
+        
 
         return true;
     }
