@@ -1320,5 +1320,9 @@ enum TrinityStrings
     LANG_BAD_RACE                                 = 90049,
     LANG_BAD_SET_RACE_COMMAND                     = 90050,
 
+    // CHAR SET RACE
+    LANG_BAD_CLASS                                = 90051,
+    LANG_BAD_SET_CLASS_COMMAND                    = 90052,
+
 };
 #endif

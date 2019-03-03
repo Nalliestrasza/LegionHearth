@@ -55,6 +55,7 @@ public:
             { "restore",       rbac::RBAC_PERM_COMMAND_CHARACTER_DELETED_RESTORE, true,  &HandleCharacterDeletedRestoreCommand, "" },
             { "old",           rbac::RBAC_PERM_COMMAND_CHARACTER_DELETED_OLD,     true,  &HandleCharacterDeletedOldCommand,     "" },
             { "race",          rbac::RBAC_PERM_COMMAND_CHARACTER_CUSTOMIZE,       true,  &HandleCharacterSetRaceCommand,        "" },
+            { "classe",        rbac::RBAC_PERM_COMMAND_CHARACTER_CUSTOMIZE,       true,  &HandleCharacterSetClassCommand,       "" },
         };
 
         static std::vector<ChatCommand> characterCommandTable =
@@ -1294,6 +1295,84 @@ public:
             session->KickPlayer();
 
         sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), gender, IdRace);
+
+        return true;
+
+    }
+
+    static bool HandleCharacterSetClassCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+        {
+            handler->PSendSysMessage(LANG_BAD_SET_CLASS_COMMAND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        const char* classid = strtok((char*)args, " ");
+        uint8 IdClass = 0;
+        uint8 len = 0;
+        std::string classStr = "";
+
+        if (!classid)
+        {
+            handler->PSendSysMessage(LANG_BAD_SET_CLASS_COMMAND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        classStr = classid;
+
+        len = strlen(classStr.c_str());
+
+        for (uint8 i = 0; i < len; ++i)
+        {
+            classStr[i] = tolower(classStr[i]);
+        }
+
+#pragma region ClassID
+        if (classStr.compare("guerrier") == 0)
+            IdClass = CLASS_WARRIOR;
+        else if (classStr.compare("paladin") == 0)
+            IdClass = CLASS_PALADIN;
+        else if (classStr.compare("chasseur") == 0)
+            IdClass = CLASS_HUNTER;
+        else if (classStr.compare("voleur") == 0)
+            IdClass = CLASS_ROGUE;
+        else if (classStr.compare("pretre") == 0)
+            IdClass = CLASS_PRIEST;
+        else if (classStr.compare("dk") == 0)
+            IdClass = CLASS_DEATH_KNIGHT;
+        else if (classStr.compare("chaman") == 0)
+            IdClass = CLASS_SHAMAN;
+        else if (classStr.compare("mage") == 0)
+            IdClass = CLASS_MAGE;
+        else if (classStr.compare("demoniste") == 0)
+            IdClass = CLASS_WARLOCK;
+        else if (classStr.compare("moine") == 0)
+            IdClass = CLASS_MONK;
+        else if (classStr.compare("druide") == 0)
+            IdClass = CLASS_DRUID;
+        else if (classStr.compare("dh") == 0)
+            IdClass = CLASS_DEMON_HUNTER;
+        else
+        {
+            handler->PSendSysMessage(LANG_BAD_CLASS);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+#pragma endregion
+
+        Player* player = handler->GetSession()->GetPlayer();
+        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, IdClass);
+        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_PLAYER_CLASS, IdClass);
+
+        player->SaveToDB();
+
+        if (WorldSession* session = player->GetSession())
+            session->KickPlayer();
+
+        sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), player->getGender(), player->getRace());
 
         return true;
 
