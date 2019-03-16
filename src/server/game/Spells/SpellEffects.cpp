@@ -4231,7 +4231,6 @@ void Spell::EffectCharge(SpellEffIndex /*effIndex*/)
     if (!unitTarget)
         return;
 
-    // CRASH FIX FACTION TEMP FIX
     if (!(m_caster)->IsValidAttackTarget(unitTarget))
         return;
 
