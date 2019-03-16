@@ -2028,8 +2028,8 @@ struct MapDifficultyEntry
 struct ModelFileDataEntry
 {
     uint32 ID;
-    int8 unk0;
-    int8 unk1;
+    uint8 unk0;
+    uint8 unk1;
     uint32 ModelID;
 };
 
@@ -3039,8 +3039,8 @@ struct TaxiPathNodeEntry
 struct TextureFileDataEntry
 {
     uint32 ID;
-    int8 UsageType;
-    uint32 TextureID;
+    uint8 UsageType;
+    int32 TextureID;
 };
 
 struct TotemCategoryEntry
