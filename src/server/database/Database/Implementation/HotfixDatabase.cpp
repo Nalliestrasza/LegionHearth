@@ -519,6 +519,15 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_ITEM_DISENCHANT_LOOT, "SELECT ID, Subclass, Quality, MinLevel, MaxLevel, SkillRequired, ExpansionID, Class"
         " FROM item_disenchant_loot ORDER BY ID DESC", CONNECTION_SYNCH);
 
+    // ItemDisplayInfo.db2
+    PrepareStatement(HOTFIX_SEL_ITEM_DISPLAY_INFO, "SELECT ID,ModelType1,ItemVisual,ParticleColorID,ItemRangedDisplayInfoID, "
+		"OverrideSwooshSoundKitID,SheatheTransformMatrixID,StateSpellVisualKitID,SheathedSpellVisualKitID,UnsheathedSpellVisualKitID, "
+		"Flags,ModelResourcesID1,ModelResourcesID2,ModelMaterialResourcesID1,ModelMaterialResourcesID2, "
+		"GeosetGroup1,GeosetGroup2,GeosetGroup3,GeosetGroup4,GeosetGroup5,GeosetGroup6, "
+		"AttachmentGeosetGroup1,AttachmentGeosetGroup2,AttachmentGeosetGroup3,AttachmentGeosetGroup4,AttachmentGeosetGroup5,AttachmentGeosetGroup6, "
+		"HelmetGeosetVis1,HelmetGeosetVis2 "
+        "FROM item_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
+
     // ItemEffect.db2
     PrepareStatement(HOTFIX_SEL_ITEM_EFFECT, "SELECT ID, LegacySlotIndex, TriggerType, Charges, CoolDownMSec, CategoryCoolDownMSec, SpellCategoryID, "
         "SpellID, ChrSpecializationID, ParentItemID FROM item_effect ORDER BY ID DESC", CONNECTION_SYNCH);
@@ -655,6 +664,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_MAP_DIFFICULTY, "SELECT ID, Message, ItemContextPickerID, ContentTuningID, DifficultyID, LockID, ResetInterval, "
         "MaxPlayers, ItemContext, Flags, MapID FROM map_difficulty ORDER BY ID DESC", CONNECTION_SYNCH);
     PREPARE_LOCALE_STMT(HOTFIX_SEL_MAP_DIFFICULTY, "SELECT ID, Message_lang FROM map_difficulty_locale WHERE locale = ?", CONNECTION_SYNCH);
+
+    // ModelFileData.db2
+    PrepareStatement(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT ID, unk0, unk1, ModelID FROM model_file_data ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // ModifierTree.db2
     PrepareStatement(HOTFIX_SEL_MODIFIER_TREE, "SELECT ID, Parent, Operator, Amount, Type, Asset, SecondaryAsset, TertiaryAsset FROM modifier_tree"
@@ -1015,6 +1027,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // TaxiPathNode.db2
     PrepareStatement(HOTFIX_SEL_TAXI_PATH_NODE, "SELECT LocX, LocY, LocZ, ID, PathID, NodeIndex, ContinentID, Flags, Delay, ArrivalEventID, "
         "DepartureEventID FROM taxi_path_node ORDER BY ID DESC", CONNECTION_SYNCH);
+
+    // TextureFileData.db2
+    PrepareStatement(HOTFIX_SEL_TEXTURE_FILE_DATA, "SELECT ID, UsageType, TextureID FROM texture_file_data ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // TotemCategory.db2
     PrepareStatement(HOTFIX_SEL_TOTEM_CATEGORY, "SELECT ID, Name, TotemCategoryType, TotemCategoryMask FROM totem_category ORDER BY ID DESC", CONNECTION_SYNCH);

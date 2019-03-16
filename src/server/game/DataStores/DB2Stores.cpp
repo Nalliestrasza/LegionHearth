@@ -150,6 +150,7 @@ DB2Storage<ItemDamageOneHandCasterEntry>        sItemDamageOneHandCasterStore("I
 DB2Storage<ItemDamageTwoHandEntry>              sItemDamageTwoHandStore("ItemDamageTwoHand.db2", ItemDamageTwoHandLoadInfo::Instance());
 DB2Storage<ItemDamageTwoHandCasterEntry>        sItemDamageTwoHandCasterStore("ItemDamageTwoHandCaster.db2", ItemDamageTwoHandCasterLoadInfo::Instance());
 DB2Storage<ItemDisenchantLootEntry>             sItemDisenchantLootStore("ItemDisenchantLoot.db2", ItemDisenchantLootLoadInfo::Instance());
+DB2Storage<ItemDisplayInfoEntry>                sItemDisplayInfoStore("ItemDisplayInfo.db2", ItemDisplayInfoLoadInfo::Instance());
 DB2Storage<ItemEffectEntry>                     sItemEffectStore("ItemEffect.db2", ItemEffectLoadInfo::Instance());
 DB2Storage<ItemEntry>                           sItemStore("Item.db2", ItemLoadInfo::Instance());
 DB2Storage<ItemExtendedCostEntry>               sItemExtendedCostStore("ItemExtendedCost.db2", ItemExtendedCostLoadInfo::Instance());
@@ -178,6 +179,7 @@ DB2Storage<LockEntry>                           sLockStore("Lock.db2", LockLoadI
 DB2Storage<MailTemplateEntry>                   sMailTemplateStore("MailTemplate.db2", MailTemplateLoadInfo::Instance());
 DB2Storage<MapEntry>                            sMapStore("Map.db2", MapLoadInfo::Instance());
 DB2Storage<MapDifficultyEntry>                  sMapDifficultyStore("MapDifficulty.db2", MapDifficultyLoadInfo::Instance());
+DB2Storage<ModelFileDataEntry>                  sModelFileDataStore("ModelFileData.db2", ModelFileDataLoadInfo::Instance());
 DB2Storage<ModifierTreeEntry>                   sModifierTreeStore("ModifierTree.db2", ModifierTreeLoadInfo::Instance());
 DB2Storage<MountCapabilityEntry>                sMountCapabilityStore("MountCapability.db2", MountCapabilityLoadInfo::Instance());
 DB2Storage<MountEntry>                          sMountStore("Mount.db2", MountLoadInfo::Instance());
@@ -264,6 +266,7 @@ DB2Storage<TalentEntry>                         sTalentStore("Talent.db2", Talen
 DB2Storage<TaxiNodesEntry>                      sTaxiNodesStore("TaxiNodes.db2", TaxiNodesLoadInfo::Instance());
 DB2Storage<TaxiPathEntry>                       sTaxiPathStore("TaxiPath.db2", TaxiPathLoadInfo::Instance());
 DB2Storage<TaxiPathNodeEntry>                   sTaxiPathNodeStore("TaxiPathNode.db2", TaxiPathNodeLoadInfo::Instance());
+DB2Storage<TextureFileDataEntry>                sTextureFileDataStore("TextureFileData.db2", TextureFileDataLoadInfo::Instance());
 DB2Storage<TotemCategoryEntry>                  sTotemCategoryStore("TotemCategory.db2", TotemCategoryLoadInfo::Instance());
 DB2Storage<ToyEntry>                            sToyStore("Toy.db2", ToyLoadInfo::Instance());
 DB2Storage<TransmogHolidayEntry>                sTransmogHolidayStore("TransmogHoliday.db2", TransmogHolidayLoadInfo::Instance());
@@ -610,6 +613,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sItemDamageTwoHandStore);
     LOAD_DB2(sItemDamageTwoHandCasterStore);
     LOAD_DB2(sItemDisenchantLootStore);
+    LOAD_DB2(sItemDisplayInfoStore);
     LOAD_DB2(sItemEffectStore);
     LOAD_DB2(sItemStore);
     LOAD_DB2(sItemExtendedCostStore);
@@ -638,6 +642,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sMailTemplateStore);
     LOAD_DB2(sMapStore);
     LOAD_DB2(sMapDifficultyStore);
+    LOAD_DB2(sModelFileDataStore);
     LOAD_DB2(sModifierTreeStore);
     LOAD_DB2(sMountCapabilityStore);
     LOAD_DB2(sMountStore);
@@ -724,6 +729,7 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sTaxiNodesStore);
     LOAD_DB2(sTaxiPathStore);
     LOAD_DB2(sTaxiPathNodeStore);
+    LOAD_DB2(sTextureFileDataStore);
     LOAD_DB2(sTotemCategoryStore);
     LOAD_DB2(sToyStore);
     LOAD_DB2(sTransmogHolidayStore);
