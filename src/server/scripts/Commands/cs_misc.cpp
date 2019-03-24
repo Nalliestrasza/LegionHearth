@@ -248,6 +248,7 @@ public:
             { "selfunaura",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
             { "selfaura",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAuraSelfCommand,         "" }, // For Brikabrok addon
             { "addonhelper",      rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAddonHelper,             "" }, // For Brikabrok and the other
+            //{ "sendtaxi",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleSendTaxiCommand,          "" }, // send taxi
         };
         return commandTable;
     }
@@ -6791,7 +6792,8 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             return false;
     }
 
-    static bool HandleAddonHelper(ChatHandler* handler, const char* args) {
+    static bool HandleAddonHelper(ChatHandler* handler, const char* args)
+    {
         if (!*args) 
             return false;
 
@@ -6812,6 +6814,30 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
     /*
     * END OF ADDON HELPER
+    */
+
+    /*
+    static bool HandleSendTaxiCommand(ChatHandler* handler, const char* args)
+    {
+        //if (!*args)
+          //  return false;
+
+      //  uint32 uMountDisplay = atoul(args);
+        Player* target = handler->getSelectedPlayer();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        
+
+        target->GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
+        target->GetSession()->SendDoFlight(22234, 113);
+
+    }
     */
     
 };
