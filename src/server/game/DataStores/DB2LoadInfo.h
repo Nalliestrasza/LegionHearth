@@ -2475,6 +2475,47 @@ struct ItemDisenchantLootLoadInfo
     }
 };
 
+struct ItemDisplayInfoLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { true, FT_INT, "ModelType1" },
+            { true, FT_INT, "ItemVisual" },
+            { true, FT_INT, "ParticleColorID" },
+            { false, FT_INT, "ItemRangedDisplayInfoID" },
+            { false, FT_INT, "OverrideSwooshSoundKitID" },
+            { true, FT_INT, "SheatheTransformMatrixID" },
+            { true, FT_INT, "StateSpellVisualKitID" },
+            { true, FT_INT, "SheathedSpellVisualKitID" },
+            { false, FT_INT, "UnsheathedSpellVisualKitID" },
+            { true, FT_INT, "Flags" },
+            { false, FT_INT, "ModelResourcesID1" },
+            { false, FT_INT, "ModelResourcesID2" },
+            { true, FT_INT, "ModelMaterialResourcesID1" },
+            { true, FT_INT, "ModelMaterialResourcesID2" },
+            { true, FT_INT, "GeosetGroup1" },
+            { true, FT_INT, "GeosetGroup2" },
+            { true, FT_INT, "GeosetGroup3" },
+            { true, FT_INT, "GeosetGroup4" },
+            { true, FT_INT, "GeosetGroup5" },
+            { true, FT_INT, "GeosetGroup6" },
+            { true, FT_INT, "AttachmentGeosetGroup1" },
+            { true, FT_INT, "AttachmentGeosetGroup2" },
+            { true, FT_INT, "AttachmentGeosetGroup3" },
+            { true, FT_INT, "AttachmentGeosetGroup4" },
+            { true, FT_INT, "AttachmentGeosetGroup5" },
+            { true, FT_INT, "AttachmentGeosetGroup6" },
+            { true, FT_INT, "HelmetGeosetVis1" },
+            { true, FT_INT, "HelmetGeosetVis2" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, ItemDisplayInfoMeta::Instance(), HOTFIX_SEL_ITEM_DISPLAY_INFO);
+        return &loadInfo;
+    }
+};
+
 struct ItemEffectLoadInfo
 {
     static DB2LoadInfo const* Instance()
@@ -3249,6 +3290,22 @@ struct MapDifficultyLoadInfo
             { false, FT_SHORT, "MapID" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, MapDifficultyMeta::Instance(), HOTFIX_SEL_MAP_DIFFICULTY);
+        return &loadInfo;
+    }
+};
+
+struct ModelFileDataLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_BYTE, "unk0" },
+            { false, FT_BYTE, "unk1" },
+            { false, FT_INT, "ModelID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, ModelFileDataMeta::Instance(), HOTFIX_SEL_MODEL_FILE_DATA);
         return &loadInfo;
     }
 };
@@ -5132,6 +5189,21 @@ struct TaxiPathNodeLoadInfo
             { false, FT_SHORT, "DepartureEventID" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, TaxiPathNodeMeta::Instance(), HOTFIX_SEL_TAXI_PATH_NODE);
+        return &loadInfo;
+    }
+};
+
+struct TextureFileDataLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_BYTE, "UsageType" },
+            { true, FT_INT, "TextureID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, TextureFileDataMeta::Instance(), HOTFIX_SEL_TEXTURE_FILE_DATA);
         return &loadInfo;
     }
 };

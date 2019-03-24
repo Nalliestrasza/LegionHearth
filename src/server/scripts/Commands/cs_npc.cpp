@@ -320,7 +320,8 @@ public:
                 sx = xs;
             }
             else {
-                axeX = (float)atof(xs);
+                if (xs == "0") axeX = handler->GetSession()->GetPlayer()->GetPositionX();
+                else axeX = (float)atof(xs);
             }
         }
         if (ys) {
@@ -329,7 +330,8 @@ public:
                 sy = ys;
             }
             else {
-                axeY = (float)atof(ys);
+                if (ys == "0") axeY = handler->GetSession()->GetPlayer()->GetPositionY();
+                else axeY = (float)atof(ys);
             }
         }
         if (zs) {
@@ -338,7 +340,8 @@ public:
                 sz = zs;
             }
             else {
-                axeZ = (float)atof(zs);
+                if (zs == "0") axeZ = handler->GetSession()->GetPlayer()->GetPositionZ();
+                else axeZ = (float)atof(zs);
             }
         }
         if (saveIt)
@@ -2124,9 +2127,12 @@ public:
 
         float axeX = 0, axeY = 0, axeZ = 0, x = 0, y = 0, z = 0;
 
-        axeX = (float)atof(xs);
-        axeY = (float)atof(ys);
-        axeZ = (float)atof(zs);
+        if (xs == "0") axeX = chr->GetPositionX();
+        else axeX = (float)atof(xs);
+        if (ys == "0") axeY = chr->GetPositionY();
+        else axeY = (float)atof(ys);
+        if (zs == "0") axeZ = chr->GetPositionZ();
+        else axeZ = (float)atof(zs);
         uint32 spawnerAccountId = handler->GetSession()->GetAccountId();
         uint64 spawnerGuid = handler->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
@@ -2136,9 +2142,12 @@ public:
 
         TC_LOG_DEBUG("chat.log.whisper", "%s a .npc add %d", handler->GetSession()->GetPlayer()->GetName().c_str(), id);
 
-        x = chr->GetPositionX() + axeX;
-        y = chr->GetPositionY() + axeY;
-        z = chr->GetPositionZ() + axeZ;
+        if (axeX == chr->GetPositionX()) x = axeX;
+        else x = chr->GetPositionX() + axeX;
+        if (axeY == chr->GetPositionY()) y = axeY;
+        else y = chr->GetPositionY() + axeY;
+        if (axeZ == chr->GetPositionZ()) z = axeZ;
+        else z = chr->GetPositionZ() + axeZ;
         float o = chr->GetOrientation();
         Map* map = chr->GetMap();
         Position pos {x, y, z, o};

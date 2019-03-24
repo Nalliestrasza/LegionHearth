@@ -1550,6 +1550,39 @@ struct ItemDisenchantLootEntry
     uint8 Class;
 };
 
+struct ItemDisplayInfoEntry
+{
+    int32 ID;
+    int32 ModelType1;
+    int32 ItemVisual;
+    int32 ParticleColorID;
+    uint32 ItemRangedDisplayInfoID;
+    uint32 OverrideSwooshSoundKitID;
+    int32 SheatheTransformMatrixID;
+    int32 StateSpellVisualKitID;
+    int32 SheathedSpellVisualKitID;
+    uint32 UnsheathedSpellVisualKitID;
+    int32 Flags;
+    uint32 ModelResourcesID1;
+    uint32 ModelResourcesID2;
+    int32 ModelMaterialResourcesID1;
+    int32 ModelMaterialResourcesID2;
+    int32 GeosetGroup1;
+    int32 GeosetGroup2;
+    int32 GeosetGroup3;
+    int32 GeosetGroup4;
+    int32 GeosetGroup5;
+    int32 GeosetGroup6;
+    int32 AttachmentGeosetGroup1;
+    int32 AttachmentGeosetGroup2;
+    int32 AttachmentGeosetGroup3;
+    int32 AttachmentGeosetGroup4;
+    int32 AttachmentGeosetGroup5;
+    int32 AttachmentGeosetGroup6;
+    int32 HelmetGeosetVis1;
+    int32 HelmetGeosetVis2;
+};
+
 struct ItemEffectEntry
 {
     uint32 ID;
@@ -1990,6 +2023,14 @@ struct MapDifficultyEntry
             return 604800;
         return 0;
     }
+};
+
+struct ModelFileDataEntry
+{
+    uint32 ID;
+    uint8 unk0;
+    uint8 unk1;
+    uint32 ModelID;
 };
 
 struct ModifierTreeEntry
@@ -2993,6 +3034,13 @@ struct TaxiPathNodeEntry
     uint32 Delay;
     uint16 ArrivalEventID;
     uint16 DepartureEventID;
+};
+
+struct TextureFileDataEntry
+{
+    uint32 ID;
+    uint8 UsageType;
+    int32 TextureID;
 };
 
 struct TotemCategoryEntry

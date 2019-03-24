@@ -6777,6 +6777,110 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         return true;
     }
 
+    static bool brikabrokGobPosAdd(ChatHandler* handler, std::queue<std::string> q)
+    {
+        if (q.empty())
+            return false;
+
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        uint32 gobEntry;
+        float xF;
+        float yF;
+        float zF;
+        float oF;
+
+        gobEntry = atoul(q.front().c_str());
+        q.pop();
+
+        if (q.empty())
+            return false;
+        
+        xF = (float)atof(q.front().c_str());
+        q.pop();
+        
+        if (q.empty())
+            return false;
+        
+        yF = (float) atof(q.front().c_str());
+        q.pop();
+        
+        if (q.empty())
+            return false;
+        
+        zF = (float)atof(q.front().c_str());
+        q.pop();
+        
+        if (q.empty())
+            return false;
+        
+        oF = (float)atof(q.front().c_str());
+        q.pop();
+        
+
+        GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(gobEntry);
+        if (!objectInfo)
+        {
+            handler->PSendSysMessage(LANG_GAMEOBJECT_NOT_EXIST, gobEntry);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
+        {
+            // report to DB errors log as in loading case
+            TC_LOG_ERROR("sql.sql", "Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", gobEntry, objectInfo->type, objectInfo->displayId);
+            handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, gobEntry);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Player* player = handler->GetSession()->GetPlayer();
+        Map* map = player->GetMap();
+
+        GameObject* object = GameObject::CreateGameObject(objectInfo->entry, map, Position(xF, yF, zF, oF), QuaternionData::fromEulerAnglesZYX(oF, 0.0f, 0.0f), 255, GO_STATE_READY);
+
+        if (!object)
+            return false;
+
+        PhasingHandler::InheritPhaseShift(object, player);
+
+        // fill the gameobject data and save to the db
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
+        ObjectGuid::LowType spawnId = object->GetSpawnId();
+
+        // delete the old object and do a clean load from DB with a fresh new GameObject instance.
+        // this is required to avoid weird behavior and memory leaks
+        delete object;
+
+        // this will generate a new guid if the object is in an instance
+        object = GameObject::CreateGameObjectFromDB(spawnId, map);
+        if (!object)
+            return false;
+
+        /// @todo is it really necessary to add both the real and DB table guid here ?
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+
+        handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF);
+
+        // Log
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+        uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
+
+        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        gobInfo->setUInt64(0, spawnId);
+        gobInfo->setUInt32(1, spawnerAccountId);
+        gobInfo->setUInt64(2, spawnerGuid);
+        WorldDatabase.Execute(gobInfo);
+
+        return true;
+    }
+
     static bool brikabrok(ChatHandler* handler, std::queue<std::string> q) {
         if (q.empty()) {
             handler->SendSysMessage("No method called");
@@ -6788,6 +6892,8 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         if (methodCalled.compare("gobpos") == 0)
             return brikabrokGobPosInfo(handler, q);
+        else if (methodCalled.compare("gobaddxyz") == 0)
+            return brikabrokGobPosAdd(handler, q);
         else
             return false;
     }

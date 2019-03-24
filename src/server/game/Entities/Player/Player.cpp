@@ -18387,6 +18387,14 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
 
     m_achievementMgr->CheckAllAchievementCriteria(this);
     m_questObjectiveCriteriaMgr->CheckAllQuestObjectiveCriteria(this);
+
+    //  Pandaren choose faction
+    /*
+    if (getRace() == RACE_PANDAREN_NEUTRAL)
+        ShowNeutralPlayerFactionSelectUI();
+    */
+
+
     return true;
 }
 
@@ -28317,6 +28325,12 @@ uint32 Player::DoRandomRoll(uint32 minimum, uint32 maximum)
         SendDirectMessage(randomRoll.Write());
 
     return roll;
+}
+
+void Player::ShowNeutralPlayerFactionSelectUI()
+{
+    WorldPackets::Misc::FactionSelectUI packet;
+    GetSession()->SendPacket(packet.Write());
 }
 
 void Player::UpdateItemLevelAreaBasedScaling()
