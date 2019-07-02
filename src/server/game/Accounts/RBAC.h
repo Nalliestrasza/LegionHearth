@@ -787,6 +787,10 @@ enum RBACPermissions
     // custom permissions 1000+
     RBAC_PERM_COMMAND_GOBJECT_SET_SCALE                      = 1398,
     RBAC_PERM_COMMAND_NPC_SET_SCALE                          = 1589,
+
+    // DUPPLICATIONS
+    RBAC_PERM_COMMAND_GOB_DUPPLICATION_USER                  = 1800,
+    RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE                = 1801,
     RBAC_PERM_MAX
 };
 

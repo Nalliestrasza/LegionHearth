@@ -58,18 +58,24 @@ public:
             { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "" },
             { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "" },
         };
+        static std::vector<ChatCommand> gobjectDuplicationCommandTable =
+        {
+            { "create",   rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_USER,   false, &HandleGameObjectDuplicationCreateCommand,   "" },
+            { "add", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,      false, &HandleGameObjectDuplicationAddCommand,      "" },
+        };
         static std::vector<ChatCommand> gobjectCommandTable =
         {
-            { "activate", rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  ""       },
-            { "delete",   rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    ""       },
-            { "info",     rbac::RBAC_PERM_COMMAND_GOBJECT_INFO,     false, &HandleGameObjectInfoCommand,      ""       },
-            { "move",     rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      ""       },
-            { "near",     rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
-            { "target",   rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
-            { "rotate",   rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      ""       },
-            { "add",      rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
-            { "set",      rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
-            { "raz",      rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },  
+            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  ""       },
+            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    ""       },
+            { "info",       rbac::RBAC_PERM_COMMAND_GOBJECT_INFO,     false, &HandleGameObjectInfoCommand,      ""       },
+            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      ""       },
+            { "near",       rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
+            { "target",     rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
+            { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      ""       },
+            { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
+            { "set",        rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
+            { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
+            { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },  
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -503,6 +509,14 @@ public:
         if (!object)
             return false;
 
+        // TEST A DEL
+        QuaternionData rotation = object->GetGOData()->rotation;
+        EulerData euler = EulerData::fromQuaternionssZYX(rotation.x, rotation.y, rotation.z, rotation.w);
+
+        float radToDeg = 180 / M_PI;
+        printf("test 1 : .go %4.10f %4.10f %4.10f \n", euler.x*radToDeg, euler.y*radToDeg, euler.z*radToDeg);
+
+
         handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
         return true;
 
@@ -877,6 +891,273 @@ public:
             return false;
         }
 
+        return true;
+    }
+
+    static bool HandleGameObjectDuplicationCreateCommand(ChatHandler* handler, char const* args)
+    {
+        //1  COMMANDS PARAMETERS
+
+        // Player
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+
+        //first parameter : gob guid
+
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
+        if (!id)
+            return false;
+
+        ObjectGuid::LowType guidLow = atoull(id);
+        if (!guidLow)
+            return false;
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        //second parameter : range
+        char* scale_temp = strtok(NULL, " ");
+        if (!scale_temp)
+        {
+            handler->SendSysMessage(LANG_BAD_VALUE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        uint32 range = atoul(scale_temp);
+
+
+        //third parameter : name
+        std::string dupName = "";
+        char const* targetName = strtok(NULL, " ");
+        if (targetName && targetName != NULL)
+            dupName = targetName;
+        else
+            dupName = "Dupplication" + player->GetName();
+
+        //2 DOODADS
+
+        // auto-increment
+        QueryResult lastId = WorldDatabase.PQuery("SELECT MAX(entry) from gameobject_dupplication_template");
+        Field* field = lastId->Fetch();
+        uint32 tId = field[0].GetUInt32();
+        ++tId;
+
+        // Doodads next to reference object
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
+        stmt->setFloat(0, object->GetPositionX());
+        stmt->setFloat(1, object->GetPositionY());
+        stmt->setFloat(2, object->GetPositionZ());
+        stmt->setUInt32(3, object->GetMapId());
+        stmt->setFloat(4, object->GetPositionX());
+        stmt->setFloat(5, object->GetPositionY());
+        stmt->setFloat(6, object->GetPositionZ());
+        stmt->setUInt32(7, range * range);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        uint32 count = 0;
+
+        if (result)
+        {
+            //test query
+            PreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            insertdup->setUInt32(0, tId);
+            insertdup->setString(1, dupName);
+            insertdup->setUInt32(2, spawnerAccountId);
+            insertdup->setFloat(3, object->GetEntry());
+            insertdup->setFloat(4, object->GetPositionZ());
+            insertdup->setFloat(5, object->GetOrientation());
+            insertdup->setFloat(6, sObjectMgr->GetGOData(guidLow)->size);
+            WorldDatabase.Execute(insertdup);
+
+            do
+            {
+                Field* fields = result->Fetch();
+                ObjectGuid::LowType guid = fields[0].GetUInt64();
+                uint32 entry = fields[1].GetUInt32();
+                float x = fields[2].GetFloat();
+                float y = fields[3].GetFloat();
+                float z = fields[4].GetFloat();
+                uint16 mapId = fields[5].GetUInt16();
+                float o = fields[6].GetFloat();
+                float size = fields[7].GetFloat();
+                float rotation0 = fields[8].GetFloat();
+                float rotation1 = fields[9].GetFloat();
+                float rotation2 = fields[10].GetFloat();
+                float rotation3 = fields[11].GetFloat();
+
+                // Don't add the reference object to doodad list
+                if (guidLow != guid)
+                {
+                    PreparedStatement* insertdood = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS);
+                    insertdood->setUInt32(0, tId);
+                    insertdood->setUInt32(1, entry);
+                    insertdood->setFloat(2, x - object->GetPositionX());
+                    insertdood->setFloat(3, y - object->GetPositionY());
+                    insertdood->setFloat(4, z - object->GetPositionZ());
+                    insertdood->setFloat(5, o - object->GetOrientation());
+                    insertdood->setFloat(6, size);
+                    insertdood->setFloat(7, rotation0);
+                    insertdood->setFloat(8, rotation1);
+                    insertdood->setFloat(9, rotation2);
+                    insertdood->setFloat(10, rotation3);
+                    insertdood->setFloat(11, sqrt(pow(x - object->GetPositionX(), 2) + pow(y - object->GetPositionY(), 2)));
+                    insertdood->setFloat(12, std::atan2(x - object->GetPositionX(), y - object->GetPositionY()));
+                    WorldDatabase.Execute(insertdood);
+
+                    ++count;
+                }
+                
+            } while (result->NextRow());
+
+        }
+
+
+        
+
+        return true;
+    }
+
+    static bool HandleGameObjectDuplicationAddCommand(ChatHandler* handler, char const* args)
+    {
+
+        // Player
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+        uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
+
+        //first parameter : dupp guid
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " ");
+        uint32 dupId = atoi(pId);
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+        stmt->setUInt32(0, dupId);
+        PreparedQueryResult duppTemplate = WorldDatabase.Query(stmt);
+
+        if (!duppTemplate)
+        {
+            //handler->PSendSysMessage(truc erreur ici);
+            return false;
+        }
+
+        Field* dupfields = duppTemplate->Fetch();
+        uint32 refEntry = dupfields[0].GetUInt32();
+        float refPosZ = dupfields[1].GetFloat();
+        float refOrientation = dupfields[2].GetFloat();
+        float refSize = dupfields[3].GetFloat();
+
+        // Create Reference Copy Object where the player is
+
+        // Création de l'objet "object" 
+        GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(refEntry);
+
+        // on définit ici la position, etc... du gameobject ainsi que son entry. 
+        GameObject* object = GameObject::CreateGameObject(objectInfo->entry, player->GetMap(), *player, QuaternionData::fromEulerAnglesZYX(player->GetOrientation(), 0.0f, 0.0f), 255, GO_STATE_READY);
+
+        // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
+        PhasingHandler::InheritPhaseShift(object, player);
+
+        // on récup le scale 
+        object->SetObjectScale(refSize);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
+
+        ObjectGuid::LowType spawnId = object->GetSpawnId();
+
+        // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
+        // this is required to avoid weird behavior and memory leaks 
+        delete object;
+
+        object = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
+
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+
+        // Log
+        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        gobInfo->setUInt64(0, spawnId);
+        gobInfo->setUInt32(1, spawnerAccountId);
+        gobInfo->setUInt64(2, spawnerGuid);
+        WorldDatabase.Execute(gobInfo);
+
+
+        PreparedStatement* stmt2 = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+        stmt2->setUInt32(0, dupId);
+        PreparedQueryResult duppDoodads = WorldDatabase.Query(stmt2);
+        if (duppDoodads)
+        {
+            do
+            {
+                Field* fields = duppDoodads->Fetch();
+                uint32 doodEntry = fields[0].GetUInt32();
+                float doodDiffX = fields[1].GetFloat();
+                float doodDiffY = fields[2].GetFloat();
+                float doodDiffZ = fields[3].GetFloat();
+                float doodDiffO = fields[4].GetFloat();
+                float doodSize = fields[5].GetFloat();
+                float doodRotX = fields[6].GetFloat();
+                float doodRotY = fields[7].GetFloat();
+                float doodRotZ = fields[8].GetFloat();
+                float doodRotW = fields[9].GetFloat();
+                float doodDist = fields[10].GetFloat();
+                float doodAngle = fields[11].GetFloat();
+
+                // New angle calcul
+                float angle = (M_PI / 2) - (doodAngle - (player->GetOrientation() - refOrientation));
+
+                // PosX and PosY calcul
+                float doodPosX = player->GetPositionX() + (doodDist * cos(angle));
+                float doodPosY = player->GetPositionY() + (doodDist * sin(angle));
+                float doodPosZ = doodDiffZ  + player->GetPositionZ();
+                float doodOrientation = doodDiffO + player->GetOrientation();
+
+                // Rotation
+                EulerData euler = EulerData::fromQuaternionssZYX(doodRotX, doodRotY, doodRotZ, doodRotW);
+                //printf("test 1 : .go %4.10f %4.10f %4.10f \n", euler.x*radToDeg, euler.y*radToDeg, euler.z*radToDeg);
+
+                // Create Object
+
+                // Création de l'objet "object" 
+                GameObjectTemplate const* objectInfoDood = sObjectMgr->GetGameObjectTemplate(doodEntry);
+
+                // on définit ici la position, etc... du gameobject ainsi que son entry. 
+                GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(euler.x+(player->GetOrientation() - refOrientation), euler.y, euler.z), 255, GO_STATE_READY);
+
+                // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
+                PhasingHandler::InheritPhaseShift(object2, player);
+
+                // on récup le scale 
+                object2->SetObjectScale(doodSize);
+                object2->Relocate(object2->GetPositionX(), object2->GetPositionY(), object2->GetPositionZ(), object2->GetOrientation());
+                object2->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
+
+                spawnId = object2->GetSpawnId();
+
+                // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
+                // this is required to avoid weird behavior and memory leaks 
+                delete object2;
+
+                object2 = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
+
+                sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+
+                // Log
+                PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+                gobInfo->setUInt64(0, spawnId);
+                gobInfo->setUInt32(1, spawnerAccountId);
+                gobInfo->setUInt64(2, spawnerGuid);
+                WorldDatabase.Execute(gobInfo);
+
+            } while (duppDoodads->NextRow());
+        }
+        printf("test_2 \r\n");
         return true;
     }
   

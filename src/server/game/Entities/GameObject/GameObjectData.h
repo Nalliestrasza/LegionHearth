@@ -936,6 +936,16 @@ struct TC_GAME_API QuaternionData
     static QuaternionData fromEulerAnglesZYX(float Z, float Y, float X);
 };
 
+struct TC_GAME_API EulerData
+{
+    float x, y, z;
+
+    EulerData() : x(0.0f), y(0.0f), z(0.0f) {}
+    EulerData(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
+
+    static EulerData fromQuaternionssZYX(float X, float Y, float Z, float W);
+};
+
 // `gameobject_addon` table
 struct GameObjectAddon
 {
