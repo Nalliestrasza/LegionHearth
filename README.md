@@ -102,3 +102,15 @@ test
 
 LAST COMMIT LEGION - Save point
 
+## Rename
+
+Five Step "renaming" branch :
+From OldB to NewB
+
+git checkout -b NewB OldB    # create and switch to the NewB branch
+git push -u origin NewB        # push the NewB branch to the remote and track it
+git branch -d OldB              # delete local OldB
+(Go to github and switch the default branch, in settings / branch )
+git push --delete origin OldB   # delete remote OldB
+git remote prune origin           # delete the remote tracking branch
+
