@@ -1364,14 +1364,38 @@ public:
 #pragma endregion
 
         Player* player = handler->GetSession()->GetPlayer();
+
+        // Reset passive class spell for avoiding crash
+
+        // All class Spec except DH
+        uint32 passiveSpell = 137006;
+        for (uint32 i = 0; i < 45; ++i) // first classe/spec spellid = 137006, last is 137050 
+        {
+            if (player->HasSpell(passiveSpell))
+                player->RemoveSpell(passiveSpell, false, false);
+            passiveSpell++;
+        }
+        // DH Spec
+        passiveSpell = 212611;
+        for (uint32 i = 0; i < 2; ++i) // 212611 tank / 212612 dps
+        {
+            if (player->HasSpell(passiveSpell))
+                player->RemoveSpell(passiveSpell, false, false);
+            passiveSpell++;
+        }
+
+        // Change class
         player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, IdClass);
         player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_PLAYER_CLASS, IdClass);
 
+        // Save
         player->SaveToDB();
 
+        // Kick player
         if (WorldSession* session = player->GetSession())
             session->KickPlayer();
 
+        // Infos
         sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), player->getGender(), player->getRace());
 
         return true;
