@@ -1212,6 +1212,10 @@ public:
             IdRace = RACE_VULPERA;
         else if (raceStr.compare("maghar") == 0)
             IdRace = RACE_MAGHAR_ORC;
+        else if (raceStr.compare("ogre") == 0)
+            IdRace = RACE_OGRE;
+        else if (raceStr.compare("rouee") == 0)
+            IdRace = RACE_ROUEE;
         else
         {
             handler->PSendSysMessage(LANG_BAD_RACE);
@@ -1235,7 +1239,8 @@ public:
             IdRace == RACE_ICE_TROLL || IdRace == RACE_TUSKARR ||
             IdRace == RACE_VRYKUL || IdRace == RACE_FOREST_TROLL ||
             IdRace == RACE_SKELETON || IdRace == RACE_NORTHREND_SKELETON ||
-            IdRace == RACE_BROKEN || IdRace == RACE_THIN_HUMAN)
+            IdRace == RACE_BROKEN || IdRace == RACE_THIN_HUMAN ||
+            IdRace == RACE_OGRE || IdRace == RACE_ROUEE)
         {
             gender = GENDER_MALE;
         }
