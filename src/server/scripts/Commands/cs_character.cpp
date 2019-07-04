@@ -1381,8 +1381,8 @@ public:
             passiveSpell++;
         }
         // DH Spec
-        passiveSpell = 212611;
-        for (uint32 i = 0; i < 2; ++i) // 212611 tank / 212612 dps
+        passiveSpell = 212612;
+        for (uint32 i = 0; i < 2; ++i) // 212612 dps / 212613 tank
         {
             if (player->HasSpell(passiveSpell))
                 player->RemoveSpell(passiveSpell, false, false);
