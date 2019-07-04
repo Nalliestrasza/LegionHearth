@@ -167,11 +167,13 @@ enum Races
     RACE_THIN_HUMAN             = 33,
     RACE_DARK_IRON_DWARF        = 34,
     RACE_VULPERA                = 35,
-    RACE_MAGHAR_ORC             = 36
+    RACE_MAGHAR_ORC             = 36,
+    RACE_OGRE                   = 37,
+    RACE_ROUEE                  = 38
 };
 
 // max+1 for player race
-#define MAX_RACES         37
+#define MAX_RACES         39
 
 #define RACEMASK_ALL_PLAYABLE                     \
     ((UI64LIT(1)<<(RACE_HUMAN-1))               | \
@@ -208,7 +210,9 @@ enum Races
      (UI64LIT(1)<<(RACE_THIN_HUMAN-1))          | \
      (UI64LIT(1)<<(RACE_DARK_IRON_DWARF-1))     | \
      (UI64LIT(1)<<(RACE_VULPERA-1))             | \
-     (UI64LIT(1)<<(RACE_MAGHAR_ORC-1)))
+     (UI64LIT(1)<<(RACE_MAGHAR_ORC-1))          | \
+     (UI64LIT(1)<<(RACE_OGRE-1))                | \
+     (UI64LIT(1)<<(RACE_ROUEE-1)))
 
 #define RACEMASK_NEUTRAL (UI64LIT(1)<<(RACE_PANDAREN_NEUTRAL-1))
 
