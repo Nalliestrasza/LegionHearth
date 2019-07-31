@@ -1290,6 +1290,7 @@ public:
 		sBattlePetSpeciesStateStore.LoadFromDB();
 		sBattlemasterListStore.LoadFromDB();
 		sBroadcastTextStore.LoadFromDB();
+        sCharHairGeosetsStore.LoadFromDB();
 		sCharStartOutfitStore.LoadFromDB();
 		sCharTitlesStore.LoadFromDB();
 		sChatChannelsStore.LoadFromDB();
@@ -1353,6 +1354,7 @@ public:
 		sItemDamageTwoHandStore.LoadFromDB();
 		sItemDamageTwoHandCasterStore.LoadFromDB();
 		sItemDisenchantLootStore.LoadFromDB();
+        sItemDisplayInfoStore.LoadFromDB();
 		sItemEffectStore.LoadFromDB();
 		sItemStore.LoadFromDB();
 		sItemExtendedCostStore.LoadFromDB();
@@ -1374,6 +1376,7 @@ public:
 		sLockStore.LoadFromDB();
 		sMailTemplateStore.LoadFromDB();
 		sMapStore.LoadFromDB();
+        sModelFileDataStore.LoadFromDB();
 		sModifierTreeStore.LoadFromDB();
 		sMountCapabilityStore.LoadFromDB();
 		sMountStore.LoadFromDB();
@@ -1433,6 +1436,7 @@ public:
 		sTalentStore.LoadFromDB();
 		sTaxiNodesStore.LoadFromDB();
 		sTaxiPathStore.LoadFromDB();
+        sTextureFileDataStore.LoadFromDB();
 		sTransportAnimationStore.LoadFromDB();
 		sTransportRotationStore.LoadFromDB();
 		sUnitPowerBarStore.LoadFromDB();

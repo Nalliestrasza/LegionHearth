@@ -59,6 +59,7 @@ TC_GAME_API extern DB2Storage<BattlePetSpeciesEntry>                sBattlePetSp
 TC_GAME_API extern DB2Storage<BattlePetSpeciesStateEntry>           sBattlePetSpeciesStateStore;
 TC_GAME_API extern DB2Storage<BattlemasterListEntry>                sBattlemasterListStore;
 TC_GAME_API extern DB2Storage<BroadcastTextEntry>                   sBroadcastTextStore;
+TC_GAME_API extern DB2Storage<CharHairGeosetsEntry>                 sCharHairGeosetsStore;
 TC_GAME_API extern DB2Storage<CharStartOutfitEntry>                 sCharStartOutfitStore;
 TC_GAME_API extern DB2Storage<CharTitlesEntry>                      sCharTitlesStore;
 TC_GAME_API extern DB2Storage<ChatChannelsEntry>                    sChatChannelsStore;
@@ -123,6 +124,7 @@ TC_GAME_API extern DB2Storage<ItemDamageOneHandCasterEntry>         sItemDamageO
 TC_GAME_API extern DB2Storage<ItemDamageTwoHandEntry>               sItemDamageTwoHandStore;
 TC_GAME_API extern DB2Storage<ItemDamageTwoHandCasterEntry>         sItemDamageTwoHandCasterStore;
 TC_GAME_API extern DB2Storage<ItemDisenchantLootEntry>              sItemDisenchantLootStore;
+TC_GAME_API extern DB2Storage<ItemDisplayInfoEntry>                 sItemDisplayInfoStore;
 TC_GAME_API extern DB2Storage<ItemEffectEntry>                      sItemEffectStore;
 TC_GAME_API extern DB2Storage<ItemEntry>                            sItemStore;
 TC_GAME_API extern DB2Storage<ItemExtendedCostEntry>                sItemExtendedCostStore;
@@ -144,6 +146,7 @@ TC_GAME_API extern DB2Storage<LiquidTypeEntry>                      sLiquidTypeS
 TC_GAME_API extern DB2Storage<LockEntry>                            sLockStore;
 TC_GAME_API extern DB2Storage<MailTemplateEntry>                    sMailTemplateStore;
 TC_GAME_API extern DB2Storage<MapEntry>                             sMapStore;
+TC_GAME_API extern DB2Storage<ModelFileDataEntry>                   sModelFileDataStore;
 TC_GAME_API extern DB2Storage<ModifierTreeEntry>                    sModifierTreeStore;
 TC_GAME_API extern DB2Storage<MountCapabilityEntry>                 sMountCapabilityStore;
 TC_GAME_API extern DB2Storage<MountEntry>                           sMountStore;
@@ -205,6 +208,7 @@ TC_GAME_API extern DB2Storage<SummonPropertiesEntry>                sSummonPrope
 TC_GAME_API extern DB2Storage<TalentEntry>                          sTalentStore;
 TC_GAME_API extern DB2Storage<TaxiNodesEntry>                       sTaxiNodesStore;
 TC_GAME_API extern DB2Storage<TaxiPathEntry>                        sTaxiPathStore;
+TC_GAME_API extern DB2Storage<TextureFileDataEntry>                 sTextureFileDataStore;
 TC_GAME_API extern DB2Storage<TransmogHolidayEntry>                 sTransmogHolidayStore;
 TC_GAME_API extern DB2Storage<TransmogSetEntry>                     sTransmogSetStore;
 TC_GAME_API extern DB2Storage<TransmogSetGroupEntry>                sTransmogSetGroupStore;
