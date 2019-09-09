@@ -514,8 +514,6 @@ public:
         EulerData euler = EulerData::fromQuaternionssZYX(rotation.x, rotation.y, rotation.z, rotation.w);
 
         float radToDeg = 180 / M_PI;
-        printf("test 1 : .go %4.10f %4.10f %4.10f \n", euler.x*radToDeg, euler.y*radToDeg, euler.z*radToDeg);
-
 
         handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
         return true;

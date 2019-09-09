@@ -550,7 +550,8 @@ public:
         else
             target->SetObjectScale(Scale);
         
-
+        if (target == handler->GetSession()->GetPlayer())
+        {
 			QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 			if (!checkSaved)
 			{
@@ -568,6 +569,7 @@ public:
 				updScale->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 				WorldDatabase.Execute(updScale);
 			}
+        }
 
 			return true;
         }
@@ -899,24 +901,26 @@ public:
 
         target->SetDisplayId(display_id);
 
-		Player* player;
-		QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-		if (!checkSaved)
-		{
-			//Permamorph !
-			PreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
-			getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-			getDisplay->setUInt32(1, display_id);
-			WorldDatabase.Execute(getDisplay);
+        if (target == handler->GetSession()->GetPlayer())
+        {
+		    QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+		    if (!checkSaved)
+		    {
+			    //Permamorph !
+			    PreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
+			    getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+			    getDisplay->setUInt32(1, display_id);
+			    WorldDatabase.Execute(getDisplay);
 
-		}
-		else
-		{
-			PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
-			updDisplay->setUInt32(0, display_id);
-			updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-			WorldDatabase.Execute(updDisplay);
-		}
+		    }
+		    else
+		    {
+			    PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+			    updDisplay->setUInt32(0, display_id);
+			    updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+			    WorldDatabase.Execute(updDisplay);
+		    }
+        }
 
         return true;
     }
@@ -1048,7 +1052,7 @@ public:
 
         return true;
     }
-//demorph player or unit
+
     static bool HandleDeMorphCommand(ChatHandler* handler, const char* /*args*/)
     {
         Unit* target = handler->getSelectedUnit();
@@ -1059,12 +1063,13 @@ public:
         else if (target->GetTypeId() == TYPEID_PLAYER && handler->HasLowerSecurity(target->ToPlayer(), ObjectGuid::Empty))
             return false;
 
-		Player* player;
-
-		PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
-		updDisplay->setUInt32(0, 0);
-		updDisplay->setUInt32(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-		WorldDatabase.Execute(updDisplay);
+        if (target == handler->GetSession()->GetPlayer())
+        {
+		    PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+		    updDisplay->setUInt32(0, 0);
+		    updDisplay->setUInt32(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+		    WorldDatabase.Execute(updDisplay);
+        }
 
 		target->DeMorph();
 
