@@ -182,7 +182,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
 
     // dupplication_doodads
     PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle FROM gameobject_dupplication_doodads WHERE entry = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
     
 	
 }

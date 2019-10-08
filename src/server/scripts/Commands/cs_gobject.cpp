@@ -509,12 +509,6 @@ public:
         if (!object)
             return false;
 
-        // TEST A DEL
-        QuaternionData rotation = object->GetGOData()->rotation;
-        EulerData euler = EulerData::fromQuaternionssZYX(rotation.x, rotation.y, rotation.z, rotation.w);
-
-        float radToDeg = 180 / M_PI;
-
         handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str(), object->GetOrientation());
         return true;
 
@@ -1117,16 +1111,16 @@ public:
                 float doodOrientation = doodDiffO + player->GetOrientation();
 
                 // Rotation
-                EulerData euler = EulerData::fromQuaternionssZYX(doodRotX, doodRotY, doodRotZ, doodRotW);
-                //printf("test 1 : .go %4.10f %4.10f %4.10f \n", euler.x*radToDeg, euler.y*radToDeg, euler.z*radToDeg);
+                float yaw, pitch, roll;
+                QuaternionData(doodRotX, doodRotY, doodRotZ, doodRotW).toEulerAnglesZYX(yaw, pitch, roll);
 
                 // Create Object
 
                 // Création de l'objet "object" 
                 GameObjectTemplate const* objectInfoDood = sObjectMgr->GetGameObjectTemplate(doodEntry);
 
-                // on définit ici la position, etc... du gameobject ainsi que son entry. 
-                GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(euler.x+(player->GetOrientation() - refOrientation), euler.y, euler.z), 255, GO_STATE_READY);
+                // on définit ici la position, etc... du gameobject ainsi que son entry.
+                GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(yaw+(player->GetOrientation() - refOrientation), pitch, roll), 255, GO_STATE_READY);
 
                 // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
                 PhasingHandler::InheritPhaseShift(object2, player);

@@ -1324,5 +1324,8 @@ enum TrinityStrings
     LANG_BAD_CLASS                                = 90051,
     LANG_BAD_SET_CLASS_COMMAND                    = 90052,
 
+    // BRIKABROK
+    LANG_BRIKABROK_GOB_ADD_INFO                   = 90053,
+
 };
 #endif

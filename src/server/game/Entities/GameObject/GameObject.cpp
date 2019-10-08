@@ -52,33 +52,15 @@ bool QuaternionData::isUnit() const
     return fabs(x * x + y * y + z * z + w * w - 1.0f) < 1e-5;
 }
 
+void QuaternionData::toEulerAnglesZYX(float& Z, float& Y, float& X) const
+{
+    G3D::Matrix3(G3D::Quat(x, y, z, w)).toEulerAnglesZYX(Z, Y, X);
+}
+
 QuaternionData QuaternionData::fromEulerAnglesZYX(float Z, float Y, float X)
 {
     G3D::Quat quat(G3D::Matrix3::fromEulerAnglesZYX(Z, Y, X));
     return QuaternionData(quat.x, quat.y, quat.z, quat.w);
-}
-
-EulerData EulerData::fromQuaternionssZYX(float rot0, float rot1, float rot2, float rot3)
-{
-    double roll, pitch, yaw;
-
-    double sinr_cosp = +2.0 * (rot3 * rot0 + rot1 * rot2);
-    double cosr_cosp = +1.0 - 2.0 * (rot0 * rot0 + rot1 * rot1);
-    roll = std::atan2(sinr_cosp, cosr_cosp);
-
-    // pitch (y-axis rotation)
-    double sinp = +2.0 * (rot3 * rot1 - rot2 * rot0);
-    if (fabs(sinp) >= 1)
-        pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-    else
-        pitch = asin(sinp);
-
-    // yaw (z-axis rotation)
-    double siny_cosp = +2.0 * (rot3 * rot2 + rot0 * rot1);
-    double cosy_cosp = +1.0 - 2.0 * (rot1 * rot1 + rot2 * rot2);
-    yaw = std::atan2(siny_cosp, cosy_cosp);
-
-    return EulerData(yaw, pitch, roll);
 }
 
 GameObject::GameObject() : WorldObject(false), MapObject(),

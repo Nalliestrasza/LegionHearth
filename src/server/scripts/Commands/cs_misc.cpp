@@ -6773,7 +6773,14 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             handler->SendSysMessage("Guid invalid");
             return false;
         }
-        handler->PSendSysMessage("%s %f %f %f %f", object->GetName().c_str(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+
+        const GameObjectData* data = sObjectMgr->GetGOData(guidLow);
+        if (!data)
+            return false;
+
+        float yaw, pitch, roll;
+        data->rotation.toEulerAnglesZYX(yaw, pitch, roll);
+        handler->PSendSysMessage("%s %f %f %f %f %f %f %f %f", object->GetName().c_str(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation(),yaw,pitch,roll,data->size);
         return true;
     }
 
@@ -6866,6 +6873,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
 
+        // LANG_BRIKABROK_GOB_ADD_INFO                   = 90053,
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF);
 
         // Log
