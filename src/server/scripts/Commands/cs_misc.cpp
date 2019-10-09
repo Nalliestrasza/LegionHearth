@@ -6759,7 +6759,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (q.empty())
             return false;
 
-        uint64 guid;
         std::string guidStr = q.front();
         q.pop();
 
@@ -6801,6 +6800,10 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         float yF;
         float zF;
         float oF;
+        float yawF;
+        float pitchF;
+        float rollF;
+        float sizeF;
 
         gobEntry = atoul(q.front().c_str());
         q.pop();
@@ -6828,7 +6831,30 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         
         oF = (float)atof(q.front().c_str());
         q.pop();
-        
+
+        if (q.empty())
+            return false;
+
+        yawF = (float)atof(q.front().c_str());
+        q.pop();
+
+        if (q.empty())
+            return false;
+
+        pitchF = (float)atof(q.front().c_str());
+        q.pop();
+
+        if (q.empty())
+            return false;
+
+        rollF = (float)atof(q.front().c_str());
+        q.pop();
+
+        if (q.empty())
+            return false;
+
+        sizeF = (float)atof(q.front().c_str());
+        q.pop();
 
         GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(gobEntry);
         if (!objectInfo)
@@ -6850,7 +6876,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         Player* player = handler->GetSession()->GetPlayer();
         Map* map = player->GetMap();
 
-        GameObject* object = GameObject::CreateGameObject(objectInfo->entry, map, Position(xF, yF, zF, oF), QuaternionData::fromEulerAnglesZYX(oF, 0.0f, 0.0f), 255, GO_STATE_READY);
+        GameObject* object = GameObject::CreateGameObject(objectInfo->entry, map, Position(xF, yF, zF, oF), QuaternionData::fromEulerAnglesZYX(yawF, pitchF, rollF), 255, GO_STATE_READY);
 
         if (!object)
             return false;
@@ -6858,7 +6884,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         PhasingHandler::InheritPhaseShift(object, player);
 
         // fill the gameobject data and save to the db
-        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
+        // on récup le scale 
+        object->SetObjectScale(sizeF);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
+
         ObjectGuid::LowType spawnId = object->GetSpawnId();
 
         // delete the old object and do a clean load from DB with a fresh new GameObject instance.
@@ -6872,9 +6902,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
-
-        // LANG_BRIKABROK_GOB_ADD_INFO                   = 90053,
-        handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF);
+        handler->PSendSysMessage("%u %s %s %f %f %f %f %f %f %f %f", gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF, oF, yawF, pitchF, rollF, sizeF);
 
         // Log
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
