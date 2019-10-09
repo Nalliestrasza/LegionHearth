@@ -6779,7 +6779,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         float yaw, pitch, roll;
         data->rotation.toEulerAnglesZYX(yaw, pitch, roll);
-        handler->PSendSysMessage("%s %f %f %f %f %f %f %f %f", object->GetName().c_str(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation(),yaw,pitch,roll,data->size);
+        handler->PSendSysMessage("%s %f %f %f %f %f %f %f %f", object->GetName().c_str(), object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation(),yaw*(180 / M_PI),pitch*(180 / M_PI),roll*(180 / M_PI),data->size);
         return true;
     }
 
@@ -6835,19 +6835,19 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (q.empty())
             return false;
 
-        yawF = (float)atof(q.front().c_str());
+        yawF = ((float)atof(q.front().c_str()))*(M_PI / 180);
         q.pop();
 
         if (q.empty())
             return false;
 
-        pitchF = (float)atof(q.front().c_str());
+        pitchF = ((float)atof(q.front().c_str()))*(M_PI / 180);
         q.pop();
 
         if (q.empty())
             return false;
 
-        rollF = (float)atof(q.front().c_str());
+        rollF = ((float)atof(q.front().c_str()))*(M_PI / 180);
         q.pop();
 
         if (q.empty())
@@ -6902,7 +6902,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
-        handler->PSendSysMessage("%u %s %s %f %f %f %f %f %f %f %f", gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF, oF, yawF, pitchF, rollF, sizeF);
+        handler->PSendSysMessage("%u %s %s %f %f %f %f %f %f %f %f", gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF, oF, yawF*(180 / M_PI), pitchF*(180 / M_PI), rollF*(180 / M_PI), sizeF);
 
         // Log
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
