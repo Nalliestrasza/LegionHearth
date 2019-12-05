@@ -1919,7 +1919,7 @@ public:
             ss << "'%" << str << "%'";
             std::string namePart = ss.str();
 
-            QueryResult query = WorldDatabase.PQuery("SELECT entry,CASE isPrivate WHEN 0 THEN name WHEN 1 THEN CONCAT(name,' [P]') END as name, author FROM gameobject_dupplication_template WHERE name LIKE %s AND ( isPrivate = 0 OR account = %u)", namePart.c_str(), handler->GetSession()->GetAccountId());
+            QueryResult query = WorldDatabase.PQuery("SELECT entry,CASE isPrivate WHEN 0 THEN name WHEN 1 THEN CONCAT(name,' [P]') END as name, author FROM gameobject_dupplication_template WHERE LOWER(name) LIKE LOWER(%s) AND ( isPrivate = 0 OR account = %u)", namePart.c_str(), handler->GetSession()->GetAccountId());
             if (query) {
                 do {
                     Field* result = query->Fetch();

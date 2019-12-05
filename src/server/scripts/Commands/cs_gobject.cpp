@@ -944,7 +944,7 @@ public:
             dupName = "Dupplication" + player->GetName();
 
         //2 DOODADS
-        // Guid Max select
+        // auto-increment
         PreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
         PreparedQueryResult resultmax = WorldDatabase.Query(stmtmax);
         uint32 tId = resultmax->Fetch()->GetUInt32();
