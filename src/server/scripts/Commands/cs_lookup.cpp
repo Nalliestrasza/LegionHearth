@@ -93,7 +93,7 @@ public:
             { "terrain",        rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTerrainCommand,         "" },
             { "phase",          rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, NULL,                                "", lookupPhaseCommandTable },
             { "forge",          rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, NULL,                                "", lookupItemForgeCommandTable },
-            { "dupplication",   rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupDupplicationCommand,    ""},
+            { "dupplication",   rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_READ ,     true, &HandleLookupDupplicationCommand,    ""},
             
 
         };

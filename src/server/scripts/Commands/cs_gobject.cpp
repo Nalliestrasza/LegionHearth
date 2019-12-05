@@ -60,12 +60,12 @@ public:
         };
         static std::vector<ChatCommand> gobjectDuplicationCommandTable =
         {
-            { "create", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,   false, &HandleGameObjectDuplicationCreateCommand,   "" },
-            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationAddCommand,      "" },
-            { "target", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,   false, &HandleGameObjectDuplicationTargetCommand,   "" },
-            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationDeleteCommand,   "" },
-            { "private",rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationPrivateCommand,  "" },
-            { "remove", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationRemoveCommand,   "" },
+            { "create", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationCreateCommand,   "" },
+            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationAddCommand,      "" },
+            { "target", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_READ,     false, &HandleGameObjectDuplicationTargetCommand,   "" },
+            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationDeleteCommand,   "" },
+            { "private",rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationPrivateCommand,  "" },
+            { "remove", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationRemoveCommand,   "" },
         };
         static std::vector<ChatCommand> gobjectCommandTable =
         {
