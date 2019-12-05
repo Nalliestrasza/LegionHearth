@@ -789,7 +789,7 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_NPC_SET_SCALE                          = 1589,
 
     // DUPPLICATIONS
-    RBAC_PERM_COMMAND_GOB_DUPPLICATION_USER                  = 1800,
+    RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD                   = 1800,
     RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE                = 1801,
     RBAC_PERM_MAX
 };

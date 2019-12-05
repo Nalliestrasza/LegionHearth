@@ -146,7 +146,6 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // gameobject log
     PrepareStatement(WORLD_INS_GAMEOBJECT_LOG, "INSERT INTO gameobject_log (guid, spawnerAccountId, spawnerPlayerId) VALUES (?,?,?)", CONNECTION_ASYNC);
     
-
     // gameobject raz
     PrepareStatement(WORLD_DEL_GAMEOBJECT_LOG, "DELETE FROM gameobject_log WHERE guid = ?", CONNECTION_ASYNC);
 
@@ -176,14 +175,34 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // DUPPLICATIONS
 
     // dupplication_template
-    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE, "INSERT INTO gameobject_dupplication_template (entry,name,account,referenceEntry,referencePosZ,referenceOrientation,referenceSize) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE, "SELECT referenceEntry,referencePosZ,referenceOrientation,referenceSize FROM gameobject_dupplication_template WHERE entry = ?", CONNECTION_SYNCH);
-    
+    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE, "INSERT INTO gameobject_dupplication_template (entry,name,account,referenceEntry,referencePosZ,referenceOrientation,referenceSize,author) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE, "SELECT name,referenceEntry,referencePosZ,referenceOrientation,referenceSize,isPrivate,account FROM gameobject_dupplication_template WHERE entry = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE, "UPDATE gameobject_dupplication_template SET isPrivate = ? WHERE entry = ? ", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT, "SELECT entry FROM gameobject_dupplication_template WHERE entry = ? AND account = ? ", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE, "DELETE FROM gameobject_dupplication_template WHERE entry = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID, "SELECT MAX(entry) from gameobject_dupplication_template", CONNECTION_SYNCH);
 
     // dupplication_doodads
-    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS, "DELETE FROM gameobject_dupplication_doodads WHERE entry = ?", CONNECTION_ASYNC);
+
+    // dupplication_guid
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID, "SELECT guid,entry,refObjGuid,nom,posX,posY,posZ, (POW(posX - ?, 2) + POW(posY - ?, 2) + POW(posZ - ?, 2)) AS order_ FROM gameobject_dupplication_guid WHERE mapID = ? ORDER BY order_ ASC LIMIT 1", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID, "INSERT INTO `gameobject_dupplication_guid` (`guid`, `entry`, `refObjGuid`, `nom`, `spawner`, `posX`, `posY`, `posZ`, `mapID`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID_MAX_ID, "SELECT MAX(guid) FROM gameobject_dupplication_guid", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID, "DELETE FROM gameobject_dupplication_guid WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID_ENTRY, "DELETE FROM gameobject_dupplication_guid WHERE entry = ?", CONNECTION_ASYNC);
+
+    // dupplication | gameobject_logs
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_LOG, "SELECT guid from gameobject_log WHERE dupplicationGuid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID, "INSERT INTO gameobject_log (guid, spawnerAccountId, spawnerPlayerId, dupplicationGuid) VALUES (?,?,?,?)", CONNECTION_ASYNC);
     
+    
+    
+
+
+
 	
 }
 

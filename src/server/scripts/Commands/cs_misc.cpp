@@ -6902,7 +6902,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
-        handler->PSendSysMessage("%u %s %s %f %f %f %f %f %f %f %f", gobEntry, objectInfo->name.c_str(), std::to_string(spawnId).c_str(), xF, yF, zF, oF, yawF*(180 / M_PI), pitchF*(180 / M_PI), rollF*(180 / M_PI), sizeF);
 
         // Log
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();

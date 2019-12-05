@@ -72,27 +72,29 @@ public:
 
         static std::vector<ChatCommand> lookupCommandTable =
         {
-            { "area",     rbac::RBAC_PERM_COMMAND_LOOKUP_AREA,     true, &HandleLookupAreaCommand,     "" },
-            { "creature", rbac::RBAC_PERM_COMMAND_LOOKUP_CREATURE, true, &HandleLookupCreatureCommand, "" },
-            { "event",    rbac::RBAC_PERM_COMMAND_LOOKUP_EVENT,    true, &HandleLookupEventCommand,    "" },
-            { "faction",  rbac::RBAC_PERM_COMMAND_LOOKUP_FACTION,  true, &HandleLookupFactionCommand,  "" },
-            { "item",     rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, &HandleLookupItemCommand,     "" },
-            { "itemset",  rbac::RBAC_PERM_COMMAND_LOOKUP_ITEMSET,  true, &HandleLookupItemSetCommand,  "" },
-            { "object",   rbac::RBAC_PERM_COMMAND_LOOKUP_OBJECT,   true, &HandleLookupObjectCommand,   "" },
-            { "quest",    rbac::RBAC_PERM_COMMAND_LOOKUP_QUEST,    true, &HandleLookupQuestCommand,    "" },
-            { "player",   rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER,   true, NULL,                         "", lookupPlayerCommandTable },
-            { "skill",    rbac::RBAC_PERM_COMMAND_LOOKUP_SKILL,    true, &HandleLookupSkillCommand,    "" },
-            { "spell",    rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL,    true, NULL,                         "", lookupSpellCommandTable },
-            { "taxinode", rbac::RBAC_PERM_COMMAND_LOOKUP_TAXINODE, true, &HandleLookupTaxiNodeCommand, "" },
-            { "tele",     rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTeleCommand,     "" },
-            { "title",    rbac::RBAC_PERM_COMMAND_LOOKUP_TITLE,    true, &HandleLookupTitleCommand,    "" },
-            { "map",      rbac::RBAC_PERM_COMMAND_LOOKUP_MAP,      true, &HandleLookupMapCommand,      "" },
-            { "skybox",   rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSkyboxCommand,   "" },
-            { "ambiance", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupAmbianceCommand, "" },
-            { "sound",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSoundCommand,    "" },
-            { "terrain",  rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTerrainCommand,  "" },
-            { "phase",    rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, NULL,                         "", lookupPhaseCommandTable },
-            { "forge",    rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, NULL,                         "", lookupItemForgeCommandTable },
+            { "area",           rbac::RBAC_PERM_COMMAND_LOOKUP_AREA,     true, &HandleLookupAreaCommand,            "" },
+            { "creature",       rbac::RBAC_PERM_COMMAND_LOOKUP_CREATURE, true, &HandleLookupCreatureCommand,        "" },
+            { "event",          rbac::RBAC_PERM_COMMAND_LOOKUP_EVENT,    true, &HandleLookupEventCommand,           "" },
+            { "faction",        rbac::RBAC_PERM_COMMAND_LOOKUP_FACTION,  true, &HandleLookupFactionCommand,         "" },
+            { "item",           rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, &HandleLookupItemCommand,            "" },
+            { "itemset",        rbac::RBAC_PERM_COMMAND_LOOKUP_ITEMSET,  true, &HandleLookupItemSetCommand,         "" },
+            { "object",         rbac::RBAC_PERM_COMMAND_LOOKUP_OBJECT,   true, &HandleLookupObjectCommand,          "" },
+            { "quest",          rbac::RBAC_PERM_COMMAND_LOOKUP_QUEST,    true, &HandleLookupQuestCommand,           "" },
+            { "player",         rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER,   true, NULL,                                "", lookupPlayerCommandTable },
+            { "skill",          rbac::RBAC_PERM_COMMAND_LOOKUP_SKILL,    true, &HandleLookupSkillCommand,           "" },
+            { "spell",          rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL,    true, NULL,                                "", lookupSpellCommandTable },
+            { "taxinode",       rbac::RBAC_PERM_COMMAND_LOOKUP_TAXINODE, true, &HandleLookupTaxiNodeCommand,        "" },
+            { "tele",           rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTeleCommand,            "" },
+            { "title",          rbac::RBAC_PERM_COMMAND_LOOKUP_TITLE,    true, &HandleLookupTitleCommand,           "" },
+            { "map",            rbac::RBAC_PERM_COMMAND_LOOKUP_MAP,      true, &HandleLookupMapCommand,             "" },
+            { "skybox",         rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSkyboxCommand,          "" },
+            { "ambiance",       rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupAmbianceCommand,        "" },
+            { "sound",          rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupSoundCommand,           "" },
+            { "terrain",        rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupTerrainCommand,         "" },
+            { "phase",          rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, NULL,                                "", lookupPhaseCommandTable },
+            { "forge",          rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,     true, NULL,                                "", lookupItemForgeCommandTable },
+            { "dupplication",   rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,     true, &HandleLookupDupplicationCommand,    ""},
+            
 
         };
 
@@ -1891,6 +1893,52 @@ public:
         }
 
     return true;
+
+    }
+
+    static bool HandleLookupDupplicationCommand(ChatHandler* handler, char const* args)
+    {
+
+        if (!*args)
+        {
+            return false;
+        }
+
+        char const* str = strtok((char*)args, " ");
+        if (!str)
+            return false;
+
+        std::string fix = str;
+        if (fix.find('\'') != std::string::npos) {
+            handler->PSendSysMessage(LANG_DUPPLICATION_LOOKUP_ERROR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        else {
+            std::stringstream ss;
+            ss << "'%" << str << "%'";
+            std::string namePart = ss.str();
+
+            QueryResult query = WorldDatabase.PQuery("SELECT entry,CASE isPrivate WHEN 0 THEN name WHEN 1 THEN CONCAT(name,' [P]') END as name, author FROM gameobject_dupplication_template WHERE name LIKE %s AND ( isPrivate = 0 OR account = %u)", namePart.c_str(), handler->GetSession()->GetAccountId());
+            if (query) {
+                do {
+                    Field* result = query->Fetch();
+                    uint32 entry = result[0].GetUInt32();
+                    std::string name = result[1].GetString();
+                    std::string author = result[2].GetString();
+                    handler->PSendSysMessage(LANG_DUPPLICATION_LOOKUP_SUCCESS, entry, name.c_str(), author.c_str());
+                    
+                } while (query->NextRow());
+            }
+            else {
+
+                handler->PSendSysMessage(LANG_DUPPLICATION_LOOKUP_ERROR);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            return true;
+        }
 
     }
 

@@ -60,8 +60,12 @@ public:
         };
         static std::vector<ChatCommand> gobjectDuplicationCommandTable =
         {
-            { "create",   rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_USER,   false, &HandleGameObjectDuplicationCreateCommand,   "" },
-            { "add", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,      false, &HandleGameObjectDuplicationAddCommand,      "" },
+            { "create", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,   false, &HandleGameObjectDuplicationCreateCommand,   "" },
+            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationAddCommand,      "" },
+            { "target", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_CREATE,   false, &HandleGameObjectDuplicationTargetCommand,   "" },
+            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationDeleteCommand,   "" },
+            { "private",rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationPrivateCommand,  "" },
+            { "remove", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_ADD,      false, &HandleGameObjectDuplicationRemoveCommand,   "" },
         };
         static std::vector<ChatCommand> gobjectCommandTable =
         {
@@ -923,10 +927,17 @@ public:
         }
         uint32 range = atoul(scale_temp);
 
+        // Security
+        if (range > 100)
+        {
+            handler->SendSysMessage(LANG_DUPPLICATION_CREATE_RANGE_ERR_FAR);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
         //third parameter : name
         std::string dupName = "";
-        char const* targetName = strtok(NULL, " ");
+        char const* targetName = strtok(NULL, "");
         if (targetName && targetName != NULL)
             dupName = targetName;
         else
@@ -935,7 +946,7 @@ public:
         //2 DOODADS
 
         // auto-increment
-        QueryResult lastId = WorldDatabase.PQuery("SELECT MAX(entry) from gameobject_dupplication_template");
+        QueryResult lastId = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
         Field* field = lastId->Fetch();
         uint32 tId = field[0].GetUInt32();
         ++tId;
@@ -952,10 +963,16 @@ public:
         stmt->setUInt32(7, range * range);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
 
-        uint32 count = 0;
-
         if (result)
         {
+            //Security
+            if (result->GetRowCount() > (uint64)1000)
+            {
+                handler->SendSysMessage(LANG_DUPPLICATION_CREATE_RANGE_ERR_DOODADS);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
             //test query
             PreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             insertdup->setUInt32(0, tId);
@@ -965,6 +982,7 @@ public:
             insertdup->setFloat(4, object->GetPositionZ());
             insertdup->setFloat(5, object->GetOrientation());
             insertdup->setFloat(6, sObjectMgr->GetGOData(guidLow)->size);
+            insertdup->setString(7, player->GetName());
             WorldDatabase.Execute(insertdup);
 
             do
@@ -1001,29 +1019,31 @@ public:
                     insertdood->setFloat(11, sqrt(pow(x - object->GetPositionX(), 2) + pow(y - object->GetPositionY(), 2)));
                     insertdood->setFloat(12, std::atan2(x - object->GetPositionX(), y - object->GetPositionY()));
                     WorldDatabase.Execute(insertdood);
-
-                    ++count;
                 }
                 
             } while (result->NextRow());
-
         }
 
-
-        
-
+        handler->PSendSysMessage(LANG_DUPPLICATION_CREATE_SUCCESS, tId, dupName.c_str(), player->GetName());
         return true;
     }
 
     static bool HandleGameObjectDuplicationAddCommand(ChatHandler* handler, char const* args)
     {
 
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         // Player
         Player* player = handler->GetSession()->GetPlayer();
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
         uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
-        //first parameter : dupp guid
+        //first parameter : dupp template id
         if (!*args)
             return false;
 
@@ -1036,15 +1056,27 @@ public:
 
         if (!duppTemplate)
         {
-            //handler->PSendSysMessage(truc erreur ici);
+            handler->PSendSysMessage(LANG_DUPPLICATION_ADD_ERROR, dupId);
+            handler->SetSentErrorMessage(true);
             return false;
         }
 
         Field* dupfields = duppTemplate->Fetch();
-        uint32 refEntry = dupfields[0].GetUInt32();
-        float refPosZ = dupfields[1].GetFloat();
-        float refOrientation = dupfields[2].GetFloat();
-        float refSize = dupfields[3].GetFloat();
+        std::string dupName = dupfields[0].GetString();
+        uint32 refEntry = dupfields[1].GetUInt32();
+        float refPosZ = dupfields[2].GetFloat();
+        float refOrientation = dupfields[3].GetFloat();
+        float refSize = dupfields[4].GetFloat();
+
+        uint8 isPriv = dupfields[5].GetUInt8();
+        uint32 accountId = dupfields[6].GetUInt32();
+
+        if (isPriv == 1 && accountId != spawnerAccountId)
+        {
+            handler->PSendSysMessage(LANG_DUPPLICATION_ADD_PRIVATE, dupId);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
         // Create Reference Copy Object where the player is
 
@@ -1072,11 +1104,31 @@ public:
 
         sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
 
+        // Dupplication infos (for delete command)
+        // Guid Max select
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID_MAX_ID);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+        uint32 dupplicationGuid = result->Fetch()->GetUInt32();
+
+        // Create point
+        PreparedStatement* duppGuid = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID);
+        duppGuid->setUInt32(0, dupplicationGuid + 1);
+        duppGuid->setUInt32(1, dupId);
+        duppGuid->setUInt64(2, spawnId);
+        duppGuid->setString(3, dupName);
+        duppGuid->setString(4, player->GetName());
+        duppGuid->setFloat(5, player->GetPositionX());
+        duppGuid->setFloat(6, player->GetPositionY());
+        duppGuid->setFloat(7, player->GetPositionZ());
+        duppGuid->setUInt16(8, player->GetMapId());
+        WorldDatabase.Execute(duppGuid);
+
         // Log
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);
+        gobInfo->setUInt32(3, dupplicationGuid + 1);
         WorldDatabase.Execute(gobInfo);
 
 
@@ -1141,15 +1193,251 @@ public:
                 sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
 
                 // Log
-                PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+                PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
                 gobInfo->setUInt64(0, spawnId);
                 gobInfo->setUInt32(1, spawnerAccountId);
                 gobInfo->setUInt64(2, spawnerGuid);
+                gobInfo->setUInt32(3, dupplicationGuid+1);
                 WorldDatabase.Execute(gobInfo);
 
             } while (duppDoodads->NextRow());
         }
-        printf("test_2 \r\n");
+
+        handler->PSendSysMessage(LANG_DUPPLICATION_ADD_SUCCESS, dupplicationGuid + 1, dupId, dupName.c_str());
+        return true;
+    }
+
+    static bool HandleGameObjectDuplicationTargetCommand(ChatHandler* handler, char const* args)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID);
+        stmt->setFloat(0, player->GetPositionX());
+        stmt->setFloat(1, player->GetPositionY());
+        stmt->setFloat(2, player->GetPositionZ());
+        stmt->setUInt16(3, player->GetMapId());
+        PreparedQueryResult duppTarget = WorldDatabase.Query(stmt);
+
+        if (!duppTarget)
+        {
+            handler->SendSysMessage(LANG_DUPPLICATION_TARGET_ERROR);
+            return true;
+        }
+
+        Field* dupfields = duppTarget->Fetch();
+        
+        uint32 duppGuid = dupfields[0].GetUInt32();
+        uint32 duppEntry = dupfields[1].GetUInt32();
+        uint64 refObjGuid = dupfields[2].GetUInt64();
+        std::string dupName = dupfields[3].GetString();
+        float duppX = dupfields[4].GetFloat();
+        float duppY = dupfields[5].GetFloat();
+        float duppZ = dupfields[6].GetFloat();
+
+        // Supprimer au cas ou dupplication vide
+        QueryResult getGuid = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_LOG, duppGuid);
+        if (!getGuid)
+        {
+            // Delete dupplication guid
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID);
+            psDupGuid->setUInt32(0, duppGuid);
+            WorldDatabase.Execute(psDupGuid);
+
+            handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_EMPTY);
+
+            return true;
+        }
+
+        // Distance
+        
+        double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
+        double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
+        double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
+        double targetX = (trunc((duppX) * 10 * 0.9144)) / 10;
+        double targetY = (trunc((duppY) * 10 * 0.9144)) / 10;
+        double targetZ = (trunc((duppZ) * 10 * 0.9144)) / 10;
+
+        double distanceFull = sqrt((pow((playerX - targetX), 2)) + (pow((playerY - targetY), 2)) + (pow((playerZ - targetZ), 2)));
+        double distance = (trunc(distanceFull * 10)) / 10;
+
+        //Phase 4 : Envoi du message
+        if (distance > 300)
+            handler->SendSysMessage(LANG_DUPPLICATION_TARGET_FAR);
+        else
+        { 
+            if (distance < 1)
+                handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_CLOSE, distance);
+            else
+                handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_HERE, distance);
+
+            // Infos
+            handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_SUCCESS, dupName.c_str(), duppGuid, duppEntry,duppX,duppY,duppZ, player->GetMapId());
+        }
+        return true;
+    }
+
+    static bool HandleGameObjectDuplicationDeleteCommand(ChatHandler* handler, char const* args)
+    {
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        // Player
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 spawnerAccountId = player->GetSession()->GetAccountId();
+        uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
+
+        //first parameter : dupplication guid
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " ");
+        uint32 dupGuid = atoi(pId);
+
+
+        // Delete all objects
+
+        QueryResult getGuid = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_LOG, dupGuid);
+        if (getGuid)
+        {
+            do {
+
+                Field* field = getGuid->Fetch();
+                uint64 guidLow = field[0].GetUInt64();
+
+                if (guidLow == 0)
+                    return false;
+
+                GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+                if (!object)
+                {
+                    handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
+
+                object->SetRespawnTime(0);                                 // not save respawn time
+                object->Delete();
+                object->DeleteFromDB();
+
+                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                del->setUInt64(0, guidLow);
+                WorldDatabase.Execute(del);
+
+                // Flood chat in case of too many gameobjects
+                //handler->PSendSysMessage(LANG_COMMAND_DELOBJMESSAGE, std::to_string(guidLow).c_str());
+
+            } while (getGuid->NextRow());
+
+            // Delete dupplication guid
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID);
+            psDupGuid->setUInt32(0, dupGuid);
+            WorldDatabase.Execute(psDupGuid);
+
+            handler->PSendSysMessage(LANG_DUPPLICATION_DELETE_SUCCESS, dupGuid);
+
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_DUPPLICATION_DELETE_ERROR, dupGuid);
+            return true;
+        }
+
+        return true;
+    }
+
+    static bool HandleGameObjectDuplicationPrivateCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " ");
+        uint32 dupEntry = atoi(pId);
+
+        char const* boolArg = strtok(NULL, "");
+
+        
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        stmt->setUInt32(0, dupEntry);
+        stmt->setUInt32(1, handler->GetSession()->GetAccountId());
+        PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
+
+        if (!duppAccount)
+        {
+            handler->PSendSysMessage(LANG_DUPPLICATION_ERROR_OR_PRIVATE, dupEntry);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        else
+        {
+            uint8 boolean = 0;
+
+            if (strncmp(boolArg, "on", 3) == 0)
+            {
+                handler->PSendSysMessage(LANG_DUPPLICATION_PRIVATE_ON, dupEntry);
+                boolean = 1;
+            }
+            else if (strncmp(boolArg, "off", 4) == 0)
+                handler->PSendSysMessage(LANG_DUPPLICATION_PRIVATE_OFF, dupEntry);
+            else
+            {
+                handler->SendSysMessage(LANG_USE_BOL);
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            updSkybox->setUInt32(0, boolean);
+            updSkybox->setUInt64(1, dupEntry);
+            WorldDatabase.Execute(updSkybox);
+
+            return true;
+        }
+
+    }
+
+    static bool HandleGameObjectDuplicationRemoveCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args)
+            return false;
+
+        char const* pId = strtok((char*)args, " ");
+        uint32 dupEntry = atoi(pId);
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        stmt->setUInt32(0, dupEntry);
+        stmt->setUInt32(1, handler->GetSession()->GetAccountId());
+        PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
+
+        if (!duppAccount)
+        {
+            handler->PSendSysMessage(LANG_DUPPLICATION_ERROR_OR_PRIVATE,dupEntry);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        else
+        {
+            // dupplication_template
+            PreparedStatement* psDupTemplate = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            psDupTemplate->setUInt32(0, dupEntry);
+            WorldDatabase.Execute(psDupTemplate);
+
+            // dupplication_doodads
+            PreparedStatement* psDupDoodads = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+            psDupDoodads->setUInt32(0, dupEntry);
+            WorldDatabase.Execute(psDupDoodads);
+
+            // dupplication_guid
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
+            psDupGuid->setUInt32(0, dupEntry);
+            WorldDatabase.Execute(psDupGuid);
+
+            handler->PSendSysMessage(LANG_DUPPLICATION_REMOVE_SUCCESS, dupEntry);
+        }
+
         return true;
     }
   
