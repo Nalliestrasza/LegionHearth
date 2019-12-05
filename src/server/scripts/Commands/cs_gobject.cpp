@@ -944,12 +944,12 @@ public:
             dupName = "Dupplication" + player->GetName();
 
         //2 DOODADS
-
-        // auto-increment
-        QueryResult lastId = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
-        Field* field = lastId->Fetch();
-        uint32 tId = field[0].GetUInt32();
+        // Guid Max select
+        PreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
+        PreparedQueryResult resultmax = WorldDatabase.Query(stmtmax);
+        uint32 tId = resultmax->Fetch()->GetUInt32();
         ++tId;
+
 
         // Doodads next to reference object
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
@@ -1043,7 +1043,7 @@ public:
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
         uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
-        //first parameter : dupp template id
+        //first parameter : dupplicate template id
         if (!*args)
             return false;
 
@@ -1235,7 +1235,9 @@ public:
         float duppZ = dupfields[6].GetFloat();
 
         // Supprimer au cas ou dupplication vide
-        QueryResult getGuid = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_LOG, duppGuid);
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
+        stmt->setUInt32(0, duppGuid);
+        PreparedQueryResult getGuid = WorldDatabase.Query(stmt);
         if (!getGuid)
         {
             // Delete dupplication guid
@@ -1299,8 +1301,9 @@ public:
 
 
         // Delete all objects
-
-        QueryResult getGuid = WorldDatabase.PQuery(WORLD_SEL_GAMEOBJECT_LOG, dupGuid);
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
+        stmt->setUInt32(0, dupGuid);
+        PreparedQueryResult getGuid = WorldDatabase.Query(stmt);
         if (getGuid)
         {
             do {
