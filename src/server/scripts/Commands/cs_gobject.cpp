@@ -1241,7 +1241,7 @@ public:
         if (!getGuid)
         {
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID);
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, duppGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1336,7 +1336,7 @@ public:
             } while (getGuid->NextRow());
 
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID);
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, dupGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1348,6 +1348,10 @@ public:
             handler->PSendSysMessage(LANG_DUPPLICATION_DELETE_ERROR, dupGuid);
             return true;
         }
+
+        // Clean DB
+        PreparedStatement* cleanDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS);
+        WorldDatabase.Execute(cleanDupGuid);
 
         return true;
     }
@@ -1434,7 +1438,7 @@ public:
             WorldDatabase.Execute(psDupDoodads);
 
             // dupplication_guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
+            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
             psDupGuid->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupGuid);
 

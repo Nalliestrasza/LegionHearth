@@ -188,11 +188,13 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS, "DELETE FROM gameobject_dupplication_doodads WHERE entry = ?", CONNECTION_ASYNC);
 
     // dupplication_guid
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID, "SELECT guid,entry,refObjGuid,nom,posX,posY,posZ, (POW(posX - ?, 2) + POW(posY - ?, 2) + POW(posZ - ?, 2)) AS order_ FROM gameobject_dupplication_guid WHERE mapID = ? ORDER BY order_ ASC LIMIT 1", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID, "SELECT guid,entry,refObjGuid,nom,posX,posY,posZ, (POW(posX - ?, 2) + POW(posY - ?, 2) + POW(posZ - ?, 2)) AS order_ FROM gameobject_dupplication_guid WHERE deleted = 0 AND mapID = ? ORDER BY order_ ASC LIMIT 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID, "INSERT INTO `gameobject_dupplication_guid` (`guid`, `entry`, `refObjGuid`, `nom`, `spawner`, `posX`, `posY`, `posZ`, `mapID`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID_MAX_ID, "SELECT MAX(guid) FROM gameobject_dupplication_guid", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID, "DELETE FROM gameobject_dupplication_guid WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_GUID_ENTRY, "DELETE FROM gameobject_dupplication_guid WHERE entry = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID, "UPDATE gameobject_dupplication_guid SET deleted = 1 WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY, "UPDATE gameobject_dupplication_guid SET deleted = 1 WHERE entry = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS, "DELETE FROM gameobject_dupplication_guid WHERE deleted = 1 AND guid NOT IN(SELECT guid FROM(SELECT guid FROM gameobject_dupplication_guid ORDER BY guid DESC LIMIT 1) del);", CONNECTION_ASYNC);
+    
 
     // dupplication | gameobject_logs
     PrepareStatement(WORLD_SEL_GAMEOBJECT_LOG, "SELECT guid from gameobject_log WHERE dupplicationGuid = ?", CONNECTION_SYNCH);
