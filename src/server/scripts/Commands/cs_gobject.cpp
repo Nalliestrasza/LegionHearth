@@ -1365,6 +1365,8 @@ public:
         uint32 dupEntry = atoi(pId);
 
         char const* boolArg = strtok(NULL, "");
+        if (!boolArg)
+            return false;
 
         
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
