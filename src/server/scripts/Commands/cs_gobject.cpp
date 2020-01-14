@@ -943,6 +943,15 @@ public:
         else
             dupName = "Dupplication" + player->GetName();
 
+        if (dupName.size() > 50)
+        {
+            handler->SendSysMessage(LANG_DUPPLICATION_CREATE_NAME_LONG);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+
+
         //2 DOODADS
         // auto-increment
         PreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
