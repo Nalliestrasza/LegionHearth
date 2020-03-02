@@ -928,7 +928,7 @@ public:
         uint32 range = atoul(scale_temp);
 
         // Security
-        if (range > 100)
+        if (range > 150)
         {
             handler->SendSysMessage(LANG_DUPPLICATION_CREATE_RANGE_ERR_FAR);
             handler->SetSentErrorMessage(true);
@@ -1161,6 +1161,11 @@ public:
                 float doodRotW = fields[9].GetFloat();
                 float doodDist = fields[10].GetFloat();
                 float doodAngle = fields[11].GetFloat();
+
+                // Check if object exists !
+                GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(doodEntry);
+                if (!objectInfo)
+                    continue;
 
                 // New angle calcul
                 float angle = (M_PI / 2) - (doodAngle - (player->GetOrientation() - refOrientation));
