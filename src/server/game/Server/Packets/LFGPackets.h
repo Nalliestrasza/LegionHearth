@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -227,6 +227,7 @@ namespace WorldPackets
             std::vector<uint32> Slots;
             uint32 RequestedRoles = 0;
             std::vector<ObjectGuid> SuspendedPlayers;
+            uint32 QueueMapID = 0;
             bool NotifyUI = false;
             bool IsParty = false;
             bool Joined = false;
@@ -269,7 +270,7 @@ namespace WorldPackets
             uint8 PartyIndex = 0;
             uint8 RoleCheckStatus = 0;
             std::vector<uint32> JoinSlots;
-            uint64 BgQueueID = 0;
+            std::vector<uint64> BgQueueIDs;
             int32 GroupFinderActivityID = 0;
             std::vector<LFGRoleCheckUpdateMember> Members;
             bool IsBeginning = false;
@@ -305,6 +306,7 @@ namespace WorldPackets
             uint8 Result = 0;
             uint8 ResultDetail = 0;
             std::vector<LFGJoinBlackList> BlackList;
+            std::vector<std::string const*> BlackListNames;
         };
 
         class LFGQueueStatus final : public ServerPacket

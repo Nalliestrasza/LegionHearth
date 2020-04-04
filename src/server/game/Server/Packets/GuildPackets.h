@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -78,6 +78,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             ObjectGuid GuildGuid;
+            ObjectGuid PlayerGuid;
             Optional<GuildInfo> Info;
         };
 
@@ -224,6 +225,18 @@ namespace WorldPackets
             std::string InviterName;
             std::string GuildName;
             std::string OldGuildName;
+        };
+
+        class GuildEventAwayChange final : public ServerPacket
+        {
+        public:
+            GuildEventAwayChange() : ServerPacket(SMSG_GUILD_EVENT_AWAY_CHANGE, 16 + 1) {  }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid Guid;
+            bool AFK = false;
+            bool DND = false;
         };
 
         class GuildEventPresenceChange final : public ServerPacket
@@ -430,7 +443,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            int32 RankID = 0;
+            uint8 RankID = 0;
             int32 RankOrder = 0;
             uint32 WithdrawGoldLimit = 0;
             uint32 Flags = 0;
@@ -484,8 +497,8 @@ namespace WorldPackets
 
         struct GuildRankData
         {
-            uint32 RankID = 0;
-            uint32 RankOrder = 0;
+            uint8 RankID = 0;
+            int32 RankOrder = 0;
             uint32 Flags = 0;
             uint32 WithdrawGoldLimit = 0;
             std::string RankName;
@@ -673,7 +686,7 @@ namespace WorldPackets
             uint32 ItemID = 0;
             uint32 Unk4 = 0;
             std::vector<uint32> AchievementsRequired;
-            uint64 RaceMask = 0;
+            Trinity::RaceMask<uint64> RaceMask = { 0 };
             int32 MinGuildLevel = 0;
             int32 MinGuildRep = 0;
             uint64 Cost = 0;
@@ -883,7 +896,7 @@ namespace WorldPackets
         class GuildBankTextQueryResult : public ServerPacket
         {
         public:
-            GuildBankTextQueryResult() : ServerPacket(SMSG_GUILD_BANK_TEXT_QUERY_RESULT, 5) { }
+            GuildBankTextQueryResult() : ServerPacket(SMSG_GUILD_BANK_TEXT_QUERY_RESULT, 4 + 2) { }
 
             WorldPacket const* Write() override;
 
@@ -1017,7 +1030,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            std::set<uint32> AchievementIDs;
+            Array<uint32, 10> AchievementIDs;
         };
 
         class GuildNameChanged final : ServerPacket

@@ -83,22 +83,18 @@ Read file [COPYING](COPYING).
 
 ## Authors &amp; Contributors
 
-Read file [THANKS](THANKS).
-test
+Read file [AUTHORS](AUTHORS).
+>>>>>>> 77154e0c030a1224a514d18e368b0ebbe7079d9d
 
 ## 8.3
 https://github.com/Kunena/Kunena-Forum/wiki/Create-a-new-branch-with-git-and-manage-branches
 
 ## Links
 
-
-[Site](http://www.trinitycore.org)
-
-[Wiki](http://trinitycore.info)
-
-[Documentation](http://www.trinitycore.net) (powered by Doxygen)
-
-[Forums](http://www.trinitycore.org/f/)
+* [Website](https://www.trinitycore.org)
+* [Wiki](https://www.trinitycore.info)
+* [Forums](https://community.trinitycore.org)
+* [Discord](https://discord.trinitycore.org/)
 
 [Undo commits] (https://www.youtube.com/watch?v=B5Ss4xNYWDY)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -22,8 +22,8 @@ DB2MetaField::DB2MetaField(DBCFormer type, uint8 arraySize, bool isSigned) : Typ
 {
 }
 
-DB2Meta::DB2Meta(int32 indexField, uint32 fieldCount, uint32 layoutHash, DB2MetaField const* fields, int32 parentIndexField)
-    : IndexField(indexField), ParentIndexField(parentIndexField), FieldCount(fieldCount), LayoutHash(layoutHash), Fields(fields)
+DB2Meta::DB2Meta(uint32 fileDataId, int32 indexField, uint32 fieldCount, uint32 fileFieldCount, uint32 layoutHash, DB2MetaField const* fields, int32 parentIndexField)
+    : FileDataId(fileDataId),IndexField(indexField), ParentIndexField(parentIndexField), FieldCount(fieldCount), FileFieldCount(fileFieldCount), LayoutHash(layoutHash), Fields(fields)
 {
 }
 
@@ -44,6 +44,12 @@ uint32 DB2Meta::GetRecordSize() const
     {
         for (uint8 j = 0; j < Fields[i].ArraySize; ++j)
         {
+            if (i >= FileFieldCount && int32(i) == ParentIndexField)
+            {
+                size += 4;
+                continue;
+            }
+
             switch (Fields[i].Type)
             {
                 case FT_BYTE:
@@ -74,6 +80,52 @@ uint32 DB2Meta::GetRecordSize() const
         size += 4;
 
     return size;
+}
+
+uint32 DB2Meta::GetIndexFieldOffset() const
+{
+    if (IndexField == -1)
+        return 0;
+
+    uint32 offset = 0;
+
+    for (int32 i = 0; i < IndexField; ++i)
+    {
+        for (uint8 j = 0; j < Fields[i].ArraySize; ++j)
+        {
+            if (i >= int32(FileFieldCount) && i == ParentIndexField)
+            {
+                offset += 4;
+                continue;
+            }
+
+            switch (Fields[i].Type)
+            {
+                case FT_BYTE:
+                    offset += 1;
+                    break;
+                case FT_SHORT:
+                    offset += 2;
+                    break;
+                case FT_FLOAT:
+                case FT_INT:
+                    offset += 4;
+                    break;
+                case FT_LONG:
+                    offset += 8;
+                    break;
+                case FT_STRING:
+                case FT_STRING_NOT_LOCALIZED:
+                    offset += sizeof(char*);
+                    break;
+                default:
+                    ASSERT(false, "Unsupported column type specified %c", Fields[i].Type);
+                    break;
+            }
+        }
+    }
+
+    return offset;
 }
 
 int32 DB2Meta::GetParentIndexFieldOffset() const
@@ -157,7 +209,7 @@ bool DB2Meta::IsSignedField(uint32 field) const
         default:
             break;
     }
-    if (field == uint32(IndexField))
+    if (field == uint32(IndexField) || field == uint32(ParentIndexField))
         return false;
 
     return Fields[field].IsSigned;

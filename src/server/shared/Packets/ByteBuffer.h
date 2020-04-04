@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -31,12 +30,12 @@ class MessageBuffer;
 class TC_SHARED_API ByteBufferException : public std::exception
 {
 public:
-    ~ByteBufferException() throw() { }
+    ~ByteBufferException() noexcept { }
 
-    char const* what() const throw() override { return msg_.c_str(); }
+    char const* what() const noexcept override { return msg_.c_str(); }
 
 protected:
-    std::string & message() throw() { return msg_; }
+    std::string& message() { return msg_; }
 
 private:
     std::string msg_;
@@ -47,7 +46,7 @@ class TC_SHARED_API ByteBufferPositionException : public ByteBufferException
 public:
     ByteBufferPositionException(size_t pos, size_t size, size_t valueSize);
 
-    ~ByteBufferPositionException() throw() { }
+    ~ByteBufferPositionException() noexcept { }
 };
 
 class TC_SHARED_API ByteBuffer
@@ -98,7 +97,7 @@ class TC_SHARED_API ByteBuffer
             return *this;
         }
 
-        ByteBuffer& operator=(ByteBuffer&& right)
+        ByteBuffer& operator=(ByteBuffer&& right) noexcept
         {
             if (this != &right)
             {
@@ -129,6 +128,11 @@ class TC_SHARED_API ByteBuffer
             static_assert(std::is_trivially_copyable<T>::value, "append(T) must be used with trivially copyable types");
             EndianConvert(value);
             append((uint8 *)&value, sizeof(value));
+        }
+
+        bool HasUnfinishedBitPack() const
+        {
+            return _bitpos != 8;
         }
 
         void FlushBits()
@@ -193,19 +197,6 @@ class TC_SHARED_API ByteBuffer
                     value |= (1 << (i));
 
             return value;
-        }
-
-        // Reads a byte (if needed) in-place
-        void ReadByteSeq(uint8& b)
-        {
-            if (b != 0)
-                b ^= read<uint8>();
-        }
-
-        void WriteByteSeq(uint8 b)
-        {
-            if (b != 0)
-                append<uint8>(b ^ 1);
         }
 
         template <typename T>
@@ -436,23 +427,24 @@ class TC_SHARED_API ByteBuffer
             _rpos += skip;
         }
 
-        template <typename T>
+        template <typename T, typename Underlying = T>
         T read()
         {
             ResetBitPos();
-            T r = read<T>(_rpos);
-            _rpos += sizeof(T);
+            T r = read<T, Underlying>(_rpos);
+            _rpos += sizeof(Underlying);
             return r;
         }
 
-        template <typename T>
+        template <typename T, typename Underlying = T>
         T read(size_t pos) const
         {
-            if (pos + sizeof(T) > size())
-                throw ByteBufferPositionException(pos, sizeof(T), size());
-            T val = *((T const*)&_storage[pos]);
+            if (pos + sizeof(Underlying) > size())
+                throw ByteBufferPositionException(pos, sizeof(Underlying), size());
+            Underlying val;
+            std::memcpy(&val, &_storage[pos], sizeof(Underlying));
             EndianConvert(val);
-            return val;
+            return static_cast<T>(val);
         }
 
         template<class T>

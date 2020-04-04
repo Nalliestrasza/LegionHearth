@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -138,7 +138,7 @@ namespace WorldPackets
             float POIx                      = 0.0f;
             float POIy                      = 0.0f;
             int32 POIPriority               = 0;
-            uint64 AllowableRaces           = UI64LIT(0xFFFFFFFFFFFFFFFF);
+            Trinity::RaceMask<uint64> AllowableRaces = { UI64LIT(0xFFFFFFFFFFFFFFFF) };
             std::string LogTitle;
             std::string LogDescription;
             std::string QuestDescription;
@@ -162,6 +162,8 @@ namespace WorldPackets
             int32 TimeAllowed               = 0;
             int32 TreasurePickerID          = 0;
             int32 Expansion                 = 0;
+            int32 ManagedWorldStateID       = 0;
+            int32 QuestSessionBonus         = 0;
             std::vector<QuestObjective> Objectives;
             int32 RewardItems[QUEST_REWARD_ITEM_COUNT] = { };
             int32 RewardAmount[QUEST_REWARD_ITEM_COUNT] = { };
@@ -371,6 +373,7 @@ namespace WorldPackets
             int32 PortraitGiver = 0;
             int32 PortraitGiverMount = 0;
             int32 QuestStartItemID = 0;
+            int32 QuestSessionBonus = 0;
             std::string PortraitGiverText;
             std::string PortraitGiverName;
             std::string PortraitTurnInText;
@@ -670,12 +673,17 @@ namespace WorldPackets
             int32 ChoiceArtFileID = 0;
             int32 Flags = 0;
             uint32 WidgetSetID = 0;
+            uint32 UiTextureAtlasElementID = 0;
+            uint32 SoundKitID = 0;
             uint8 GroupID = 0;
             std::string Answer;
             std::string Header;
+            std::string SubHeader;
+            std::string ButtonTooltip;
             std::string Description;
             std::string Confirmation;
             Optional<PlayerChoiceResponseReward> Reward;
+            Optional<uint32> RewardQuestID;
         };
 
         class DisplayPlayerChoice final : public ServerPacket
@@ -688,6 +696,7 @@ namespace WorldPackets
             ObjectGuid SenderGUID;
             int32 ChoiceID = 0;
             int32 UiTextureKitID = 0;
+            uint32 SoundKitID = 0;
             std::string Question;
             std::vector<PlayerChoiceResponse> Responses;
             bool CloseChoiceFrame = false;
