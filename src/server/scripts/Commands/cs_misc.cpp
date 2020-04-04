@@ -6766,6 +6766,9 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             return false;
 
         ObjectGuid::LowType guidLow = std::stoi(guidStr);
+        if (!guidLow)
+            return false;
+
         GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
 
         if (!object) {
