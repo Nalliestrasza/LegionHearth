@@ -98,7 +98,7 @@ DB2Storage<ConversationLineEntry>               sConversationLineStore("Conversa
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStoreRaw("CreatureDisplayInfo.db2", CreatureDisplayInfoLoadInfo::Instance());
 CreatureDisplayInfoStore                        sCreatureDisplayInfoStore;
 bool CreatureDisplayInfoStore::HasRecord(uint32 id) const { return sCreatureDisplayInfoStoreRaw.HasRecord(sObjectMgr->GetRealDisplayId(id)); }
-const CreatureDisplayInfoEntry* CreatureDisplayInfoStore::LookupEntry(uint32 id) const { return sCreatureDisplayInfoStoreRaw.LookupEntry(sObjectMgr->GetRealDisplayId(id)); }
+const CreatureDisplayInfoEntry * CreatureDisplayInfoStore::LookupEntry(uint32 id) const { return sCreatureDisplayInfoStoreRaw.LookupEntry(sObjectMgr->GetRealDisplayId(id)); }
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", CreatureDisplayInfoExtraLoadInfo::Instance());
 DB2Storage<CreatureFamilyEntry>                 sCreatureFamilyStore("CreatureFamily.db2", CreatureFamilyLoadInfo::Instance());
 DB2Storage<CreatureModelDataEntry>              sCreatureModelDataStore("CreatureModelData.db2", CreatureModelDataLoadInfo::Instance());
