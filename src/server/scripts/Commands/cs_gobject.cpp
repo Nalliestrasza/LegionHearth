@@ -197,7 +197,7 @@ public:
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
         uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);
@@ -443,7 +443,7 @@ public:
         object->DeleteFromDB();
 
         //Del from gameobject_raz
-        PreparedStatement* gobLog = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* gobLog = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
         gobLog->setUInt64(0, guidLow);
         WorldDatabase.Execute(gobLog);
 
@@ -890,7 +890,7 @@ public:
                 object->Delete();
                 object->DeleteFromDB();
 
-                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
@@ -970,14 +970,14 @@ public:
 
         //2 DOODADS
         // auto-increment
-        PreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
+        WorldDatabasePreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
         PreparedQueryResult resultmax = WorldDatabase.Query(stmtmax);
         uint32 tId = resultmax->Fetch()->GetUInt32();
         ++tId;
 
 
         // Doodads next to reference object
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
         stmt->setFloat(0, object->GetPositionX());
         stmt->setFloat(1, object->GetPositionY());
         stmt->setFloat(2, object->GetPositionZ());
@@ -999,7 +999,7 @@ public:
             }
 
             //test query
-            PreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             insertdup->setUInt32(0, tId);
             insertdup->setString(1, dupName);
             insertdup->setUInt32(2, spawnerAccountId);
@@ -1029,7 +1029,7 @@ public:
                 // Don't add the reference object to doodad list
                 if (guidLow != guid)
                 {
-                    PreparedStatement* insertdood = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS);
+                    WorldDatabasePreparedStatement* insertdood = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS);
                     insertdood->setUInt32(0, tId);
                     insertdood->setUInt32(1, entry);
                     insertdood->setFloat(2, x - object->GetPositionX());
@@ -1075,7 +1075,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         uint32 dupId = atoi(pId);
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
         stmt->setUInt32(0, dupId);
         PreparedQueryResult duppTemplate = WorldDatabase.Query(stmt);
 
@@ -1136,7 +1136,7 @@ public:
         uint32 dupplicationGuid = result->Fetch()->GetUInt32();
 
         // Create point
-        PreparedStatement* duppGuid = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* duppGuid = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID);
         duppGuid->setUInt32(0, dupplicationGuid + 1);
         duppGuid->setUInt32(1, dupId);
         duppGuid->setUInt64(2, spawnId);
@@ -1149,7 +1149,7 @@ public:
         WorldDatabase.Execute(duppGuid);
 
         // Log
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);
@@ -1157,7 +1157,7 @@ public:
         WorldDatabase.Execute(gobInfo);
 
 
-        PreparedStatement* stmt2 = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+        WorldDatabasePreparedStatement* stmt2 = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS);
         stmt2->setUInt32(0, dupId);
         PreparedQueryResult duppDoodads = WorldDatabase.Query(stmt2);
         if (duppDoodads)
@@ -1223,7 +1223,7 @@ public:
                 sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
 
                 // Log
-                PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
+                WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
                 gobInfo->setUInt64(0, spawnId);
                 gobInfo->setUInt32(1, spawnerAccountId);
                 gobInfo->setUInt64(2, spawnerGuid);
@@ -1241,7 +1241,7 @@ public:
     {
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
@@ -1271,7 +1271,7 @@ public:
         if (!getGuid)
         {
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, duppGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1331,7 +1331,7 @@ public:
 
 
         // Delete all objects
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
         stmt->setUInt32(0, dupGuid);
         PreparedQueryResult getGuid = WorldDatabase.Query(stmt);
         if (getGuid)
@@ -1356,7 +1356,7 @@ public:
                 object->Delete();
                 object->DeleteFromDB();
 
-                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
@@ -1366,7 +1366,7 @@ public:
             } while (getGuid->NextRow());
 
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, dupGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1380,7 +1380,7 @@ public:
         }
 
         // Clean DB
-        PreparedStatement* cleanDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS);
+        WorldDatabasePreparedStatement* cleanDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS);
         WorldDatabase.Execute(cleanDupGuid);
 
         return true;
@@ -1399,7 +1399,7 @@ public:
             return false;
 
         
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
         stmt->setUInt32(0, dupEntry);
         stmt->setUInt32(1, handler->GetSession()->GetAccountId());
         PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
@@ -1428,7 +1428,7 @@ public:
                 return false;
             }
 
-            PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             updSkybox->setUInt32(0, boolean);
             updSkybox->setUInt64(1, dupEntry);
             WorldDatabase.Execute(updSkybox);
@@ -1446,7 +1446,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         uint32 dupEntry = atoi(pId);
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
         stmt->setUInt32(0, dupEntry);
         stmt->setUInt32(1, handler->GetSession()->GetAccountId());
         PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
@@ -1460,17 +1460,17 @@ public:
         else
         {
             // dupplication_template
-            PreparedStatement* psDupTemplate = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* psDupTemplate = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             psDupTemplate->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupTemplate);
 
             // dupplication_doodads
-            PreparedStatement* psDupDoodads = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+            WorldDatabasePreparedStatement* psDupDoodads = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS);
             psDupDoodads->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupDoodads);
 
             // dupplication_guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
             psDupGuid->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupGuid);
 

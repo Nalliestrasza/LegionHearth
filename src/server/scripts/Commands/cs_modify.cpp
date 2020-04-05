@@ -557,7 +557,7 @@ public:
 				if (!checkSaved)
 				{
 					//Permamorph !
-					PreparedStatement* getScale = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASCALE);
+					WorldDatabasePreparedStatement* getScale = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASCALE);
 					getScale->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 					getScale->setFloat(1, Scale);
 					WorldDatabase.Execute(getScale);
@@ -565,7 +565,7 @@ public:
 				}
 				else
 				{
-					PreparedStatement* updScale = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASCALE);
+                    WorldDatabasePreparedStatement* updScale = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASCALE);
 					updScale->setFloat(0, Scale);
 					updScale->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 					WorldDatabase.Execute(updScale);
@@ -854,7 +854,7 @@ public:
 		    if (!checkSaved)
 		    {
 			    //Permamorph !
-			    PreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
+			    WorldDatabasePreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
 			    getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 			    getDisplay->setUInt32(1, display_id);
 			    WorldDatabase.Execute(getDisplay);
@@ -862,7 +862,7 @@ public:
 		    }
 		    else
 		    {
-			    PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+                WorldDatabasePreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
 			    updDisplay->setUInt32(0, display_id);
 			    updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 			    WorldDatabase.Execute(updDisplay);
@@ -1012,7 +1012,7 @@ public:
 
         if (target == handler->GetSession()->GetPlayer())
         {
-		    PreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
+		    WorldDatabasePreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
 		    updDisplay->setUInt32(0, 0);
 		    updDisplay->setUInt32(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
 		    WorldDatabase.Execute(updDisplay);

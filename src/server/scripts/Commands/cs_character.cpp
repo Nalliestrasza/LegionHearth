@@ -1107,6 +1107,7 @@ public:
 
     static bool HandleCharacterSetRaceCommand(ChatHandler* handler, char const* args)
     {
+        /*
         if (!*args)
         {
             handler->PSendSysMessage(LANG_BAD_SET_RACE_COMMAND);
@@ -1305,12 +1306,14 @@ public:
 
         sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), gender, IdRace);
 
+        */
         return true;
 
     }
 
     static bool HandleCharacterSetClassCommand(ChatHandler* handler, char const* args)
     {
+        /*
         if (!*args)
         {
             handler->PSendSysMessage(LANG_BAD_SET_CLASS_COMMAND);
@@ -1394,8 +1397,7 @@ public:
         }
 
         // Change class
-        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, IdClass);
-        player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_PLAYER_CLASS, IdClass);
+        player->SetClass(IdClass);
 
         // Save
         player->SaveToDB();
@@ -1405,8 +1407,8 @@ public:
             session->KickPlayer();
 
         // Infos
-        sWorld->UpdateCharacterInfo(player->GetGUID(), player->GetName().c_str(), player->getGender(), player->getRace());
-
+        sCharacterCache->UpdateCharacterData(player->GetGUID(), player->GetName().c_str(), &player->getGender, &player->getRace);
+        */
         return true;
 
     }

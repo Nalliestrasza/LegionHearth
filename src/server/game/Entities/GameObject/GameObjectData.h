@@ -949,18 +949,6 @@ struct GameObjectLocale
     std::vector<std::string> Unk1;
 };
 
-struct TC_GAME_API QuaternionData
-{
-    float x, y, z, w;
-
-    QuaternionData() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
-    QuaternionData(float X, float Y, float Z, float W) : x(X), y(Y), z(Z), w(W) {}
-
-    bool isUnit() const;
-    void toEulerAnglesZYX(float& Z, float& Y, float& X) const;
-    static QuaternionData fromEulerAnglesZYX(float Z, float Y, float X);
-};
-
 // `gameobject_addon` table
 struct GameObjectAddon
 {

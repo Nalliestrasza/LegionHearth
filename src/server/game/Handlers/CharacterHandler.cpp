@@ -2015,7 +2015,6 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
                     stmt->setUInt16(1, 791);
                     break;
                 case RACE_UNDEAD_PLAYER:
-                case RACE_THIN_HUMAN:
                     stmt->setUInt16(1, 673);
                     break;
                 case RACE_TAUREN:

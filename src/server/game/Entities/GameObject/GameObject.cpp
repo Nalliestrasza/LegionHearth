@@ -95,7 +95,6 @@ WorldPacket GameObjectTemplate::BuildQueryData(LocaleConstant loc) const
 
     return *queryTemp.Write();
 }
->>>>>>> 77154e0c030a1224a514d18e368b0ebbe7079d9d
 
 bool QuaternionData::isUnit() const
 {
@@ -1883,7 +1882,7 @@ void GameObject::Use(Unit* user)
 			//GOB TELEPORTER CUSTOM
 			if (info->entry > 10000000)
 			{
-				PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_TELE);
+                WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_TELE);
 				stmt->setUInt64(0, info->entry);
 				PreparedQueryResult result = WorldDatabase.Query(stmt);
 				

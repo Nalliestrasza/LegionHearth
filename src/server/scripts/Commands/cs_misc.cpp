@@ -2113,7 +2113,7 @@ public:
                 handler->PSendSysMessage(LANG_PINFO_CHR_MAILS, readmail, totalmail);
         }
 
-        PreparedStatement* stmt5 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_SEND);
+        CharacterDatabasePreparedStatement* stmt5 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_SEND);
         stmt5->setUInt64(0, lowguid);
         PreparedQueryResult result7 = CharacterDatabase.Query(stmt5);
         if (result7) {
@@ -2128,7 +2128,7 @@ public:
             } while (result7->NextRow());
         }
 
-        PreparedStatement* stmt6 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_RECEIVE);
+        CharacterDatabasePreparedStatement* stmt6 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_MAILINFO_RECEIVE);
         stmt6->setUInt64(0, lowguid);
         PreparedQueryResult result8 = CharacterDatabase.Query(stmt6);
         if (result8) {
@@ -3513,7 +3513,7 @@ public:
 
         if (argstr == "alliance")
         {
-            player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, RACE_PANDAREN_ALLIANCE);
+            player->SetRace(RACE_PANDAREN_ALLIANCE);
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
@@ -3521,7 +3521,7 @@ public:
         }
         else if (argstr == "horde")
         {
-            player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, RACE_PANDAREN_HORDE);
+            player->SetRace(RACE_PANDAREN_HORDE);
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
@@ -3992,7 +3992,7 @@ public:
         if (!target || target && target->IsPlayer()) {
 
             //Query
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARSINFO);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARSINFO);
             stmt->setUInt64(0, guid);
             PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -4034,11 +4034,8 @@ public:
             // Stolen code from SpellHandler
             for (EquipmentSlots slot : itemSlots)
             {
-                uint32 itemDisplayId;
-                if ((slot == EQUIPMENT_SLOT_HEAD && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM)) ||
-                    (slot == EQUIPMENT_SLOT_BACK && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK)))
-                    itemDisplayId = 0;
-                else if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+                uint32 itemDisplayId; 
+                if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
                 {
                     itemDisplayId = item->GetDisplayId(player);
 
@@ -4361,8 +4358,7 @@ public:
         }
         else
         {
-
-            PreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
+            HotfixDatabasePreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
             map->setUInt32(0, tId);
             if (tId < 5000 || tId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
@@ -4381,7 +4377,7 @@ public:
             HotfixDatabase.Execute(map);
 
             // hotfix_data
-            PreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
+            HotfixDatabasePreparedStatement* data = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE_DATA);
             data->setUInt32(0, tId);
             data->setUInt32(1, tId);
             HotfixDatabase.Execute(data);
@@ -4391,13 +4387,13 @@ public:
             ObjectGuid::LowType pGuid = UI64LIT(0);
             pGuid = handler->GetSession()->GetAccountId();
 
-            PreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
+            WorldDatabasePreparedStatement* owner = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
             owner->setUInt32(0, tId);
             owner->setUInt64(1, pGuid);
             WorldDatabase.Execute(owner);
 
             //phase allow
-            PreparedStatement* allow = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_ALLOW);
+            WorldDatabasePreparedStatement* allow = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_ALLOW);
             allow->setUInt32(0, tId);
             allow->setUInt64(1, pGuid);
             WorldDatabase.Execute(allow);
@@ -4429,7 +4425,7 @@ public:
             }
 
             //phaseown_map add for lookup phase own/aut
-            PreparedStatement* insertphaseown = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASEOWN_MAP);
+            WorldDatabasePreparedStatement* insertphaseown = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASEOWN_MAP);
             insertphaseown->setFloat(0, player->GetPositionX());
             insertphaseown->setFloat(1, player->GetPositionY());
             insertphaseown->setFloat(2, player->GetPositionZ());
@@ -4452,7 +4448,6 @@ public:
         // Define ALL the player variables!
         Player* target;
         ObjectGuid targetGuid;
-        PreparedStatement* stmt = NULL;
 
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
@@ -4471,7 +4466,7 @@ public:
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
             return false;
 
-        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
+        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
         target = ObjectAccessor::FindConnectedPlayer(targetGuid);
 
         std::string nameLink = handler->playerLink(pName);
@@ -4513,11 +4508,11 @@ public:
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
 
-                QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 if (alreadyInvit)
                     return false;
 
@@ -4543,7 +4538,7 @@ public:
                         sDB2Manager.LoadHotfixData();
                         sMapStore.LoadFromDB();
                         sMapStore.LoadStringsFromDB(2); // locale frFR 
-                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
                     }
 
                     return true;
@@ -4577,9 +4572,9 @@ public:
                 if (OwnerId == handler->GetSession()->GetAccountId())
                 {
                     // ajouter
-                    PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+                    WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
                     invit->setUInt32(0, phaseId);
-                    invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                    invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                     WorldDatabase.Execute(invit);
 
                     handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
@@ -4640,7 +4635,7 @@ public:
         if (!checkSaved)
         {
             //Permamorph !
-            PreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
+            WorldDatabasePreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
             getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
             getSkybox->setUInt32(1, replaceID);
             WorldDatabase.Execute(getSkybox);
@@ -4648,7 +4643,7 @@ public:
         }
         else
         {
-            PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
+            WorldDatabasePreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
             updSkybox->setUInt32(0, replaceID);
             updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
             WorldDatabase.Execute(updSkybox);
@@ -4680,7 +4675,7 @@ public:
         sMapStore.LoadStringsFromDB(2); // locale frFR 
 
         // Send Packet to the Player
-        handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+        handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
         handler->PSendSysMessage(LANG_PHASE_INI);
 
         // Send Terrain Swap to the player
@@ -4742,7 +4737,7 @@ public:
         if (accId == handler->GetSession()->GetAccountId())
         {
 
-            PreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
+            WorldDatabasePreparedStatement* swap = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_TERRAIN);
             swap->setUInt32(0, mapId);
             swap->setUInt32(1, terrainMap);
             WorldDatabase.Execute(swap);
@@ -4808,7 +4803,7 @@ public:
 		if (accId == handler->GetSession()->GetAccountId())
 		{
 
-			PreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
+            WorldDatabasePreparedStatement* remove = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_TERRAIN);
 			remove->setUInt32(0, mapId);
 			remove->setUInt32(1, terrainMap);
 			WorldDatabase.Execute(remove);
@@ -4999,7 +4994,7 @@ static bool HandleDeniedCommand(ChatHandler* handler, const char* args)
 
     else
     {
-        PreparedStatement* addPerm = LoginDatabase.GetPreparedStatement(LOGIN_INS_DENIED_PERMISSION);
+        LoginDatabasePreparedStatement* addPerm = LoginDatabase.GetPreparedStatement(LOGIN_INS_DENIED_PERMISSION);
         addPerm->setUInt32(0, accountId);
         addPerm->setUInt32(1, permission);
         LoginDatabase.Execute(addPerm);
@@ -5033,7 +5028,7 @@ static bool HandleCreateTicketCommand(ChatHandler* handler, const char* args)
         ++tId;
   
 
-    PreparedStatement* sendTicket = WorldDatabase.GetPreparedStatement(WORLD_INS_NEW_TICKET);
+    WorldDatabasePreparedStatement* sendTicket = WorldDatabase.GetPreparedStatement(WORLD_INS_NEW_TICKET);
     sendTicket->setUInt32(0, tId);
     sendTicket->setString(1, msg);
     sendTicket->setString(2, playerName.c_str());
@@ -5452,7 +5447,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             if (accId == handler->GetSession()->GetAccountId())
             {
-                PreparedStatement* updateTicket = WorldDatabase.GetPreparedStatement(WORLD_UPD_CANCEL_TICKET);
+                WorldDatabasePreparedStatement* updateTicket = WorldDatabase.GetPreparedStatement(WORLD_UPD_CANCEL_TICKET);
                 updateTicket->setUInt32(0, ticketId);
                 WorldDatabase.Execute(updateTicket);
 
@@ -5566,7 +5561,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
                     uint16 toDelete = result[0].GetUInt16();
 
-                    PreparedStatement* deleteLookupEntry = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASEOWN_MAP);
+                    WorldDatabasePreparedStatement* deleteLookupEntry = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASEOWN_MAP);
                     deleteLookupEntry->setUInt16(0, toDelete);
                     WorldDatabase.Execute(deleteLookupEntry);
 
@@ -5594,7 +5589,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         // Define ALL the player variables!
         Player* target;
         ObjectGuid targetGuid;
-        PreparedStatement* stmt = NULL;
 
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
@@ -5612,7 +5606,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
             return false;
 
-        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
+        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
         target = ObjectAccessor::FindConnectedPlayer(targetGuid);
 
         std::string nameLink = handler->playerLink(pName);
@@ -5651,11 +5645,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
 
-                QueryResult alreadyDel = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                QueryResult alreadyDel = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 if (!alreadyDel)
                     return false;
 
@@ -5685,7 +5679,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
                         sDB2Manager.LoadHotfixData();
                         sMapStore.LoadFromDB();
                         sMapStore.LoadStringsFromDB(2); // locale frFR 
-                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
                         target->TeleportTo(mapId, x, y, z, o);
           
                     }
@@ -5719,9 +5713,9 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 WorldDatabase.Execute(invit);
 
                 //handler->PSendSysMessage(LANG_PHASE_INVITE_DEL_TARGET, phaseId, ownerLink);
@@ -5746,7 +5740,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         // Define ALL the player variables!
         Player* target;
         ObjectGuid targetGuid;
-        PreparedStatement* stmt = NULL;
 
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
@@ -5764,7 +5757,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
             return false;
 
-        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
+        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
         target = ObjectAccessor::FindConnectedPlayer(targetGuid);
 
         std::string nameLink = handler->playerLink(pName);
@@ -5798,11 +5791,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
 
-                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 if (alreadyExist)
                     return false;
 
@@ -5847,9 +5840,9 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_INVITE_OWNER, nameLink);
@@ -5874,7 +5867,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         // Define ALL the player variables!
         Player* target;
         ObjectGuid targetGuid;
-        PreparedStatement* stmt = NULL;
 
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
@@ -5892,7 +5884,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
             return false;
 
-        targetGuid = ObjectMgr::GetPlayerGUIDByName(pName.c_str());
+        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
         target = ObjectAccessor::FindConnectedPlayer(targetGuid);
 
         std::string nameLink = handler->playerLink(pName);
@@ -5926,11 +5918,11 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
 
-                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, ObjectMgr::GetPlayerAccountIdByPlayerName(target->GetSession()->GetPlayerName().c_str()));
+                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 if (!alreadyExist)
                     return false;
 
@@ -5975,9 +5967,9 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             if (OwnerId == handler->GetSession()->GetAccountId())
             {
                 // ajouter
-                PreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
+                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
                 invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, ObjectMgr::GetPlayerAccountIdByPlayerName(pName.c_str()));
+                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
                 WorldDatabase.Execute(invit);
 
                 handler->PSendSysMessage(LANG_PHASE_DEL_OWNER, nameLink);
@@ -6016,7 +6008,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             if (accId == handler->GetSession()->GetAccountId())
             {
-                PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
+                WorldDatabasePreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
                 set->setUInt16(0, 1);
                 set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
                 WorldDatabase.Execute(set);
@@ -6055,7 +6047,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             if (accId == handler->GetSession()->GetAccountId())
             {
-                PreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
+                WorldDatabasePreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
                 set->setUInt16(0, 0);
                 set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
                 WorldDatabase.Execute(set);
@@ -6585,9 +6577,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         if (type == POWER_MANA)
         {
-            uint32 index = target->GetPowerIndex(POWER_MANA);
-            target->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
-            target->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+            target->UpdateManaRegen();
         }
 
         handler->PSendSysMessage("Points de mana de %s : %d / %u", target->GetName().c_str(), value, target->GetMaxPower(type));
@@ -6633,9 +6623,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         if (receiver->GetPowerType() == POWER_MANA)
         {
-            uint32 index = receiver->GetPowerIndex(POWER_MANA);
-            receiver->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
-            receiver->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+            receiver->UpdateManaRegen();
         }
 
         handler->PSendSysMessage("Points de vie de %s : %d / %u", target->GetName().c_str(), value, receiver->GetMaxHealth());
@@ -6678,9 +6666,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
             if (hasMana)
             {
-                uint32 index = player->GetPowerIndex(POWER_MANA);
-                player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER + index, 0.0f);
-                player->SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER + index, 0.0f);
+                player->UpdateManaRegen();
             }
 
             handler->SendSysMessage("Regeneration OFF");
@@ -6909,7 +6895,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
         uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);

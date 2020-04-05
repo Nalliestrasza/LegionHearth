@@ -1364,8 +1364,6 @@ public:
 		sItemLimitCategoryStore.LoadFromDB();
 		sItemModifiedAppearanceStore.LoadFromDB();
 		sItemPriceBaseStore.LoadFromDB();
-		sItemRandomPropertiesStore.LoadFromDB();
-		sItemRandomSuffixStore.LoadFromDB();
 		sItemSearchNameStore.LoadFromDB();
 		sItemSetStore.LoadFromDB();
 		sItemSetSpellStore.LoadFromDB();
@@ -1373,7 +1371,6 @@ public:
 		sItemSparseStore.LoadStringsFromDB(2); // locale frFR
 		sItemSpecStore.LoadFromDB();
 		sItemSpecOverrideStore.LoadFromDB();
-		sItemUpgradeStore.LoadFromDB();
 		sLFGDungeonsStore.LoadFromDB();
 		sLiquidTypeStore.LoadFromDB();
 		sLockStore.LoadFromDB();
@@ -1446,7 +1443,6 @@ public:
 		sVehicleStore.LoadFromDB();
 		sVehicleSeatStore.LoadFromDB();
 		sWorldMapOverlayStore.LoadFromDB();
-		sWorldSafeLocsStore.LoadFromDB();
 
 		// For items.
 		sObjectMgr->LoadItemTemplates();
@@ -1459,7 +1455,7 @@ public:
 
 		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
 		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-		itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixData()).Write());
+        itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
 		
 		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
 		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");

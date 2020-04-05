@@ -1163,12 +1163,12 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
 
     if (selectFaction.FactionChoice == JOIN_ALLIANCE)
     {
-        _player->SetByteValue(UNIT_FIELD_BYTES_0, 0, RACE_PANDAREN_ALLIANCE);
+        _player->SetRace(RACE_PANDAREN_ALLIANCE);
         _player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
         _player->LearnSpell(668, false);            // Language Common
         _player->LearnSpell(108130, false);         // Language Pandaren Alliance
         //_player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
-        _player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, RACE_PANDAREN_ALLIANCE);
+        _player->SetRace(RACE_PANDAREN_ALLIANCE);
         _player->setFaction(2);
         _player->SaveToDB();
 
@@ -1177,12 +1177,12 @@ void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& 
     }
     else if (selectFaction.FactionChoice == JOIN_HORDE)
     {
-        _player->SetByteValue(UNIT_FIELD_BYTES_0, 0, RACE_PANDAREN_HORDE);
+        _player->SetRace(RACE_PANDAREN_HORDE);
         _player->setFactionForRace(RACE_PANDAREN_HORDE);
         _player->LearnSpell(669, false);            // Language Orcish
         _player->LearnSpell(108131, false);         // Language Pandaren Horde
         //_player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
-        _player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, RACE_PANDAREN_HORDE);
+        _player->SetRace(RACE_PANDAREN_HORDE);
         _player->setFaction(1);
         _player->SaveToDB();
 

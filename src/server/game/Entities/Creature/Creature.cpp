@@ -628,9 +628,16 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/,
     return true;
 }
 
+// copy paste from ClearChangesMask
+template<typename Derived, typename T, uint32 BlockBit, uint32 Bit>
+static uint32 GetUpdateFieldHolderIndex(UF::UpdateField<T, BlockBit, Bit>(Derived::* /*field*/))
+{
+    return Bit;
+}
+
 void Creature::Update(uint32 diff)
 {
-    if (m_outfit && _changesMask[UNIT_FIELD_DISPLAYID] != 1 && Unit::GetDisplayId() == CreatureOutfit::invisible_model)
+    if (m_outfit && !m_values.HasChanged(GetUpdateFieldHolderIndex(&UF::UnitData::DisplayID)) && Unit::GetDisplayId() == CreatureOutfit::invisible_model)
     {
         // has outfit, displayid is invisible and displayid update already sent to clients
         // set outfit display

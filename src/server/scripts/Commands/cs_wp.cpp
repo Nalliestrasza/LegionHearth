@@ -1137,7 +1137,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT move_type FROM waypoint_data WHERE id = %u", wpId);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_MOVETYPE);
+			WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_MOVETYPE);
 			stmt->setUInt64(0, wpId); // id
 			stmt->setUInt64(1, pathId); // PathID
 			stmt->setUInt8(2, moveType); // move_type
@@ -1147,7 +1147,7 @@ public:
 		else
 		{
 			// dans le cas ou le joueur souhaite définir un autre type de marche 
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_MOVETYPE);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_MOVETYPE);
 			stmt->setUInt8(0, moveType); // move_type
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
@@ -1206,7 +1206,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT delay FROM waypoint_data WHERE id = %u", wpId);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
 			stmt->setUInt64(0, wpId); // id
 			stmt->setUInt64(1, pathId); // PathID
 			stmt->setUInt32(2, delay * 1000); // delay + *1000 for miliseconds
@@ -1216,7 +1216,7 @@ public:
 		else
 		{
 			// dans le cas ou le joueur souhaite changer le delay
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
 			stmt->setUInt32(0, delay * 1000); //  delay * 1000 for miliseconds
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
@@ -1243,7 +1243,7 @@ public:
 			handler->PSendSysMessage(LANG_RANDOM_MESSAGE, "pathId");
 			return false;
 		}
-		PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_LOOKUP); // SELECT * FROM waypoint_data WHERE id = %u", pathId);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_LOOKUP); // SELECT * FROM waypoint_data WHERE id = %u", pathId);
 		stmt->setUInt32(0, pathId);
 		PreparedQueryResult result = WorldDatabase.Query(stmt);
 		if (!result)

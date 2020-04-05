@@ -189,7 +189,7 @@ public:
 
     bool OnGossipHello(Player* player, GameObject* go) override
     {
-        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+        go->AddFlag(GO_FLAG_NOT_SELECTABLE);
         go->SetGoState(GO_STATE_ACTIVE);
 
         if (InstanceScript* instance = go->GetInstanceScript())

@@ -428,7 +428,7 @@ public:
                 handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
             }
 
-            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
             npcInfo->setUInt64(0, guid);
             npcInfo->setUInt32(1, spawnerAccountId);
             npcInfo->setUInt64(2, spawnerGuid);
@@ -464,7 +464,7 @@ public:
             handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
         }
 
-        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
         npcInfo->setUInt64(0, db_guid);
         npcInfo->setUInt32(1, spawnerAccountId);
         npcInfo->setUInt64(2, spawnerGuid);
@@ -1928,21 +1928,21 @@ public:
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
-		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
+        target->SetEmoteState(Emote(emote));
 
 		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIM);
+			WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIM);
 			stmt->setUInt64(0, guidLow);
 			stmt->setUInt32(1, emote);
 			WorldDatabase.Execute(stmt);
 		}
 		else
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIM);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIM);
 			stmt->setUInt32(0, emote);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -1976,14 +1976,14 @@ public:
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
         {
-            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
             stmt->setUInt64(0, guidLow);
             stmt->setUInt16(1, animkit);
             WorldDatabase.Execute(stmt);
         }
         else
         {
-            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
             stmt->setUInt16(0, animkit);
             stmt->setUInt64(1, guidLow);
             WorldDatabase.Execute(stmt);
@@ -2039,7 +2039,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql && spellId != 0)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_AURA);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_AURA);
 			stmt->setUInt64(0, guidLow);
 			stmt->setString(1, auraString);
 			WorldDatabase.Execute(stmt);
@@ -2054,7 +2054,7 @@ public:
 				auras = fsheat[0].GetString() + ' ' + auraString;
 			}
 
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
 			stmt->setString(0, auras);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -2090,14 +2090,14 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_MOUNT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_MOUNT);
 			stmt->setUInt64(0, guidLow);
 			stmt->setUInt32(1, mount);
 			WorldDatabase.Execute(stmt);
 		}
 		else
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_MOUNT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_MOUNT);
 			stmt->setUInt32(0, mount);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -2172,7 +2172,7 @@ public:
             creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, { map->GetDifficultyID() });
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
-            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
             npcInfo->setUInt64(0, guid);
             npcInfo->setUInt32(1, spawnerAccountId);
             npcInfo->setUInt64(2, spawnerGuid);
@@ -2200,7 +2200,7 @@ public:
             return false;
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
-        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
         npcInfo->setUInt64(0, db_guid);
         npcInfo->setUInt32(1, spawnerAccountId);
         npcInfo->setUInt64(2, spawnerGuid);
@@ -2230,7 +2230,7 @@ public:
                 object->DeleteFromDB();
                 object->AddObjectToRemoveList();
 
-                PreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
