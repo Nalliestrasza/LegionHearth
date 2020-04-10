@@ -84,7 +84,6 @@ Read file [COPYING](COPYING).
 ## Authors &amp; Contributors
 
 Read file [AUTHORS](AUTHORS).
->>>>>>> 77154e0c030a1224a514d18e368b0ebbe7079d9d
 
 ## 8.3
 https://github.com/Kunena/Kunena-Forum/wiki/Create-a-new-branch-with-git-and-manage-branches
