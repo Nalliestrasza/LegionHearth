@@ -4348,6 +4348,10 @@ public:
 			return false;
 		}
 
+ 
+
+   
+
         // check if parentmap values is an existing map	
         MapEntry const* mapEntry = sMapStore.LookupEntry(pMap);
         if (!mapEntry)
@@ -4367,11 +4371,14 @@ public:
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
                 handler->SetSentErrorMessage(true);
                 return false;
-
             }
 
             map->setUInt32(1, pMap);
             map->setUInt32(2, pMap);
+            if (mapEntry->WdtFile() == 0)
+                handler->PSendSysMessage("Impossible de copier cette map, Von Nigger");
+            else
+                map->setInt32(3, mapEntry->WdtFile());
 
 
             HotfixDatabase.Execute(map);

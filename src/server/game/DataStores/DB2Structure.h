@@ -2082,6 +2082,7 @@ struct MapEntry
 
     // Helpers
     uint8 Expansion() const { return ExpansionID; }
+    int32 WdtFile() const { return WdtFileDataID; } // 11.04.2020, we need the wdt file data id for the phase creation.
 
    // bool IsDungeon() const { return (InstanceType == MAP_INSTANCE || InstanceType == MAP_RAID || InstanceType == MAP_SCENARIO) && !IsGarrison(); }
     bool IsDungeon() const { return (InstanceType == MAP_INSTANCE || InstanceType == MAP_RAID || IsLabyrinthe()) && !IsGarrison(); }
