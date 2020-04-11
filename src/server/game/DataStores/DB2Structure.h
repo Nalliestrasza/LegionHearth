@@ -498,13 +498,14 @@ struct CharHairGeosetsEntry
     uint8 RaceID;
     uint8 SexID;
     int8 VariationID;
-    uint8 GeosetID;
+    int8 GeosetID;
     uint8 Showscalp;
     int8 VariationType;
     int8 GeosetType;
     int8 ColorIndex;
     int32 CustomGeoFileDataID;
     int32 HdCustomGeoFileDataID;
+    int8 unk83;
 };
 
 struct CharSectionsEntry
@@ -1692,7 +1693,6 @@ struct ItemDisenchantLootEntry
 struct ItemDisplayInfoEntry
 {
     int32 ID;
-    int32 ModelType1;
     int32 ItemVisual;
     int32 ParticleColorID;
     uint32 ItemRangedDisplayInfoID;
@@ -1706,6 +1706,8 @@ struct ItemDisplayInfoEntry
     uint32 ModelResourcesID2;
     int32 ModelMaterialResourcesID1;
     int32 ModelMaterialResourcesID2;
+    uint8 unk83_1;
+    uint8 unk83_2;
     int32 GeosetGroup1;
     int32 GeosetGroup2;
     int32 GeosetGroup3;
@@ -2252,8 +2254,8 @@ struct NamesReservedLocaleEntry
 struct NPCModelItemSlotDisplayInfoEntry
 {
     uint32 ID;
-    uint32 DisplayID;
-    uint8 Slot;
+    int32 DisplayID;
+    int8 Slot;
     uint32 ExtendedDisplayID;
 };
 

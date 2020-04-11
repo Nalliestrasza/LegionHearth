@@ -209,7 +209,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
 
     // CharHairGeosets.db2
     PrepareStatement(HOTFIX_SEL_CHAR_HAIR_GEOSETS, "SELECT ID,RaceID,SexID,VariationID,GeosetID,Showscalp,VariationType,GeosetType,ColorIndex, "
-        "CustomGeoFileDataID,HdCustomGeoFileDataID FROM char_hair_geosets ORDER BY ID DESC", CONNECTION_SYNCH);
+        "CustomGeoFileDataID,HdCustomGeoFileDataID,unk83 FROM char_hair_geosets ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // CharSections.db2
     PrepareStatement(HOTFIX_SEL_CHAR_SECTIONS, "SELECT ID, RaceID, SexID, BaseSection, VariationIndex, ColorIndex, Flags, MaterialResourcesID1, "
@@ -573,9 +573,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " FROM item_disenchant_loot ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // ItemDisplayInfo.db2
-    PrepareStatement(HOTFIX_SEL_ITEM_DISPLAY_INFO, "SELECT ID,ModelType1,ItemVisual,ParticleColorID,ItemRangedDisplayInfoID, "
+    PrepareStatement(HOTFIX_SEL_ITEM_DISPLAY_INFO, "SELECT ID,ItemVisual,ParticleColorID,ItemRangedDisplayInfoID, "
 		"OverrideSwooshSoundKitID,SheatheTransformMatrixID,StateSpellVisualKitID,SheathedSpellVisualKitID,UnsheathedSpellVisualKitID, "
-		"Flags,ModelResourcesID1,ModelResourcesID2,ModelMaterialResourcesID1,ModelMaterialResourcesID2, "
+		"Flags,ModelResourcesID1,ModelResourcesID2,ModelMaterialResourcesID1,ModelMaterialResourcesID2,unk83_1,unk83_2 "
 		"GeosetGroup1,GeosetGroup2,GeosetGroup3,GeosetGroup4,GeosetGroup5,GeosetGroup6, "
 		"AttachmentGeosetGroup1,AttachmentGeosetGroup2,AttachmentGeosetGroup3,AttachmentGeosetGroup4,AttachmentGeosetGroup5,AttachmentGeosetGroup6, "
 		"HelmetGeosetVis1,HelmetGeosetVis2 "

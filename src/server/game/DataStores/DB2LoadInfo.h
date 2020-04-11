@@ -874,13 +874,14 @@ struct CharHairGeosetsLoadInfo
             { false, FT_BYTE, "RaceID" },
             { false, FT_BYTE, "SexID" },
             { true, FT_BYTE, "VariationID" },
-            { false, FT_BYTE, "GeosetID" },
+            { true, FT_BYTE, "GeosetID" },
             { false, FT_BYTE, "Showscalp" },
             { true, FT_BYTE, "VariationType" },
             { true, FT_BYTE, "GeosetType" },
             { true, FT_BYTE, "ColorIndex" },
             { true, FT_INT, "CustomGeoFileDataID" },
             { true, FT_INT, "HdCustomGeoFileDataID" },
+            { true, FT_BYTE, "unk83" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, CharHairGeosetsMeta::Instance(), HOTFIX_SEL_CHAR_HAIR_GEOSETS);
         return &loadInfo;
@@ -2720,7 +2721,6 @@ struct ItemDisplayInfoLoadInfo
         static DB2FieldMeta const fields[] =
         {
             { false, FT_INT, "ID" },
-            { true, FT_INT, "ModelType1" },
             { true, FT_INT, "ItemVisual" },
             { true, FT_INT, "ParticleColorID" },
             { false, FT_INT, "ItemRangedDisplayInfoID" },
@@ -2734,6 +2734,8 @@ struct ItemDisplayInfoLoadInfo
             { false, FT_INT, "ModelResourcesID2" },
             { true, FT_INT, "ModelMaterialResourcesID1" },
             { true, FT_INT, "ModelMaterialResourcesID2" },
+            { false, FT_BYTE, "unk83_1" },
+            { false, FT_BYTE, "unk83_2" },
             { true, FT_INT, "GeosetGroup1" },
             { true, FT_INT, "GeosetGroup2" },
             { true, FT_INT, "GeosetGroup3" },
@@ -3687,7 +3689,7 @@ struct NPCModelItemSlotDisplayInfoLoadInfo
             { false, FT_INT, "ID" },
             { true, FT_INT, "DisplayID" },
             { true, FT_BYTE, "Slot" },                     
-            { true, FT_INT, "ExtendedDisplayID" },
+            { false, FT_INT, "ExtendedDisplayID" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, NPCModelItemSlotDisplayInfoMeta::Instance(), HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO);
         return &loadInfo;
