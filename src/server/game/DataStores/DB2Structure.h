@@ -2008,6 +2008,9 @@ struct LightEntry
     float GameFalloffEnd;
     int16 ContinentID;
     uint16 LightParamsID[8];
+
+    // Helpers
+    int16 Continent() const { return ContinentID; }
 };
 
 struct LiquidTypeEntry

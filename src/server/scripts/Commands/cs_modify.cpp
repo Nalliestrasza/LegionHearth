@@ -850,25 +850,21 @@ public:
 
         if (target == handler->GetSession()->GetPlayer())
         {
-		    QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-		    if (!checkSaved)
-		    {
-			    //Permamorph !
-			    WorldDatabasePreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
-			    getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-			    getDisplay->setUInt32(1, display_id);
-			    WorldDatabase.Execute(getDisplay);
-
-		    }
-		    else
-		    {
+            if (handler->GetSession()->GetPlayer()->isSaved())
+            {
                 WorldDatabasePreparedStatement* updDisplay = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMAMORPH);
-			    updDisplay->setUInt32(0, display_id);
-			    updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
-			    WorldDatabase.Execute(updDisplay);
-		    }
+                updDisplay->setUInt32(0, display_id);
+                updDisplay->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                WorldDatabase.Execute(updDisplay);
+            }
+            else
+            {
+                WorldDatabasePreparedStatement* getDisplay = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMAMORPH);
+                getDisplay->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
+                getDisplay->setUInt32(1, display_id);
+                WorldDatabase.Execute(getDisplay);
+            }
         }
-
         return true;
     }
 
