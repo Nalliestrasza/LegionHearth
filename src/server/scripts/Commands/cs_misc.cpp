@@ -219,6 +219,7 @@ public:
             { "selfunaura",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleUnAuraSelfCommand,       "" }, // For Brikabrok addon
             { "selfaura",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAuraSelfCommand,         "" }, // For Brikabrok addon
             { "addonhelper",      rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAddonHelper,             "" }, // For Brikabrok and the other
+            { "testpacket",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleTestPacket,              "" },
             //{ "sendtaxi",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleSendTaxiCommand,          "" }, // send taxi
         };
         return commandTable;
@@ -6324,6 +6325,22 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         else
             return false;
     }
+
+    static bool HandleTestPacket(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+            return false;
+
+        std::string _args = args;
+
+        WorldPacket data(SMSG_DISPLAY_GAME_ERROR, 9);
+        data << 0;
+        data << _args;
+        data << 200;
+        handler->GetSession()->SendPacket(&data, true);
+
+    }
+
 
     /*
     * END OF ADDON HELPER

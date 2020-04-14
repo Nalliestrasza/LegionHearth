@@ -1,4 +1,4 @@
-ï»¿#include "AccountMgr.h"
+#include "AccountMgr.h"
 #include "ArenaTeamMgr.h"
 #include "CellImpl.h"
 #include "CharacterCache.h"
@@ -130,10 +130,6 @@ public:
             handler->SetSentErrorMessage(true);
             return false;
         }
-
-
-
-
 
         // check if parentmap values is an existing map	
         MapEntry const* mapEntry = sMapStore.LookupEntry(pMap);
@@ -393,6 +389,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
+
         uint32 replaceID = uint32(atoi(pId)); // new skybox ID 
 
         // Can't use in phase, if not owner.
@@ -404,7 +401,7 @@ public:
 
         if (player->GetMapId() >= 5000)
         {
-            QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
+            QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID FROM map WHERE id = %u", map);
             Field* mapfields = mapresult->Fetch();
             map = mapfields[0].GetUInt16();
         }
@@ -419,7 +416,7 @@ public:
         Field* fields = results->Fetch();
         uint32 lightId = fields[0].GetUInt32();
 
-        // On contrï¿½ï¿½si le joueur possè¤¥ une entré¥ dans la base de donné¥ qui contient les settings perma (morph, etc..)
+        // On contrôle si le joueur possède une entrée dans la base de donnée qui contient les settings perma (morph, etc..)
         // si oui, on update, sinon, insert.
         if (handler->GetSession()->GetPlayer()->isSaved())
         {
@@ -436,9 +433,9 @@ public:
             WorldDatabase.Execute(getSkybox);
         }
 
-        // Si le joueur est dans une phase, on envoit le packet à ´ous les joueurs pré³¥nt dans la phase, sinon qu'à ¬ui-mê­¥.
+        // Si le joueur est dans une phase, on envoit le packet à tous les joueurs présent dans la phase, sinon qu'à lui même
         if (player->GetMapId() >= 5000)
-            sWorld->SendMapSkybox(map, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
+            sWorld->SendMapSkybox(player->GetMapId(), WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
         else
         {
             WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
@@ -580,16 +577,6 @@ public:
             remove->setUInt32(1, terrainMap);
             WorldDatabase.Execute(remove);
 
-            /*
-            TC_LOG_INFO("server.loading", "Loading Terrain Phase definitions...");
-            sObjectMgr->LoadTerrainPhaseInfo();
-
-            TC_LOG_INFO("server.loading", "Loading Terrain Swap Default definitions...");
-            sObjectMgr->LoadTerrainSwapDefaults();
-
-            TC_LOG_INFO("server.loading", "Loading Terrain World Map definitions...");
-            sObjectMgr->LoadTerrainWorldMaps();
-            */
             sObjectMgr->LoadPhases();
 
             // Actualize 

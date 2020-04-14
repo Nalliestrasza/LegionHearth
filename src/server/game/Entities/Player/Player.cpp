@@ -28630,10 +28630,14 @@ bool Player::IsPhaseOwner()
 bool Player::isSaved()
 {
     QueryResult checkSaved = WorldDatabase.PQuery("SELECT guid FROM player_custom WHERE guid = %u", GetSession()->GetPlayer()->GetGUID().GetCounter());
+    printf("%zu\n", GetSession()->GetPlayer()->GetGUID().GetCounter());
 
     if (checkSaved)
+    {
         return true;
+    }
     else
+    {
         return false;
-
+    }
 }
