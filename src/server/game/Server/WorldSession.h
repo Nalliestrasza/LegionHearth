@@ -22,6 +22,7 @@
 #ifndef __WORLDSESSION_H
 #define __WORLDSESSION_H
 
+
 #include "Common.h"
 #include "DatabaseEnvFwd.h"
 #include "LockedQueue.h"

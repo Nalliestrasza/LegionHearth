@@ -153,8 +153,31 @@ public:
 
 };
 
+class Player_panda : public PlayerScript
+{
+public:
+    Player_panda() : PlayerScript("Player_panda") {}
+    void OnLogin(Player* player, bool firstLogin)
+    {
+        if (player->getRace() == RACE_PANDAREN_NEUTRAL)
+        {
+            // A new Panda join the world ! Fabulous...
+            if (firstLogin)
+            {
+                player->ShowNeutralPlayerFactionSelectUI();
+       
+
+            }
+        }
+   
+    }
+
+
+};
+
 // Add some script here
 void AddSC_legionhearth()
 {
 	new Player_perm();
+    new Player_panda();
 }

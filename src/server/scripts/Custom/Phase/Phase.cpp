@@ -231,154 +231,84 @@ public:
 
     static bool HandlePhaseInviteCommand(ChatHandler* handler, char const* args)
     {
-        // Define ALL the player variables!
-        Player* target;
-        ObjectGuid targetGuid;
 
+        // Player & Target variables
+        Player* _target;
+        ObjectGuid _targetGuid;
+
+        // User input
         char const* targetName = strtok((char*)args, " ");
         char const* phId = strtok(NULL, " ");
 
-        if (!targetName || targetName == NULL)
-            return false;
-        if (!phId || phId == NULL)
-            return false;
-        if (!targetName && !phId || targetName == NULL && phId == NULL)
-            return false;
-
-        std::string pName = targetName;
-        uint32 phaseId = uint32(atoi(phId));
-
-
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-        std::string nameLink = handler->playerLink(pName);
-        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
-
-        if (phaseId < 1)
-            return false;
-
-        if (phaseId < 5000)
-            return false;
-
-        // Check if map exist
-        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
-        if (!cExist)
-            return false;
-
-        if (target)
+        if (targetName == NULL)
         {
+            printf("if targetname");
+            return false;
+        }
+        std::string strName = targetName;
+        uint32 iPhaseId = uint32(atoi(phId));
 
-            // check online security
-            if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+        if (!PhaseExist(iPhaseId))
+        {
+            printf("if phase exist");
+                printf("%" PRIu32 "%" "\n", ((uint32)phId));
                 return false;
+        }
+
+        // Check Part
+
+        if (!handler->extractPlayerTarget((char*)args, &_target, &_targetGuid, &strName))
+            return false;
 
 
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner(iPhaseId))
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-            //sql
+        Player* _player = handler->GetSession()->GetPlayer();
+        std::string strOwnerLink = handler->playerLink(_player->GetName().c_str());
+        if (_target == _player || _targetGuid == _player->GetGUID())
+            return false;
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
+        if (_target)
+        {
+            std::string strNameLink = handler->playerLink(targetName);
+            AddPlayerToPhase(iPhaseId, _target);
 
-            if (!checksql)
+            handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, strNameLink.c_str());
+
+            if (handler->needReportToTarget(_target))
             {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-
-                QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                if (alreadyInvit)
-                    return false;
-
-
-
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
-
-                if (target->GetSession() == NULL) {
-                    handler->PSendSysMessage(LANG_ERROR);
-                }
-                else {
-
-                    if (handler->needReportToTarget(target))
-                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, ownerLink);
-
-                    if (handler->needReportToTarget(target))
-                    {
-
-
-                        // Send Packet to target player
-                        sDB2Manager.LoadHotfixData();
-                        sMapStore.LoadFromDB();
-                        sMapStore.LoadStringsFromDB(2); // locale frFR 
-                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
-                    }
-
-                    return true;
-                }
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
+                ChatHandler(_target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, iPhaseId, strOwnerLink.c_str());
+                // Send Packet to target player
+                sDB2Manager.LoadHotfixData();
+                sMapStore.LoadFromDB();
+                sMapStore.LoadStringsFromDB(2); // locale frFR 
+                _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
 
         }
-        else {
+        else
+        {
+            std::string strNameLink = handler->playerLink(targetName);
+            AddPlayerToPhase(iPhaseId, _target);
 
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
+            handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, strNameLink.c_str());
 
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-
-            if (!checksql)
+            if (handler->needReportToTarget(_target))
             {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
+                ChatHandler(_target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, iPhaseId, strOwnerLink.c_str());
+                // Send Packet to target player
+                sDB2Manager.LoadHotfixData();
+                sMapStore.LoadFromDB();
+                sMapStore.LoadStringsFromDB(2); // locale frFR 
+                _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
-            else
-            {
-                Field* field1 = checksql->Fetch();
-                uint32 OwnerId = field1[0].GetUInt32();
-
-                if (OwnerId == handler->GetSession()->GetAccountId())
-                {
-                    // ajouter
-                    WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
-                    invit->setUInt32(0, phaseId);
-                    invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                    WorldDatabase.Execute(invit);
-
-                    handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, nameLink);
-                    return true;
-
-                }
-                else {
-
-                    handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                    return false;
-                }
-            }
-
-
         }
 
         return true;
-
     }
 
     static bool HandlePhaseSkyboxCommand(ChatHandler* handler, char const* args)
@@ -386,9 +316,11 @@ public:
         if (!*args)
             return false;
 
+
         char const* pId = strtok((char*)args, " ");
         Player* player = handler->GetSession()->GetPlayer();
         uint32 map = player->GetMapId();
+
 
         uint32 replaceID = uint32(atoi(pId)); // new skybox ID 
 
@@ -420,6 +352,7 @@ public:
         // si oui, on update, sinon, insert.
         if (handler->GetSession()->GetPlayer()->isSaved())
         {
+            // UPDATE
             WorldDatabasePreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_PERMASKYBOX);
             updSkybox->setUInt32(0, replaceID);
             updSkybox->setUInt64(1, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
@@ -427,6 +360,7 @@ public:
         }
         else
         {
+            // INSERT
             WorldDatabasePreparedStatement* getSkybox = WorldDatabase.GetPreparedStatement(WORLD_INS_PERMASKYBOX);
             getSkybox->setUInt64(0, handler->GetSession()->GetPlayer()->GetGUID().GetCounter());
             getSkybox->setUInt32(1, replaceID);
@@ -1151,7 +1085,33 @@ public:
         return true;
 
     }
+
+    static void AddPlayerToPhase(uint32 phase, Player* target)
+    {
+        // In first, we need to known if the player is already allowed to join the phase.
+        QueryResult alreadyInvit = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phase, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
+        if (!alreadyInvit)
+        {
+            WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_INVITE);
+            invit->setUInt32(0, phase);
+            invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
+            WorldDatabase.Execute(invit);
+
+        }
+    }
+
+    static bool PhaseExist(uint32 phase)
+    {
+        QueryResult checkPhase = HotfixDatabase.PQuery("SELECT ID FROM map WHERE ID = %u", phase);
+
+        if (checkPhase)
+            return true;
+        else
+            return false;
+    }
 };
+
+
 
 void AddSC_phase()
 {
