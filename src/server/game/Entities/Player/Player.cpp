@@ -1438,7 +1438,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     // Phase System
     if (mapid > 5000)
     {
-       
+
         QueryResult getType = WorldDatabase.PQuery("SELECT type FROM phase_allow WHERE phaseId = %u", mapid);
         Field* field = getType->Fetch();
         uint16 type = field[0].GetUInt16();
