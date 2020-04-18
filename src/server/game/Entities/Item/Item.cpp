@@ -437,6 +437,8 @@ Item::Item()
     m_paidMoney = 0;
     m_paidExtendedCost = 0;
 
+    m_randomBonusListId = 0;
+
     memset(&_bonusData, 0, sizeof(_bonusData));
 }
 
@@ -494,6 +496,15 @@ bool Item::Create(ObjectGuid::LowType guidlow, uint32 itemId, ItemContext contex
     }
 
     return true;
+}
+
+std::string Item::GetNameForLocaleIdx(LocaleConstant locale) const
+{
+    ItemTemplate const* itemTemplate = GetTemplate();
+    if (ItemNameDescriptionEntry const* suffix = sItemNameDescriptionStore.LookupEntry(_bonusData.Suffix))
+        return Trinity::StringFormat("%s %s", itemTemplate->GetName(locale), suffix->Description->Str[locale]);
+
+    return itemTemplate->GetName(locale);
 }
 
 // Returns true if Item is a bag AND it is not empty.
@@ -2808,9 +2819,11 @@ void BonusData::Initialize(ItemTemplate const* proto)
     if (AzeriteEmpoweredItemEntry const* azeriteEmpoweredItem = sDB2Manager.GetAzeriteEmpoweredItem(proto->GetId()))
         AzeriteTierUnlockSetId = azeriteEmpoweredItem->AzeriteTierUnlockSetID;
 
+    Suffix = 0;
     CanDisenchant = (proto->GetFlags() & ITEM_FLAG_NO_DISENCHANT) == 0;
     CanScrap = (proto->GetFlags4() & ITEM_FLAG4_SCRAPABLE) != 0;
 
+    _state.SuffixPriority = std::numeric_limits<int32>::max();
     _state.AppearanceModPriority = std::numeric_limits<int32>::max();
     _state.ScalingStatDistributionPriority = std::numeric_limits<int32>::max();
     _state.AzeriteTierUnlockSetPriority = std::numeric_limits<int32>::max();
@@ -2866,6 +2879,13 @@ void BonusData::AddBonus(uint32 type, int32 const (&values)[3])
             }
             else if (Quality < static_cast<uint32>(values[0]))
                 Quality = static_cast<uint32>(values[0]);
+            break;
+        case ITEM_BONUS_SUFFIX:
+            if (values[1] < _state.SuffixPriority)
+            {
+                Suffix = static_cast<uint32>(values[0]);
+                _state.SuffixPriority = values[1];
+            }
             break;
         case ITEM_BONUS_SOCKET:
         {
