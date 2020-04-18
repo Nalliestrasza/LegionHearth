@@ -2095,16 +2095,11 @@ struct MapEntry
         return InstanceType == MAP_INSTANCE || InstanceType == MAP_RAID || InstanceType == MAP_BATTLEGROUND || InstanceType == MAP_ARENA || IsLabyrinthe();
     }
     bool IsRaid() const { return InstanceType == MAP_RAID; }
-    /*
+
     bool IsBattleground() const { return InstanceType == MAP_BATTLEGROUND; }
     bool IsBattleArena() const { return InstanceType == MAP_ARENA; }
     bool IsBattlegroundOrArena() const { return InstanceType == MAP_BATTLEGROUND || InstanceType == MAP_ARENA; }
-    */
-
-    //test
-    bool IsBattleground() const { return InstanceType == MAP_COMMON; }
-    bool IsBattleArena() const { return InstanceType == MAP_COMMON; }
-    bool IsBattlegroundOrArena() const { return InstanceType == MAP_COMMON || InstanceType == MAP_COMMON; }
+ 
     bool IsWorldMap() const { return InstanceType == MAP_COMMON; }
 
 
