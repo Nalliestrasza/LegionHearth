@@ -578,15 +578,14 @@ public:
             stmt->setInt32(0, mapId);
             stmt->setInt32(1, areaId);
             WorldDatabase.Execute(stmt);
-            handler->PSendSysMessage("Deleted an entry");
         }
-        else {
+        else
+        {
             return false;
         }
 
         return true;
     }
-
 
     static bool HandlePhaseRemoveTerrainCommand(ChatHandler* handler, char const* args)
     {
@@ -635,14 +634,12 @@ public:
         }
 
         else
-
         {
             handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
         }
 
         return true;
     }
-
 
     static bool HandlePhaseMessageCommand(ChatHandler* handler, char const* args)
     {
