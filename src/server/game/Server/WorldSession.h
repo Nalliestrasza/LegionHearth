@@ -45,6 +45,7 @@ class LoginQueryHolder;
 class Player;
 class Unit;
 class Warden;
+class Aurora;
 class WorldSession;
 class WorldSocket;
 struct AuctionEntry;
@@ -760,6 +761,11 @@ namespace WorldPackets
         class WhoRequestPkt;
     }
 
+    namespace Aurora
+    {
+        class AuroraHWID;
+    }
+
     class Null final : public ClientPacket
     {
     public:
@@ -954,6 +960,7 @@ class TC_GAME_API WorldSession
         std::string const& GetOS() const { return _os; }
 
         void InitWarden(BigNumber* k);
+        void InitAurora();
 
         /// Session in auth.queue currently
         void SetInQueue(bool state) { m_inQueue = state; }
@@ -1702,6 +1709,7 @@ class TC_GAME_API WorldSession
 
         // Warden
         void HandleWardenData(WorldPackets::Warden::WardenData& packet);
+        void HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet);
 
         // Battlenet
         void HandleBattlenetRequest(WorldPackets::Battlenet::Request& request);
@@ -1791,6 +1799,12 @@ class TC_GAME_API WorldSession
                 DosProtection& operator=(DosProtection const& right) = delete;
         } AntiDOS;
 
+    public:
+        void SetHWID(uint64 hardDrive, uint32 processor, uint32 partition);
+        uint64 GetHardDriveSerial();
+        uint32 GetProcessorID();
+        uint32 GetPartitionID();
+
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
@@ -1831,6 +1845,13 @@ class TC_GAME_API WorldSession
 
         // Warden
         Warden* _warden;                                    // Remains NULL if Warden system is not enabled by config
+
+        // Aurora
+        Aurora* _aurora;
+        uint64 _physicalDriveID;
+        uint32 _cpuID;
+        uint32 _volumeInformation;
+
 
         time_t _logoutTime;
         bool m_inQueue;                                     // session wait in auth.queue

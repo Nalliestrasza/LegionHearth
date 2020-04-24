@@ -50,6 +50,8 @@
 #include "WardenWin.h"
 #include "World.h"
 #include "WorldSocket.h"
+#include "AuroraWin.h"
+
 
 namespace {
 
@@ -117,6 +119,7 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
     _os(os),
     _battlenetRequestToken(0),
     _warden(NULL),
+    _aurora(NULL),
     _logoutTime(0),
     m_inQueue(false),
     m_playerLogout(false),
@@ -167,6 +170,7 @@ WorldSession::~WorldSession()
         }
     }
 
+    delete _aurora;
     delete _warden;
     delete _RBACData;
 
@@ -449,8 +453,16 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 
     _recvQueue.readd(requeuePackets.begin(), requeuePackets.end());
 
+
+
+
     if (m_Socket[CONNECTION_TYPE_REALM] && m_Socket[CONNECTION_TYPE_REALM]->IsOpen() && _warden)
         _warden->Update();
+
+    if (m_Socket[CONNECTION_TYPE_REALM] && m_Socket[CONNECTION_TYPE_REALM]->IsOpen() && _aurora) {
+        _aurora->Update();
+    }
+
 
     ProcessQueryCallbacks();
 
@@ -465,6 +477,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 
         if (m_Socket[CONNECTION_TYPE_REALM] && GetPlayer() && _warden)
             _warden->Update();
+
+        if (m_Socket[CONNECTION_TYPE_REALM] && GetPlayer() && _aurora) {
+            _aurora->Update();
+        }
 
         ///- Cleanup socket pointer if need
         if ((m_Socket[CONNECTION_TYPE_REALM] && !m_Socket[CONNECTION_TYPE_REALM]->IsOpen()) ||
@@ -916,6 +932,14 @@ void WorldSession::InitWarden(BigNumber* k)
     {
         // Not implemented
     }
+}
+
+void WorldSession::InitAurora()
+{
+
+    TC_LOG_DEBUG("misc", "Installing server side HWID Check for world session [AccountId: %u] ", GetAccountId());
+    _aurora = new AuroraWin();
+    _aurora->Init(this);
 }
 
 void WorldSession::LoadPermissions()

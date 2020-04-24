@@ -2297,6 +2297,11 @@ void GameObject::SetWorldRotationAngles(float z_rot, float y_rot, float x_rot)
     SetWorldRotation(quat.x, quat.y, quat.z, quat.w);
 }
 
+QuaternionData GameObject::GetWorldRotationAngles() const
+{
+    return QuaternionData(m_worldRotation.x, m_worldRotation.y, m_worldRotation.z, m_worldRotation.w);
+}
+
 void GameObject::ModifyHealth(int32 change, Unit* attackerOrHealer /*= nullptr*/, uint32 spellId /*= 0*/)
 {
     if (!m_goValue.Building.MaxHealth || !change)

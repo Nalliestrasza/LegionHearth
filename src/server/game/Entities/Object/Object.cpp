@@ -131,6 +131,31 @@ void Object::RemoveFromWorld()
     ClearUpdateMask(true);
 }
 
+void Object::SendCustomUpdatesToPlayer(Player* player) const
+{
+	// WMO Scale & Rotate (X,Y,Z)
+	if (GetGUID().GetHigh() == HighGuid::GameObject) {
+		float yaw, pitch, roll;
+
+		GameObject const* go = ToGameObject();
+		uint64_t low = GetGUID().GetRawValue(0);
+		uint64_t high = GetGUID().GetRawValue(1);
+
+		go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
+
+		WorldPacket data;
+		data.Initialize(SMSG_AURORA_UPDATE_WMO, 1);
+		data << low;
+		data << high;
+		data << yaw;
+		data << pitch;
+		data << roll;
+		data << go->GetObjectScale();
+
+		player->SendDirectMessage(&data);
+	}
+}
+
 void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const
 {
     if (!target)
@@ -219,6 +244,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     BuildMovementUpdate(&buf, flags);
     BuildValuesCreate(&buf, target);
     data->AddUpdateBlock(buf);
+    SendCustomUpdatesToPlayer(target); // force wmo scale & rotate on first time seen for players
 }
 
 void Object::SendUpdateToPlayer(Player* player)
@@ -233,6 +259,7 @@ void Object::SendUpdateToPlayer(Player* player)
         BuildCreateUpdateBlockForPlayer(&upd, player);
     upd.BuildPacket(&packet);
     player->SendDirectMessage(&packet);
+    SendCustomUpdatesToPlayer(player); // force wmo scale & rotate when object already known by the client but not yet visible
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player const* target) const

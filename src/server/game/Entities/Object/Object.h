@@ -148,6 +148,7 @@ class TC_GAME_API Object
         TypeID GetTypeId() const { return m_objectTypeId; }
         bool isType(uint16 mask) const { return (mask & m_objectType) != 0; }
 
+        void SendCustomUpdatesToPlayer(Player* player) const;
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void SendUpdateToPlayer(Player* player);
 

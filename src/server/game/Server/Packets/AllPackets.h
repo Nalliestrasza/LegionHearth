@@ -83,5 +83,6 @@
 #include "WardenPackets.h"
 #include "WhoPackets.h"
 #include "WorldStatePackets.h"
+#include "AuroraPackets.h"
 
 #endif // AllPackets_h__

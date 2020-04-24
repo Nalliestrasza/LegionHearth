@@ -163,6 +163,11 @@ enum WorldDatabaseStatements : uint32
     // private & public
     WORLD_UPD_PHASE_SET_TYPE,
 
+    // area name
+    WORLD_INS_PHASE_AREA_NAME,
+    WORLD_UPD_PHASE_AREA_NAME,
+    WORLD_SEL_PHASE_AREA_NAME,
+    WORLD_DEL_PHASE_AREA_NAME,
 
 	// perma
 	WORLD_INS_PERMAMORPH,
@@ -203,8 +208,6 @@ enum WorldDatabaseStatements : uint32
     //Dupplication gameobject_log
     WORLD_SEL_GAMEOBJECT_LOG,
     WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID,
-
-
 
     MAX_WORLDDATABASE_STATEMENTS
 };

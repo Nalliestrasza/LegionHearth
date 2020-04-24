@@ -670,6 +670,7 @@ class TC_GAME_API World
         void SendMapSound(uint32 mapid, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendMapSkybox(uint32 mapid, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
+        bool SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSession* self = nullptr, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession* self = nullptr, uint32 team = 0);
 
         /// Are we in the middle of a shutdown?

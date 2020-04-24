@@ -98,6 +98,8 @@ public:
             { "remove",     rbac::RBAC_PERM_COMMAND_AURA,	  false, nullptr, "", phaseRemoveCommandTable },
             { "playsound",  rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhasePlaySoundCommand,	         "" },
             { "set",        rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", phaseSetCommandTable    },
+            { "setareaname",       rbac::RBAC_PERM_COMMAND_AURA,     false, HandlePhaseSetAreaNameCommand,             "" },
+            { "delareaname",       rbac::RBAC_PERM_COMMAND_AURA,     false, HandlePhaseDelAreaNameCommand,             "" },
         };
 
         static std::vector<ChatCommand> phaseCommandTable =
@@ -476,6 +478,115 @@ public:
 
         return true;
     }
+
+    static bool HandlePhaseSetAreaNameCommand(ChatHandler* handler, char const* args)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 mapId = player->GetMapId();
+        uint32 areaId = player->GetAreaId();
+
+        if (!*args)
+            return false;
+
+        if (mapId < 5000)
+            return false;
+
+        if (!player->IsPhaseOwner())
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
+
+        char const* zoneName = strtok((char*)args, ";");
+
+        if (!zoneName)
+            return false;
+
+        char const* subZoneName = strtok(NULL, " ");
+
+        if (!subZoneName)
+            return false;
+
+        // max buffer size by blizzard
+        if (strlen(zoneName) > 1024 || strlen(subZoneName) > 1024)
+            return false;
+
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
+        stmt->setInt32(0, mapId);
+        stmt->setInt32(1, areaId);
+        PreparedQueryResult customArea = WorldDatabase.Query(stmt);
+
+        if (customArea)
+        {
+            Field* field = customArea->Fetch();
+
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_AREA_NAME);
+            stmt->setString(0, zoneName);
+            stmt->setString(1, subZoneName);
+            stmt->setInt32(2, mapId);
+            stmt->setInt32(3, areaId);
+            WorldDatabase.Execute(stmt);
+        }
+        else {
+            WorldDatabasePreparedStatement* name = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_AREA_NAME);
+            name->setUInt32(0, mapId);
+            name->setUInt32(1, areaId);
+            name->setString(2, zoneName);
+            name->setString(3, subZoneName);
+
+            WorldDatabase.Execute(name);
+        }
+
+
+        WorldPacket data;
+        data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
+        data << areaId;
+        data << mapId;
+        data << player->GetZoneId();
+        data << zoneName;
+        data << subZoneName;
+
+        sWorld->SendAreaIDMessage(areaId, &data);
+
+        return true;
+    }
+
+    static bool HandlePhaseDelAreaNameCommand(ChatHandler* handler, char const* args)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+        uint32 mapId = player->GetMapId();
+        uint32 areaId = player->GetAreaId();
+
+        if (mapId < 5000)
+            return false;
+
+        if (!player->IsPhaseOwner())
+        {
+            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
+            return false;
+        }
+
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
+        stmt->setInt32(0, mapId);
+        stmt->setInt32(1, areaId);
+        PreparedQueryResult customArea = WorldDatabase.Query(stmt);
+
+        if (customArea)
+        {
+            Field* field = customArea->Fetch();
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_AREA_NAME);
+            stmt->setInt32(0, mapId);
+            stmt->setInt32(1, areaId);
+            WorldDatabase.Execute(stmt);
+            handler->PSendSysMessage("Deleted an entry");
+        }
+        else {
+            return false;
+        }
+
+        return true;
+    }
+
 
     static bool HandlePhaseRemoveTerrainCommand(ChatHandler* handler, char const* args)
     {

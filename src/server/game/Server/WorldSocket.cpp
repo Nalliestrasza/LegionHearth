@@ -35,6 +35,7 @@
 #include "WorldSession.h"
 #include <zlib.h>
 
+
 #pragma pack(push, 1)
 
 struct CompressedWorldPacket
@@ -851,6 +852,8 @@ void WorldSocket::HandleAuthSessionCallback(std::shared_ptr<WorldPackets::Auth::
     // Initialize Warden system only if it is enabled by config
     if (wardenActive)
         _worldSession->InitWarden(&_sessionKey);
+
+    _worldSession->InitAurora();
 
     _queryProcessor.AddCallback(_worldSession->LoadPermissionsAsync().WithPreparedCallback(std::bind(&WorldSocket::LoadSessionPermissionsCallback, this, std::placeholders::_1)));
     AsyncRead();

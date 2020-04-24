@@ -887,6 +887,7 @@ void OpcodeTable::Initialize()
     DEFINE_HANDLER(CMSG_WHO_IS,                                             STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleWhoIsOpcode);
     DEFINE_HANDLER(CMSG_WORLD_PORT_RESPONSE,                                STATUS_TRANSFER,  PROCESS_THREADUNSAFE, &WorldSession::HandleMoveWorldportAckOpcode);
     DEFINE_HANDLER(CMSG_WRAP_ITEM,                                          STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleWrapItem);
+    DEFINE_HANDLER(CMSG_AURORA_HWID,                                        STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraData);
 
 #undef DEFINE_HANDLER
 
@@ -1921,6 +1922,11 @@ void OpcodeTable::Initialize()
 
     DEFINE_SERVER_OPCODE_HANDLER(SMSG_COMPRESSED_PACKET,                       STATUS_NEVER,        CONNECTION_TYPE_REALM);
     DEFINE_SERVER_OPCODE_HANDLER(SMSG_MULTIPLE_PACKETS,                        STATUS_UNHANDLED,    CONNECTION_TYPE_REALM);
+
+
+    DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_UPDATE_WMO,                       STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
+    DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_ZONE_CUSTOM,                      STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
+    DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_TRACKER,                          STATUS_NEVER,        CONNECTION_TYPE_REALM);
 
 #undef DEFINE_SERVER_OPCODE_HANDLER
 };

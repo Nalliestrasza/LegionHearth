@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -234,6 +234,33 @@ void PhasingHandler::OnAreaChange(WorldObject* object)
     object->GetSuppressedPhaseShift().ClearPhases();
 
     uint32 areaId = object->GetAreaId();
+    uint32 mapID = object->GetMapId();
+
+
+    if (object->ToPlayer() && mapID >= 5000) {
+        auto player = object->ToPlayer();
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
+        stmt->setInt32(0, mapID);
+        stmt->setInt32(1, areaId);
+        PreparedQueryResult customArea = WorldDatabase.Query(stmt);
+
+        if (customArea) {
+            Field* fieldS = customArea->Fetch();
+
+            std::string zoneName = fieldS[2].GetString();;
+            std::string subZone = fieldS[3].GetString();
+            WorldPacket data;
+            data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
+            data << areaId;
+            data << player->GetMapId();
+            data << player->GetZoneId();
+            data << zoneName;
+            data << subZone;
+
+            player->SendDirectMessage(&data);
+        }
+    }
+
     AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(areaId);
     while (areaEntry)
     {

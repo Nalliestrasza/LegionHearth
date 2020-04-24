@@ -180,6 +180,14 @@ void LoginDatabaseConnection::DoPrepareStatements()
 
     // custom
     PrepareStatement(LOGIN_INS_DENIED_PERMISSION, "INSERT INTO rbac_account_permissions (accountId, permissionId, granted, realmId) VALUES (?, ?, 0, -1)", CONNECTION_ASYNC);
+
+    // hwid_bans
+    PrepareStatement(LOGIN_SEL_HWID_INFO_ACC, "SELECT physicalDriveID, cpuID, volumeInformation from hwid_bans WHERE accountID = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_HWID_BAN, "SELECT accountID, banned from hwid_bans WHERE physicalDriveID = ? AND cpuID = ? AND volumeInformation = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_INS_HWID_BAN, "INSERT INTO hwid_bans (accountID, physicalDriveID, cpuID, volumeInformation, ipAddress, banned) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_UPD_HWID_BAN_ACC, "UPDATE hwid_bans SET banned = ? WHERE accountID = ?", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_UPD_HWID_INFO_IP, "UPDATE hwid_bans SET ipAddress = ? WHERE accountID = ?", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_UPD_HWID_BAN_ID, "UPDATE hwid_bans SET banned = ? WHERE physicalDriveID = ? AND cpuID = ? AND volumeInformation = ?", CONNECTION_ASYNC);
 }
 
 LoginDatabaseConnection::LoginDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)

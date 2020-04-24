@@ -2715,6 +2715,30 @@ bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession
 }
 
 
+bool World::SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSession* self, uint32 team)
+{
+    bool foundPlayerToSend = false;
+    SessionMap::const_iterator itr;
+
+    for (itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+    {
+        if (itr->second &&
+            itr->second->GetPlayer() &&
+            itr->second->GetPlayer()->IsInWorld() &&
+            itr->second->GetPlayer()->GetAreaId() == areaID &&
+            itr->second != self &&
+            (team == 0 || itr->second->GetPlayer()->GetTeam() == team))
+        {
+            itr->second->SendPacket(packet);
+            foundPlayerToSend = true;
+        }
+    }
+
+    return foundPlayerToSend;
+}
+
+
+
 /// Send a System Message to all players in the zone (except self if mentioned)
 void World::SendZoneText(uint32 zone, const char* text, WorldSession* self, uint32 team)
 {
@@ -2844,10 +2868,15 @@ BanReturn World::BanAccount(BanMode mode, std::string const& nameOrIP, uint32 du
         Field* fieldsAccount = resultAccounts->Fetch();
         uint32 account = fieldsAccount[0].GetUInt32();
 
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ACC);
+        stmt->setBool(0, true);
+        stmt->setUInt32(1, account);
+        trans->Append(stmt);
+
         if (mode != BAN_IP)
         {
             // make sure there is only one active ban
-            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_NOT_BANNED);
+            stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_NOT_BANNED);
             stmt->setUInt32(0, account);
             trans->Append(stmt);
             // No SQL injection with prepared statements
@@ -2894,6 +2923,26 @@ bool World::RemoveBanAccount(BanMode mode, std::string const& nameOrIP)
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_NOT_BANNED);
         stmt->setUInt32(0, account);
         LoginDatabase.Execute(stmt);
+
+        // we need to unban all accounts that match the hwid of the banned account
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_HWID_INFO_ACC);
+        stmt->setUInt32(0, account);
+
+        PreparedQueryResult result = LoginDatabase.Query(stmt);
+
+        Field* fields = result->Fetch();
+        uint64_t hddID = fields[0].GetUInt64();
+        uint32_t cpuID = fields[1].GetUInt32();
+        uint32_t volumeID = fields[2].GetUInt32();
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ID);
+        stmt->setBool(0, false);
+        stmt->setUInt64(1, hddID);
+        stmt->setUInt32(2, cpuID);
+        stmt->setUInt32(3, volumeID);
+        LoginDatabase.Execute(stmt);
+
     }
     return true;
 }
