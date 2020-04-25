@@ -31,7 +31,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            std::uint64_t PhysicalDriveId = 0;
+            std::uint32_t PhysicalDriveId = 0;
             std::uint32_t CPUId = 0;
             std::uint32_t VolumeInformation = 0;
         };

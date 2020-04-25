@@ -51,67 +51,65 @@ void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)
 
     // get all accounts matchting the hwid ...
     LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_HWID_BAN);
-    stmt->setUInt64(0, packet.PhysicalDriveId);
+    stmt->setUInt32(0, packet.PhysicalDriveId);
     stmt->setUInt32(1, packet.CPUId);
     stmt->setUInt32(2, packet.VolumeInformation);
-    PreparedQueryResult hwidBan = LoginDatabase.Query(stmt);
-
+    PreparedQueryResult result = LoginDatabase.Query(stmt);
 
     bool hasBannedAccoutHWID = false;
     bool recordAlreadyExists = false;
-    do
+
+    if (result)
     {
-        Field* fields = hwidBan->Fetch();
-        uint32_t accountID = fields[0].GetUInt32();
-        bool isBanned = fields[1].GetBool();
-        
-        
-        // check if at least one account is banned
-        if (isBanned)
-            hasBannedAccoutHWID = true;
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32_t accountID = fields[0].GetUInt32();
+            bool isBanned = fields[1].GetBool();
 
-        // don't want multiple rows with the same accountID
-        if (accountID == _session->GetAccountId())
-            recordAlreadyExists = true;
+            // check if at least one account is banned
+            if (isBanned)
+                hasBannedAccoutHWID = true;
 
-        // if hwid banned on any accounts prevent the player from connecting
-        if (isBanned)
-            _session->KickPlayer();
+            // don't want multiple rows with the same accountID
+            if (accountID == _session->GetAccountId())
+                recordAlreadyExists = true;
 
-    } while (hwidBan->NextRow());
+            // if hwid banned on any accounts prevent the player from connecting
+            if (isBanned)
+                _session->KickPlayer();
 
-    // duplicate existings bans for the same hwid
-    if (!recordAlreadyExists) 
-    {
-        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_HWID_BAN);
-        stmt->setUInt32(0, _session->GetAccountId());
-        stmt->setUInt64(1, packet.PhysicalDriveId);
-        stmt->setUInt32(2, packet.CPUId);
-        stmt->setUInt32(3, packet.VolumeInformation);
-        stmt->setString(4, _session->GetRemoteAddress());
-        stmt->setBool(5, hasBannedAccoutHWID);
-        LoginDatabase.Execute(stmt);
+        } while (result->NextRow());
+
+
+        // duplicate existings bans for the same hwid
+        if (!recordAlreadyExists)
+        {
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_HWID_BAN);
+            stmt->setUInt32(0, _session->GetAccountId());
+            stmt->setUInt32(1, packet.PhysicalDriveId);
+            stmt->setUInt32(2, packet.CPUId);
+            stmt->setUInt32(3, packet.VolumeInformation);
+            stmt->setString(4, _session->GetRemoteAddress());
+            stmt->setBool(5, hasBannedAccoutHWID);
+            LoginDatabase.Execute(stmt);
+        }
+        else {
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_INFO_IP);
+            stmt->setString(0, _session->GetRemoteAddress());
+            stmt->setUInt32(1, _session->GetAccountId());
+            LoginDatabase.Execute(stmt);
+        }
+
     }
-
-
-    // create a new record if the hwid is not found for any accounts
-    if (!hwidBan)
-    {
+    else {
         LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_HWID_BAN);
         stmt->setUInt32(0, _session->GetAccountId());
-        stmt->setUInt64(1, packet.PhysicalDriveId);
+        stmt->setUInt32(1, packet.PhysicalDriveId);
         stmt->setUInt32(2, packet.CPUId);
         stmt->setUInt32(3, packet.VolumeInformation);
         stmt->setString(4, _session->GetRemoteAddress());
         stmt->setBool(5, false);
-        LoginDatabase.Execute(stmt);
-    }
-    else 
-    {
-        // update last ip address
-        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_INFO_IP);
-        stmt->setString(0, _session->GetRemoteAddress());
-        stmt->setUInt32(1, _session->GetAccountId());
         LoginDatabase.Execute(stmt);
     }
 

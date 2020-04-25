@@ -34,7 +34,7 @@ void Aurora::Update()
 
         if (_dataSent)
         {
-            uint32 maxClientResponseDelay = 15;
+            uint32 maxClientResponseDelay = 1;
 
             if (maxClientResponseDelay > 0)
             {
@@ -80,20 +80,24 @@ void WorldSession::HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet)
         _aurora->HandleData(packet);
 }
 
-void WorldSession::SetHWID(uint64 hardDrive, uint32 processor, uint32 partition) {
+void WorldSession::SetHWID(uint32 hardDrive, uint32 processor, uint32 partition)
+{
     _physicalDriveID = hardDrive;
     _cpuID = processor;
     _volumeInformation = partition;
 }
 
-uint64 WorldSession::GetHardDriveSerial() {
+uint32 WorldSession::GetHardDriveSerial()
+{
     return _physicalDriveID;
 }
 
-uint32 WorldSession::GetProcessorID() {
+uint32 WorldSession::GetProcessorID()
+{
     return _cpuID;
 }
 
-uint32 WorldSession::GetPartitionID() {
+uint32 WorldSession::GetPartitionID()
+{
     return _volumeInformation;
 }

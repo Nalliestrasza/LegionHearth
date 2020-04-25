@@ -2932,13 +2932,13 @@ bool World::RemoveBanAccount(BanMode mode, std::string const& nameOrIP)
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
         Field* fields = result->Fetch();
-        uint64_t hddID = fields[0].GetUInt64();
-        uint32_t cpuID = fields[1].GetUInt32();
-        uint32_t volumeID = fields[2].GetUInt32();
+        uint32 hddID = fields[0].GetUInt32();
+        uint32 cpuID = fields[1].GetUInt32();
+        uint32 volumeID = fields[2].GetUInt32();
 
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ID);
         stmt->setBool(0, false);
-        stmt->setUInt64(1, hddID);
+        stmt->setUInt32(1, hddID);
         stmt->setUInt32(2, cpuID);
         stmt->setUInt32(3, volumeID);
         LoginDatabase.Execute(stmt);

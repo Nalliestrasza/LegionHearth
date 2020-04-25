@@ -1800,8 +1800,8 @@ class TC_GAME_API WorldSession
         } AntiDOS;
 
     public:
-        void SetHWID(uint64 hardDrive, uint32 processor, uint32 partition);
-        uint64 GetHardDriveSerial();
+        void SetHWID(uint32 hardDrive, uint32 processor, uint32 partition);
+        uint32 GetHardDriveSerial();
         uint32 GetProcessorID();
         uint32 GetPartitionID();
 
@@ -1848,7 +1848,7 @@ class TC_GAME_API WorldSession
 
         // Aurora
         Aurora* _aurora;
-        uint64 _physicalDriveID;
+        uint32 _physicalDriveID;
         uint32 _cpuID;
         uint32 _volumeInformation;
 
