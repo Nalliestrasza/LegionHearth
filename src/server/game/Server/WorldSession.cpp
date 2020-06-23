@@ -50,7 +50,7 @@
 #include "WardenWin.h"
 #include "World.h"
 #include "WorldSocket.h"
-#include "AuroraWin.h"
+#include "Aurora/OS/AuroraWin.h"
 
 
 namespace {

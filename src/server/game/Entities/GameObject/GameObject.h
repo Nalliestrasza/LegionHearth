@@ -94,7 +94,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         void CleanupsBeforeDelete(bool finalCleanup = true) override;
 
     private:
-        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, float size = -1.0f);
+        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads,  float size = -1.0f);
 
     public:
         static GameObject* CreateGameObject(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit = 0);
@@ -317,6 +317,8 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
 
         UF::UpdateField<UF::GameObjectData, 0, TYPEID_GAMEOBJECT> m_gameObjectData;
 
+        bool HasDoodads() const { return m_hasDoodads; }
+        void SetDoodads(bool hasDoodads);
     protected:
         GameObjectModel* CreateModel();
         void UpdateModel();                                 // updates model in case displayId were changed
@@ -355,6 +357,8 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         uint32 m_lootGenerationTime;
 
         ObjectGuid m_linkedTrap;
+
+        bool m_hasDoodads;
 
     private:
         void RemoveFromOwner();

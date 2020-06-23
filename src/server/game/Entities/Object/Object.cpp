@@ -138,6 +138,7 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 		float yaw, pitch, roll;
 
 		GameObject const* go = ToGameObject();
+        
 		uint64_t low = GetGUID().GetRawValue(0);
 		uint64_t high = GetGUID().GetRawValue(1);
 
@@ -151,6 +152,9 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 		data << pitch;
 		data << roll;
 		data << go->GetObjectScale();
+        data << static_cast<uint32_t>(go->HasDoodads());
+
+        //TC_LOG_ERROR("misc", "Object %s doodad: %d", GetGUID().ToString().c_str(), (uint32)go->HasDoodads());
 
 		player->SendDirectMessage(&data);
 	}

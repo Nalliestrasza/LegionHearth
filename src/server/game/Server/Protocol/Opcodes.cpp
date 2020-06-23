@@ -888,6 +888,10 @@ void OpcodeTable::Initialize()
     DEFINE_HANDLER(CMSG_WORLD_PORT_RESPONSE,                                STATUS_TRANSFER,  PROCESS_THREADUNSAFE, &WorldSession::HandleMoveWorldportAckOpcode);
     DEFINE_HANDLER(CMSG_WRAP_ITEM,                                          STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleWrapItem);
     DEFINE_HANDLER(CMSG_AURORA_HWID,                                        STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraData);
+    DEFINE_HANDLER(CMSG_AURORA_SPAWN_GAMEOBJECT,                            STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraCreateGameObject);
+    DEFINE_HANDLER(CMSG_AURORA_MOVE_GAMEOBJECT,                             STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraMoveGameObject);
+    DEFINE_HANDLER(CMSG_AURORA_DELETE_GAMEOBJECT,                           STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraDeleteGameObject);
+    DEFINE_HANDLER(CMSG_AURORA_ENABLE_FREELOOK,                             STATUS_AUTHED,    PROCESS_THREADUNSAFE, &WorldSession::HandleAuroraEnableCommentator);
 
 #undef DEFINE_HANDLER
 
@@ -1927,6 +1931,10 @@ void OpcodeTable::Initialize()
     DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_UPDATE_WMO,                       STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
     DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_ZONE_CUSTOM,                      STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
     DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_TRACKER,                          STATUS_NEVER,        CONNECTION_TYPE_REALM);
+    DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_TEST,                             STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
+    DEFINE_SERVER_OPCODE_HANDLER(SMSG_AURORA_UPDATE_MAP_OBJECT,                STATUS_NEVER,        CONNECTION_TYPE_INSTANCE);
+
+
 
 #undef DEFINE_SERVER_OPCODE_HANDLER
 };

@@ -19,6 +19,10 @@
 #define AuroraPackets_h__
 
 #include "Packet.h"
+#include "Object/ObjectGuid.h"
+#include "G3D/Vector3.h"
+#include "G3D/Quat.h"
+#include "Log.h"
 
 namespace WorldPackets
 {
@@ -34,6 +38,64 @@ namespace WorldPackets
             std::uint32_t PhysicalDriveId = 0;
             std::uint32_t CPUId = 0;
             std::uint32_t VolumeInformation = 0;
+            bool IsVirtualMachine = false;
+        };
+
+        class AuroraMoveGameObject final : public ClientPacket
+        {
+        public:
+            AuroraMoveGameObject(WorldPacket&& packet) : ClientPacket(CMSG_AURORA_MOVE_GAMEOBJECT, std::move(packet)) { }
+
+            void Read() override;
+
+            struct GameObjectData {
+                ObjectGuid ObjectManagerGuid;
+                G3D::Vector3 Position = { 0, 0, 0 };
+                G3D::Quat Rotation = { 0, 0, 0, 0 };
+                float Scale = 1.0f;
+            };
+
+            std::vector<GameObjectData> GameObjects;
+            uint32 GameObjectsCount;
+        };
+
+        class AuroraCreateGameObject final : public ClientPacket
+        {
+        public:
+            AuroraCreateGameObject(WorldPacket&& packet) : ClientPacket(CMSG_AURORA_SPAWN_GAMEOBJECT, std::move(packet)) { }
+
+            void Read() override;
+
+            struct GameObjectData {
+                uint32_t Entry = 0;
+                G3D::Vector3 Position = { 0, 0, 0 };
+                G3D::Quat Rotation = { 0, 0, 0, 0 };
+                float Scale = 1.0f;
+            };
+
+            std::vector<GameObjectData> GameObjects;
+            uint32 GameObjectsCount;
+        };
+
+        class AuroraDeleteGameObject final : public ClientPacket
+        {
+        public:
+            AuroraDeleteGameObject(WorldPacket&& packet) : ClientPacket(CMSG_AURORA_DELETE_GAMEOBJECT, std::move(packet)) { }
+
+            void Read() override;
+
+            std::vector <ObjectGuid> GameObjectsGuid;
+            uint32 GameObjectsCount;
+        };
+
+        class AuroraEnableFreelook final : public ClientPacket
+        {
+        public:
+            AuroraEnableFreelook(WorldPacket&& packet) : ClientPacket(CMSG_AURORA_ENABLE_FREELOOK, std::move(packet)) { }
+
+            void Read() override;
+
+            bool Enable = true;
         };
     }
 }

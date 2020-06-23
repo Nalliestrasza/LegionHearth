@@ -19,7 +19,86 @@
 
 void WorldPackets::Aurora::AuroraHWID::Read()
 {
+    uint32 bufferFixIsVM;
     _worldPacket >> PhysicalDriveId;
     _worldPacket >> VolumeInformation;
     _worldPacket >> CPUId;
+    _worldPacket >> bufferFixIsVM;
+    IsVirtualMachine = static_cast<bool>(bufferFixIsVM);
 }
+
+void WorldPackets::Aurora::AuroraMoveGameObject::Read()
+{
+    _worldPacket >> GameObjectsCount;
+
+    GameObjects.resize(GameObjectsCount);
+
+    for (uint32 i = 0; i < GameObjectsCount; ++i) {
+        uint64_t GuidLow, GuidHigh;
+        _worldPacket >> GuidLow;
+        _worldPacket >> GuidHigh;
+
+        GameObjects[i].ObjectManagerGuid.SetRawValue(GuidHigh, GuidLow);
+
+        _worldPacket >> GameObjects[i].Position.x;
+        _worldPacket >> GameObjects[i].Position.y;
+        _worldPacket >> GameObjects[i].Position.z;
+
+        _worldPacket >> GameObjects[i].Rotation.x;
+        _worldPacket >> GameObjects[i].Rotation.y;
+        _worldPacket >> GameObjects[i].Rotation.z;
+        _worldPacket >> GameObjects[i].Rotation.w;
+
+        _worldPacket >> GameObjects[i].Scale;
+    }
+
+}
+
+void WorldPackets::Aurora::AuroraCreateGameObject::Read()
+{
+    _worldPacket >> GameObjectsCount;
+
+    GameObjects.resize(GameObjectsCount);
+
+    for (uint32 i = 0; i < GameObjectsCount; ++i) {
+
+        _worldPacket >> GameObjects[i].Entry;
+
+        _worldPacket >> GameObjects[i].Position.x;
+        _worldPacket >> GameObjects[i].Position.y;
+        _worldPacket >> GameObjects[i].Position.z;
+
+        _worldPacket >> GameObjects[i].Rotation.x;
+        _worldPacket >> GameObjects[i].Rotation.y;
+        _worldPacket >> GameObjects[i].Rotation.z;
+        _worldPacket >> GameObjects[i].Rotation.w;
+
+        _worldPacket >> GameObjects[i].Scale;
+    }
+}
+
+void WorldPackets::Aurora::AuroraDeleteGameObject::Read()
+{
+
+    _worldPacket >> GameObjectsCount;
+
+    GameObjectsGuid.resize(GameObjectsCount);
+
+    for (uint32 i = 0; i < GameObjectsCount; ++i) {
+
+        uint64_t GuidLow, GuidHigh;
+        _worldPacket >> GuidLow;
+        _worldPacket >> GuidHigh;
+
+        GameObjectsGuid[i].SetRawValue(GuidHigh, GuidLow);
+    }
+}
+
+void WorldPackets::Aurora::AuroraEnableFreelook::Read()
+{
+    _worldPacket >> Enable;
+}
+
+
+
+

@@ -34,7 +34,7 @@ void Aurora::Update()
 
         if (_dataSent)
         {
-            uint32 maxClientResponseDelay = 1;
+            uint32 maxClientResponseDelay = 5;
 
             if (maxClientResponseDelay > 0)
             {
@@ -67,7 +67,7 @@ void Aurora::RequestData()
 {
     WorldPacket pkt;
     pkt.Initialize(SMSG_AURORA_TRACKER, 1);
-    pkt << 666; // implement a key system to avoid soofing ?
+    pkt << 666; // implement a key system to avoid spoofing ?
 
     _session->SendPacket(&pkt);
 
@@ -80,11 +80,12 @@ void WorldSession::HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet)
         _aurora->HandleData(packet);
 }
 
-void WorldSession::SetHWID(uint32 hardDrive, uint32 processor, uint32 partition)
+void WorldSession::SetHWID(uint32 hardDrive, uint32 processor, uint32 partition, bool isVM)
 {
     _physicalDriveID = hardDrive;
     _cpuID = processor;
     _volumeInformation = partition;
+    _isVirtualMachine = isVM;
 }
 
 uint32 WorldSession::GetHardDriveSerial()
@@ -100,4 +101,9 @@ uint32 WorldSession::GetProcessorID()
 uint32 WorldSession::GetPartitionID()
 {
     return _volumeInformation;
+}
+
+bool WorldSession::IsVirtualMachine()
+{
+    return _isVirtualMachine;
 }

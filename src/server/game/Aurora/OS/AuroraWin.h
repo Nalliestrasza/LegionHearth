@@ -22,7 +22,7 @@
 #include "Cryptography/ARC4.h"
 #include "Cryptography/BigNumber.h"
 #include "ByteBuffer.h"
-#include "Aurora.h"
+#include "..\Aurora.h"
 
 #pragma pack(push, 1)
 

@@ -2868,15 +2868,18 @@ BanReturn World::BanAccount(BanMode mode, std::string const& nameOrIP, uint32 du
         Field* fieldsAccount = resultAccounts->Fetch();
         uint32 account = fieldsAccount[0].GetUInt32();
 
-        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ACC);
-        stmt->setBool(0, true);
-        stmt->setUInt32(1, account);
-        trans->Append(stmt);
+        // check for perma-ban
+        if (duration_secs <= 0) {
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ACC);
+            stmt->setBool(0, true);
+            stmt->setUInt32(1, account);
+            trans->Append(stmt);
+        }
 
         if (mode != BAN_IP)
         {
             // make sure there is only one active ban
-            stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_NOT_BANNED);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_NOT_BANNED);
             stmt->setUInt32(0, account);
             trans->Append(stmt);
             // No SQL injection with prepared statements
@@ -2931,17 +2934,20 @@ bool World::RemoveBanAccount(BanMode mode, std::string const& nameOrIP)
 
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
-        Field* fields = result->Fetch();
-        uint32 hddID = fields[0].GetUInt32();
-        uint32 cpuID = fields[1].GetUInt32();
-        uint32 volumeID = fields[2].GetUInt32();
+        if (result) {
+            Field* fields = result->Fetch();
+            uint32 hddID = fields[0].GetUInt32();
+            uint32 cpuID = fields[1].GetUInt32();
+            uint32 volumeID = fields[2].GetUInt32();
+            bool isVM = fields[3].GetBool();
 
-        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ID);
-        stmt->setBool(0, false);
-        stmt->setUInt32(1, hddID);
-        stmt->setUInt32(2, cpuID);
-        stmt->setUInt32(3, volumeID);
-        LoginDatabase.Execute(stmt);
+            stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_BAN_ID);
+            stmt->setBool(0, false);
+            stmt->setUInt32(1, hddID);
+            stmt->setUInt32(2, cpuID);
+            stmt->setUInt32(3, volumeID);
+            LoginDatabase.Execute(stmt);
+        }
 
     }
     return true;

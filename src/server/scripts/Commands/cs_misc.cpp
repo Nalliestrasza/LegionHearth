@@ -1,4 +1,4 @@
-/*
+Ôªø/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -220,6 +220,8 @@ public:
             { "selfaura",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAuraSelfCommand,         "" }, // For Brikabrok addon
             { "addonhelper",      rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAddonHelper,             "" }, // For Brikabrok and the other
             { "testpacket",       rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleTestPacket,              "" },
+            { "aurorapacket",     rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleTestPacketAurora,        "" },
+            { "freelook",         rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleFreeLook,                "" },
             //{ "sendtaxi",        rbac::RBAC_PERM_COMMAND_KICK,             false, &HandleSendTaxiCommand,          "" }, // send taxi
         };
         return commandTable;
@@ -1792,6 +1794,10 @@ public:
         uint32 failedLogins = 0;
         uint32 latency = 0;
         std::string OS = handler->GetTrinityString(LANG_UNKNOWN);
+        uint32 hddID = 0;
+        uint32 cpuID = 0;
+        uint32 volumeID = 0;
+        bool isVM = false;
 
         // Mute data print variables
         int64 muteTime = -1;
@@ -1928,6 +1934,20 @@ public:
             OS = fields[11].GetString();
         }
 
+
+        LoginDatabasePreparedStatement* hwidBan = LoginDatabase.GetPreparedStatement(LOGIN_SEL_HWID_INFO_ACC);
+        hwidBan->setUInt32(0, accId);
+
+        if (result) {
+            PreparedQueryResult result = LoginDatabase.Query(hwidBan);
+
+            Field* fields = result->Fetch();
+            hddID = fields[0].GetUInt32();
+            cpuID = fields[1].GetUInt32();
+            volumeID = fields[2].GetUInt32();
+            isVM = fields[3].GetBool();
+        }
+
         // Creates a chat link to the character. Returns nameLink
         std::string nameLink = handler->playerLink(targetName);
 
@@ -2006,6 +2026,9 @@ public:
 
         // Output VII. LANG_PINFO_ACC_OS
         handler->PSendSysMessage(LANG_PINFO_ACC_OS, OS.c_str(), latency);
+
+        // Output VII. bis LANG_PINFO_ACC_HWID
+        handler->PSendSysMessage("‚îÇ VM: %s", isVM ? "true" : "false");
 
         // Output VIII. LANG_PINFO_ACC_REGMAILS
         handler->PSendSysMessage(LANG_PINFO_ACC_REGMAILS, regMail.c_str(), eMail.c_str());
@@ -3264,7 +3287,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mËtres (‡ deux decimal pres, arrondi ‡ l'infÈrieur )
+        //Phase 3 : Calcul des positions et distance en m√®tres (√† deux decimal pres, arrondi √† l'inf√©rieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3353,7 +3376,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3405,7 +3428,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3452,7 +3475,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÈ", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en priv√©", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3488,7 +3511,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3496,11 +3519,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous Ítes dÈsormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous √™tes d√©sormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("ParamËtre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Param√®tre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3889,7 +3912,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire dÈsactivÈe !");
+            handler->SendSysMessage("Nuit noire d√©sactiv√©e !");
             return true;
         }
         else if (argstr == "on")
@@ -3900,7 +3923,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
             }
-            handler->SendSysMessage("Nuit noire activÈe ! Tapez .nuit off pour la dÈsactivÈe.");
+            handler->SendSysMessage("Nuit noire activ√©e ! Tapez .nuit off pour la d√©sactiv√©e.");
             return true;
         }
 
@@ -4189,7 +4212,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd ‡ retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd √† retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -5591,7 +5614,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     *   @pre : playerName, the name of player
     *          args, argument from a roll command
     *
-    *   @post : "EntrÈes invalides" if args does not respect checkRandParsing conditions
+    *   @post : "Entr√©es invalides" if args does not respect checkRandParsing conditions
     *and min > max && dice > 30 && max >= 10000 && bonus >= 1000
     *           else, the sentence to send for a roll command.
     */
@@ -6257,7 +6280,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         PhasingHandler::InheritPhaseShift(object, player);
 
         // fill the gameobject data and save to the db
-        // on rÈcup le scale 
+        // on r√©cup le scale 
         object->SetObjectScale(sizeF);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
@@ -6340,6 +6363,48 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         handler->GetSession()->SendPacket(&data, true);
 
     }
+
+    static bool HandleTestPacketAurora(ChatHandler* handler, const char* args)
+    {
+        WorldPacket data(SMSG_AURORA_TEST, 1);
+        handler->GetSession()->SendPacket(&data, true);
+    }
+
+    // will use that for the gob addon since it allows to move freely without collisions ...
+    static bool HandleFreeLook(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+        {
+            if (handler->GetSession()->GetPlayer()->HasPlayerFlag(PLAYER_FLAGS_UBER) && handler->GetSession()->GetPlayer()->HasPlayerFlag(PLAYER_FLAGS_COMMENTATOR2))
+                handler->GetSession()->SendNotification("Mode libre (ON)");
+            else
+                handler->GetSession()->SendNotification("Mode libre (OFF)");
+            return true;
+        }
+
+        std::string argstr = (char*)args;
+
+        if (argstr == "on")
+        {
+            handler->GetSession()->GetPlayer()->AddPlayerFlag(PLAYER_FLAGS_UBER);
+            handler->GetSession()->GetPlayer()->AddPlayerFlag(PLAYER_FLAGS_COMMENTATOR2);
+            handler->GetSession()->SendNotification("Mode libre (ON)");
+            return true;
+        }
+        else if (argstr == "off")
+        {
+            handler->GetSession()->GetPlayer()->RemovePlayerFlag(PLAYER_FLAGS_UBER);
+            handler->GetSession()->GetPlayer()->RemovePlayerFlag(PLAYER_FLAGS_COMMENTATOR2);
+            handler->GetSession()->SendNotification("Mode libre (OFF)");
+            return true;
+        }
+
+        handler->SendSysMessage(LANG_USE_BOL);
+        handler->SetSentErrorMessage(true);
+
+    }
+
+
 
 
     /*

@@ -80,7 +80,9 @@ public:
             { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",        rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
-            { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },  
+            { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },
+            { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         ""        },
+
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -861,6 +863,75 @@ public:
         handler->PSendSysMessage("Set %s scale to %f", object->GetGUID().ToString(), scale);
         return true;
 
+    }
+
+    static bool HandleGameDoodadCommand(ChatHandler* handler, char const* args)
+    {
+
+        // Can't use in phase, if not owner.
+        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
+        {
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
+        if (!id)
+            return false;
+
+        ObjectGuid::LowType guidLow = atoull(id);
+        if (!guidLow)
+            return false;
+
+        char const* boolArg = strtok(NULL, "");
+        if (!boolArg)
+            return false;
+
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        bool resultBool = true;
+
+        if (strncmp(boolArg, "on", 3) == 0)
+        {
+            resultBool = true;
+        }
+        else if (strncmp(boolArg, "off", 4) == 0) {
+            resultBool = false;
+        }
+        else
+        {
+            handler->SendSysMessage(LANG_USE_BOL);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        const_cast<GameObjectData*>(object->GetGOData())->hasDoodads = resultBool;
+
+        Map* map = object->GetMap();
+
+        object->SetDoodads(resultBool);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB();
+
+        // Generate a completely new spawn with new guid
+        // 3.3.5a client caches recently deleted objects and brings them back to life
+        // when CreateObject block for this guid is received again
+        // however it entirely skips parsing that block and only uses already known location
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+        if (!object)
+            return false;
+
+        handler->PSendSysMessage("Doodad for object %s %s \n", object->GetGUID().ToString().c_str(), object->HasDoodads() ? "ON" : "OFF");
     }
 
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)

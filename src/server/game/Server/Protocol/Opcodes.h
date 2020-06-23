@@ -791,7 +791,12 @@ enum OpcodeClient : uint16
     CMSG_BF_MGR_ENTRY_INVITE_RESPONSE                 = 0xBADD,
     CMSG_BF_MGR_QUEUE_INVITE_RESPONSE                 = 0xBADD,
     CMSG_BF_MGR_QUEUE_EXIT_REQUEST                    = 0xBADD,
+
     CMSG_AURORA_HWID                                  = 0x3FAA,
+    CMSG_AURORA_SPAWN_GAMEOBJECT                      = 0x3FAB,
+    CMSG_AURORA_MOVE_GAMEOBJECT                       = 0x3FAC,
+    CMSG_AURORA_DELETE_GAMEOBJECT                     = 0x3FAD,
+    CMSG_AURORA_ENABLE_FREELOOK                       = 0x3FAE,
 };
 
 enum OpcodeServer : uint16
@@ -1831,7 +1836,10 @@ enum OpcodeServer : uint16
     // Aurora - Client Extender by BinarySpace
     SMSG_AURORA_UPDATE_WMO = 0x2FFF,
     SMSG_AURORA_TRACKER = 0x2FFE,
+    SMSG_AURORA_TEST = 0x2FF7,
+
     SMSG_AURORA_ZONE_CUSTOM = 0x2F56,
+    SMSG_AURORA_UPDATE_MAP_OBJECT = 0x2F55,
 
     // Opcodes that are not generated automatically
     SMSG_ACCOUNT_HEIRLOOM_UPDATE                      = 0xBADD, // no client handler

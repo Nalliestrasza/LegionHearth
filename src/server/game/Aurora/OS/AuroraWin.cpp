@@ -92,12 +92,14 @@ void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)
             stmt->setUInt32(3, packet.VolumeInformation);
             stmt->setString(4, _session->GetRemoteAddress());
             stmt->setBool(5, hasBannedAccoutHWID);
+            stmt->setBool(6, packet.IsVirtualMachine);
             LoginDatabase.Execute(stmt);
         }
         else {
             LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_HWID_INFO_IP);
             stmt->setString(0, _session->GetRemoteAddress());
-            stmt->setUInt32(1, _session->GetAccountId());
+            stmt->setBool(1, packet.IsVirtualMachine);
+            stmt->setUInt32(2, _session->GetAccountId());
             LoginDatabase.Execute(stmt);
         }
 
@@ -110,10 +112,11 @@ void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)
         stmt->setUInt32(3, packet.VolumeInformation);
         stmt->setString(4, _session->GetRemoteAddress());
         stmt->setBool(5, false);
+        stmt->setBool(6, packet.IsVirtualMachine);
         LoginDatabase.Execute(stmt);
     }
 
-    _session->SetHWID(packet.PhysicalDriveId, packet.CPUId, packet.VolumeInformation);
+    _session->SetHWID(packet.PhysicalDriveId, packet.CPUId, packet.VolumeInformation, packet.IsVirtualMachine);
 
     // Set hold off timer, minimum timer should at least be 1 second
     uint32 holdOff = 3600;

@@ -764,6 +764,10 @@ namespace WorldPackets
     namespace Aurora
     {
         class AuroraHWID;
+        class AuroraCreateGameObject;
+        class AuroraMoveGameObject;
+        class AuroraDeleteGameObject;
+        class AuroraEnableFreelook;
     }
 
     class Null final : public ClientPacket
@@ -1709,7 +1713,6 @@ class TC_GAME_API WorldSession
 
         // Warden
         void HandleWardenData(WorldPackets::Warden::WardenData& packet);
-        void HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet);
 
         // Battlenet
         void HandleBattlenetRequest(WorldPackets::Battlenet::Request& request);
@@ -1740,6 +1743,13 @@ class TC_GAME_API WorldSession
         void HandleAzeriteEssenceActivateEssence(WorldPackets::Azerite::AzeriteEssenceActivateEssence& azeriteEssenceActivateEssence);
         void HandleAzeriteEmpoweredItemViewed(WorldPackets::Azerite::AzeriteEmpoweredItemViewed& azeriteEmpoweredItemViewed);
         void HandleAzeriteEmpoweredItemSelectPower(WorldPackets::Azerite::AzeriteEmpoweredItemSelectPower& azeriteEmpoweredItemSelectPower);
+
+        // Aurora
+        void HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet);
+        void HandleAuroraCreateGameObject(WorldPackets::Aurora::AuroraCreateGameObject& gameobjectCreateData);
+        void HandleAuroraMoveGameObject(WorldPackets::Aurora::AuroraMoveGameObject& gameobjectMoveData);
+        void HandleAuroraDeleteGameObject(WorldPackets::Aurora::AuroraDeleteGameObject& gameobjectDeleteData);
+        void HandleAuroraEnableCommentator(WorldPackets::Aurora::AuroraEnableFreelook& clientEnableFreelook);
 
         union ConnectToKey
         {
@@ -1800,10 +1810,11 @@ class TC_GAME_API WorldSession
         } AntiDOS;
 
     public:
-        void SetHWID(uint32 hardDrive, uint32 processor, uint32 partition);
+        void SetHWID(uint32 hardDrive, uint32 processor, uint32 partition, bool isVM);
         uint32 GetHardDriveSerial();
         uint32 GetProcessorID();
         uint32 GetPartitionID();
+        bool IsVirtualMachine();
 
     private:
         // private trade methods
@@ -1851,7 +1862,7 @@ class TC_GAME_API WorldSession
         uint32 _physicalDriveID;
         uint32 _cpuID;
         uint32 _volumeInformation;
-
+        bool _isVirtualMachine;
 
         time_t _logoutTime;
         bool m_inQueue;                                     // session wait in auth.queue

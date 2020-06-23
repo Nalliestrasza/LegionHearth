@@ -255,7 +255,7 @@ void GameObject::RemoveFromWorld()
 }
 
 
-bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, float size /*= -1*/)
+bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads, float size /*= -1*/)
 
 {
     ASSERT(map);
@@ -325,6 +325,7 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     else
         SetObjectScale(goInfo->size);
 
+    SetDoodads(hasDoodads);
 
     if (m_goTemplateAddon)
     {
@@ -489,7 +490,7 @@ GameObject* GameObject::CreateGameObject(uint32 entry, Map* map, Position const&
         return nullptr;
 
     GameObject* go = new GameObject();
-    if (!go->Create(entry, map, pos, rotation, animProgress, goState, artKit))
+    if (!go->Create(entry, map, pos, rotation, animProgress, goState, artKit, true))
     {
         delete go;
         return nullptr;
@@ -1094,6 +1095,7 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
+    stmt->setBool(index++, HasDoodads());
 
 
     trans->Append(stmt);
@@ -1118,9 +1120,10 @@ bool GameObject::LoadGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, boo
     GOState go_state = data->go_state;
     uint32 artKit = data->artKit;
     float size = data->size;
+    bool hasDoodads = data->hasDoodads;
 
     m_spawnId = spawnId;
-    if (!Create(entry, map, pos, data->rotation, animprogress, go_state, artKit, size))
+    if (!Create(entry, map, pos, data->rotation, animprogress, go_state, artKit, hasDoodads, size))
         return false;
 
     PhasingHandler::InitDbPhaseShift(GetPhaseShift(), data->phaseUseFlags, data->phaseId, data->phaseGroup);
@@ -2771,6 +2774,11 @@ public:
 private:
     GameObject* _owner;
 };
+
+void GameObject::SetDoodads(bool hasDoodads)
+{
+    m_hasDoodads = hasDoodads;
+}
 
 GameObjectModel* GameObject::CreateModel()
 {
