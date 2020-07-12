@@ -346,7 +346,9 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         uint32 GetAreaId(PhaseShift const& phaseShift, float x, float y, float z, bool *isOutdoors) const;
         bool GetAreaInfo(PhaseShift const& phaseShift, float x, float y, float z, uint32& mogpflags, int32& adtId, int32& rootId, int32& groupId) const;
         uint32 GetAreaId(PhaseShift const& phaseShift, float x, float y, float z) const;
+        uint32 GetParentAreaId(PhaseShift const& phaseShift, float x, float y, float z) const;
         uint32 GetZoneId(PhaseShift const& phaseShift, float x, float y, float z) const;
+        uint32 GetParentZoneId(PhaseShift const& phaseShift, float x, float y, float z) const;
         void GetZoneAndAreaId(PhaseShift const& phaseShift, uint32& zoneid, uint32& areaid, float x, float y, float z) const;
 
         bool IsOutdoors(PhaseShift const& phaseShift, float x, float y, float z) const;

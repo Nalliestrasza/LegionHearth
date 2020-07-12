@@ -2750,6 +2750,15 @@ uint32 Map::GetAreaId(PhaseShift const& phaseShift, float x, float y, float z, b
         // this used while not all *.map files generated (instances)
         if (!areaId)
             areaId = i_mapEntry->AreaTableID;
+
+        // Phases fix until reboot ...
+        if (!areaId) {
+            if (MapEntry const* entry = sMapStore.AssertEntry(this->GetId())) {
+                if (Map* parentMap = sMapMgr->FindMap(entry->ParentMapID, 0)) {
+                    areaId = parentMap->GetAreaId(phaseShift, x, y, z);
+                }
+            }
+        }
     }
 
     if (isOutdoors)
@@ -2773,6 +2782,17 @@ uint32 Map::GetZoneId(PhaseShift const& phaseShift, float x, float y, float z) c
     if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
         if (area->ParentAreaID)
             return area->ParentAreaID;
+
+    if(!areaId) {
+        // Phases fix until reboot ...
+        if (!areaId) {
+            if (MapEntry const* entry = sMapStore.AssertEntry(this->GetId())) {
+                if (Map* parentMap = sMapMgr->FindMap(entry->ParentMapID, 0)) {
+                    areaId = parentMap->GetZoneId(phaseShift, x, y, z);
+                }
+            }
+        }
+    }
 
     return areaId;
 }
