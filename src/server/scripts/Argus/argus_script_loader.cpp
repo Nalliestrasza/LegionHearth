@@ -15,15 +15,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRINITY_MOVEMENTGENERATOR_IMPL_H
-#define TRINITY_MOVEMENTGENERATOR_IMPL_H
+// This is where scripts' loading functions should be declared:
+void AddSC_boss_garothi_worldbreaker();
+void AddSC_instance_antorus_the_burning_throne();
 
-#include "MovementGenerator.h"
-
-template<class MOVEMENT_GEN>
-inline MovementGenerator*
-MovementGeneratorFactory<MOVEMENT_GEN>::Create(void * /*data*/) const
+// The name of this function should match:
+// void Add${NameOfDirectory}Scripts()
+void AddArgusScripts()
 {
-    return (new MOVEMENT_GEN());
+    AddSC_boss_garothi_worldbreaker();              // Antorus the Burning Throne
+    AddSC_instance_antorus_the_burning_throne();
 }
-#endif

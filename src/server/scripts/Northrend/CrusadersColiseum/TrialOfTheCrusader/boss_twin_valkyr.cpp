@@ -507,20 +507,20 @@ class npc_essence_of_twin : public CreatureScript
 
                 return spellReturned;
             }
+
+            bool GossipHello(Player* player) override
+            {
+                player->RemoveAurasDueToSpell(GetData(ESSENCE_REMOVE));
+                player->CastSpell(player, GetData(ESSENCE_APPLY), true);
+                CloseGossipMenuFor(player);
+                return true;
+            }
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
             return GetTrialOfTheCrusaderAI<npc_essence_of_twinAI>(creature);
         };
-
-        bool OnGossipHello(Player* player, Creature* creature) override
-        {
-            player->RemoveAurasDueToSpell(creature->GetAI()->GetData(ESSENCE_REMOVE));
-            player->CastSpell(player, creature->GetAI()->GetData(ESSENCE_APPLY), true);
-            CloseGossipMenuFor(player);
-            return true;
-        }
 };
 
 struct npc_unleashed_ballAI : public ScriptedAI
@@ -759,17 +759,16 @@ class spell_valkyr_essences : public SpellScriptLoader
                         {
                             if (dmgInfo.GetSpellInfo()->Id == SPELL_DARK_VORTEX_DAMAGE || dmgInfo.GetSpellInfo()->Id == SPELL_LIGHT_VORTEX_DAMAGE)
                             {
-                                Aura* pAura = owner->GetAura(SPELL_POWERING_UP);
-                                if (pAura)
+                                if (Aura* aura = owner->GetAura(SPELL_POWERING_UP))
                                 {
-                                    pAura->ModStackAmount(stacksCount);
+                                    aura->ModStackAmount(stacksCount);
                                     owner->CastSpell(owner, SPELL_POWERING_UP, true);
                                 }
                                 else
                                 {
                                     owner->CastSpell(owner, SPELL_POWERING_UP, true);
-                                    if (Aura* pTemp = owner->GetAura(SPELL_POWERING_UP))
-                                        pTemp->ModStackAmount(stacksCount);
+                                    if (Aura* newAura = owner->GetAura(SPELL_POWERING_UP))
+                                        newAura->ModStackAmount(stacksCount);
                                 }
                             }
                         }
@@ -778,18 +777,17 @@ class spell_valkyr_essences : public SpellScriptLoader
                         if (dmgInfo.GetSpellInfo()->Id == SPELL_UNLEASHED_DARK || dmgInfo.GetSpellInfo()->Id == SPELL_UNLEASHED_LIGHT)
                         {
                             // need to do the things in this order, else players might have 100 charges of Powering Up without anything happening
-                            Aura* pAura = owner->GetAura(SPELL_POWERING_UP);
-                            if (pAura)
+                            if (Aura* aura = owner->GetAura(SPELL_POWERING_UP))
                             {
                                 // 2 lines together add the correct amount of buff stacks
-                                pAura->ModStackAmount(stacksCount);
+                                aura->ModStackAmount(stacksCount);
                                 owner->CastSpell(owner, SPELL_POWERING_UP, true);
                             }
                             else
                             {
                                 owner->CastSpell(owner, SPELL_POWERING_UP, true);
-                                if (Aura* pTemp = owner->GetAura(SPELL_POWERING_UP))
-                                    pTemp->ModStackAmount(stacksCount);
+                                if (Aura* newAura = owner->GetAura(SPELL_POWERING_UP))
+                                    newAura->ModStackAmount(stacksCount);
                             }
                         }
                     }

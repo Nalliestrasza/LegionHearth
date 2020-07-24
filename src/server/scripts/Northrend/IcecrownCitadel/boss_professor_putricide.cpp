@@ -278,7 +278,7 @@ class boss_professor_putricide : public CreatureScript
                 Talk(SAY_AGGRO);
                 DoCast(me, SPELL_OOZE_TANK_PROTECTION, true);
                 DoZoneInCombat(me);
-
+                me->SetCombatPulseDelay(5);
                 instance->SetBossState(DATA_PROFESSOR_PUTRICIDE, IN_PROGRESS);
             }
 
@@ -401,14 +401,14 @@ class boss_professor_putricide : public CreatureScript
                         {
                             case PHASE_COMBAT_2:
                             {
-                                SpellInfo const* spell = sSpellMgr->GetSpellInfo(SPELL_CREATE_CONCOCTION);
+                                SpellInfo const* spell = sSpellMgr->GetSpellInfo(SPELL_CREATE_CONCOCTION, GetDifficulty());
                                 DoCast(me, SPELL_CREATE_CONCOCTION);
                                 events.ScheduleEvent(EVENT_PHASE_TRANSITION, spell->CalcCastTime() + 100);
                                 break;
                             }
                             case PHASE_COMBAT_3:
                             {
-                                SpellInfo const* spell = sSpellMgr->GetSpellInfo(SPELL_GUZZLE_POTIONS);
+                                SpellInfo const* spell = sSpellMgr->GetSpellInfo(SPELL_GUZZLE_POTIONS, GetDifficulty());
                                 DoCast(me, SPELL_GUZZLE_POTIONS);
                                 events.ScheduleEvent(EVENT_PHASE_TRANSITION, spell->CalcCastTime() + 100);
                                 break;
@@ -730,7 +730,7 @@ class npc_putricide_oozeAI : public ScriptedAI
 {
     public:
         npc_putricide_oozeAI(Creature* creature, uint32 auraSpellId, uint32 hitTargetSpellId) : ScriptedAI(creature),
-            _auraSpellId(auraSpellId), _hitTargetSpellId(hitTargetSpellId), _newTargetSelectTimer(0) { }
+            _auraSpellId(auraSpellId), _hitTargetSpellId(hitTargetSpellId), _newTargetSelectTimer(0), _instance(creature->GetInstanceScript()) { }
 
         void SpellHitTarget(Unit* /*target*/, SpellInfo const* spell) override
         {
@@ -740,6 +740,10 @@ class npc_putricide_oozeAI : public ScriptedAI
 
         void Reset() override
         {
+            if (_instance->GetBossState(DATA_PROFESSOR_PUTRICIDE) != IN_PROGRESS)
+                me->DespawnOrUnsummon();
+
+            me->SetInCombatWithZone();
             DoCastAOE(_auraSpellId, true);
         }
 
@@ -780,6 +784,7 @@ class npc_putricide_oozeAI : public ScriptedAI
         uint32 _auraSpellId;
         uint32 _hitTargetSpellId;
         uint32 _newTargetSelectTimer;
+        InstanceScript* _instance;
 };
 
 class npc_volatile_ooze : public CreatureScript
@@ -1149,7 +1154,7 @@ class spell_putricide_choking_gas_bomb : public SpellScriptLoader
             void HandleScript(SpellEffIndex /*effIndex*/)
             {
                 uint32 skipIndex = urand(0, 2);
-                for (SpellEffectInfo const* effect : GetSpellInfo()->GetEffectsForDifficulty(GetCaster()->GetMap()->GetDifficultyID()))
+                for (SpellEffectInfo const* effect : GetSpellInfo()->GetEffects())
                 {
                     if (!effect || effect->EffectIndex == skipIndex)
                         continue;
@@ -1312,7 +1317,7 @@ class spell_putricide_mutated_plague : public SpellScriptLoader
                     return;
 
                 uint32 triggerSpell = GetSpellInfo()->GetEffect(aurEff->GetEffIndex())->TriggerSpell;
-                SpellInfo const* spell = sSpellMgr->AssertSpellInfo(triggerSpell);
+                SpellInfo const* spell = sSpellMgr->AssertSpellInfo(triggerSpell, GetCastDifficulty());
 
                 int32 damage = spell->GetEffect(EFFECT_0)->CalcValue(caster);
                 float multiplier = 2.0f;
@@ -1328,7 +1333,7 @@ class spell_putricide_mutated_plague : public SpellScriptLoader
             void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 uint32 healSpell = uint32(GetSpellInfo()->GetEffect(EFFECT_0)->CalcValue());
-                SpellInfo const* healSpellInfo = sSpellMgr->GetSpellInfo(healSpell);
+                SpellInfo const* healSpellInfo = sSpellMgr->GetSpellInfo(healSpell, GetCastDifficulty());
 
                 if (!healSpellInfo)
                     return;

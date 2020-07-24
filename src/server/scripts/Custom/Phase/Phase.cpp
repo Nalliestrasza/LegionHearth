@@ -287,7 +287,7 @@ public:
                 // Send Packet to target player
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
-                sMapStore.LoadStringsFromDB(2); // locale frFR 
+                sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
                 _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
 
@@ -305,7 +305,7 @@ public:
                 // Send Packet to target player
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
-                sMapStore.LoadStringsFromDB(2); // locale frFR 
+                sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
                 _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
         }
@@ -389,10 +389,10 @@ public:
     static bool HandlePhaseInitializeCommand(ChatHandler* handler, char const* args)
     {
 
-        // Refresh Hotfixe
+        // Refresh Hotfixs
         sDB2Manager.LoadHotfixData();
         sMapStore.LoadFromDB();
-        sMapStore.LoadStringsFromDB(2); // locale frFR 
+        sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
 
         // Send Packet to the Player
         handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
@@ -1137,7 +1137,7 @@ public:
                         // Send Packet to target player
                         sDB2Manager.LoadHotfixData();
                         sMapStore.LoadFromDB();
-                        sMapStore.LoadStringsFromDB(2); // locale frFR 
+                        sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
                         target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
                         target->TeleportTo(mapId, x, y, z, o);
 

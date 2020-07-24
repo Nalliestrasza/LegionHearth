@@ -99,8 +99,6 @@ enum DirebrewEvents
 
 enum DirebrewMisc
 {
-    COREN_DIREBREW_FACTION_HOSTILE = 736,
-    COREN_DIREBREW_FACTION_FRIEND  = 35,
     GOSSIP_ID                      = 11388,
     GO_MOLE_MACHINE_TRAP           = 188509,
     GOSSIP_OPTION_FIGHT            = 0,
@@ -125,10 +123,10 @@ public:
     {
         boss_coren_direbrewAI(Creature* creature) : BossAI(creature, DATA_COREN) { }
 
-        void sGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+        bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
         {
             if (menuId != GOSSIP_ID)
-                return;
+                return false;
 
             if (gossipListId == GOSSIP_OPTION_FIGHT)
             {
@@ -137,13 +135,15 @@ public:
             }
             else if (gossipListId == GOSSIP_OPTION_APOLOGIZE)
                 CloseGossipMenuFor(player);
+
+            return false;
         }
 
         void Reset() override
         {
             _Reset();
             me->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-            me->setFaction(COREN_DIREBREW_FACTION_FRIEND);
+            me->SetFaction(FACTION_FRIENDLY);
             events.SetPhase(PHASE_ALL);
 
             for (uint8 i = 0; i < MAX_ANTAGONISTS; ++i)
@@ -166,7 +166,7 @@ public:
             {
                 events.SetPhase(PHASE_ONE);
                 me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                me->setFaction(COREN_DIREBREW_FACTION_HOSTILE);
+                me->SetFaction(FACTION_GOBLIN_DARK_IRON_BAR_PATRON);
                 me->SetInCombatWithZone();
 
                 EntryCheckPredicate pred(NPC_ANTAGONIST);
@@ -357,7 +357,7 @@ public:
 
         void Reset() override
         {
-            me->setFaction(COREN_DIREBREW_FACTION_HOSTILE);
+            me->SetFaction(FACTION_GOBLIN_DARK_IRON_BAR_PATRON);
             DoCastAOE(SPELL_MOLE_MACHINE_EMERGE, true);
             me->SetInCombatWithZone();
         }
@@ -399,7 +399,7 @@ public:
                     break;
                 case ACTION_ANTAGONIST_HOSTILE:
                     me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
-                    me->setFaction(COREN_DIREBREW_FACTION_HOSTILE);
+                    me->SetFaction(FACTION_GOBLIN_DARK_IRON_BAR_PATRON);
                     me->SetInCombatWithZone();
                     break;
                 default:
@@ -431,16 +431,16 @@ public:
 
         void Reset() override
         {
-            go->SetLootState(GO_READY);
+            me->SetLootState(GO_READY);
             _scheduler
                 .Schedule(Seconds(1), [this](TaskContext /*context*/)
                 {
-                    go->UseDoorOrButton(8);
-                    go->CastSpell((Unit*)nullptr, SPELL_MOLE_MACHINE_EMERGE, true);
+                    me->UseDoorOrButton(8);
+                    me->CastSpell((Unit*)nullptr, SPELL_MOLE_MACHINE_EMERGE, true);
                 })
                 .Schedule(Seconds(4), [this](TaskContext /*context*/)
                 {
-                    if (GameObject* trap = go->FindNearestGameObject(GO_MOLE_MACHINE_TRAP, 3.0f))
+                    if (GameObject* trap = me->FindNearestGameObject(GO_MOLE_MACHINE_TRAP, 3.0f))
                     {
                         trap->SetLootState(GO_ACTIVATED);
                         trap->UseDoorOrButton();

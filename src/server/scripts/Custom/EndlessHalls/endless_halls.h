@@ -136,12 +136,10 @@ const std::string mazeTemplate[10] = {
 const WorldLocation TAKE_ME_BACK = WorldLocation((uint32)1764, -1427.2808f, 695.654f, 125.618f, 3.1415f);
 const WorldLocation LET_IT_GO = WorldLocation((uint32)870, 535.249f, 453.204f, 301.938f, 3.0365f);
 
-
-
-template<typename AI>
-inline AI* GetEndlessHallsAI(Creature* creature)
+template<class AI, class T>
+inline AI* GetEndlessHallsAI(T* obj)
 {
-    return GetInstanceAI<AI>(creature, EndlessHallsScriptName);
+    return GetInstanceAI<AI>(obj, EndlessHallsScriptName);
 }
 
 #endif // endless_halls_h__

@@ -161,9 +161,9 @@ class spell_item_alchemist_stone : public SpellScriptLoader
                 uint32 spellId = 0;
                 int32 amount = int32(eventInfo.GetDamageInfo()->GetDamage() * 0.4f);
 
-                if (eventInfo.GetDamageInfo()->GetSpellInfo()->HasEffect(DIFFICULTY_NONE, SPELL_EFFECT_HEAL))
+                if (eventInfo.GetDamageInfo()->GetSpellInfo()->HasEffect(SPELL_EFFECT_HEAL))
                     spellId = SPELL_ALCHEMIST_STONE_EXTRA_HEAL;
-                else if (eventInfo.GetDamageInfo()->GetSpellInfo()->HasEffect(DIFFICULTY_NONE, SPELL_EFFECT_ENERGIZE))
+                else if (eventInfo.GetDamageInfo()->GetSpellInfo()->HasEffect(SPELL_EFFECT_ENERGIZE))
                     spellId = SPELL_ALCHEMIST_STONE_EXTRA_MANA;
 
                 if (!spellId)
@@ -517,7 +517,7 @@ class spell_item_deadly_precision_dummy : public SpellScriptLoader
 
             void HandleDummy(SpellEffIndex /*effIndex*/)
             {
-                SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(SPELL_DEADLY_PRECISION);
+                SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(SPELL_DEADLY_PRECISION, GetCastDifficulty());
                 GetCaster()->CastCustomSpell(spellInfo->Id, SPELLVALUE_AURA_STACK, spellInfo->StackAmount, GetCaster(), true);
             }
 
@@ -1098,6 +1098,44 @@ class spell_item_gnomish_death_ray : public SpellScriptLoader
         {
             return new spell_item_gnomish_death_ray_SpellScript();
         }
+};
+
+// Item 10721: Gnomish Harm Prevention Belt
+// 13234 - Harm Prevention Belt
+enum HarmPreventionBelt
+{
+    SPELL_FORCEFIELD_COLLAPSE = 13235
+};
+
+class spell_item_harm_prevention_belt : public SpellScriptLoader
+{
+public:
+    spell_item_harm_prevention_belt() : SpellScriptLoader("spell_item_harm_prevention_belt") { }
+
+    class spell_item_harm_prevention_belt_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_item_harm_prevention_belt_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ SPELL_FORCEFIELD_COLLAPSE });
+        }
+
+        void HandleProc(ProcEventInfo& /*eventInfo*/)
+        {
+            GetTarget()->CastSpell((Unit*)nullptr, SPELL_FORCEFIELD_COLLAPSE, true);
+        }
+
+        void Register() override
+        {
+            OnProc += AuraProcFn(spell_item_harm_prevention_belt_AuraScript::HandleProc);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_item_harm_prevention_belt_AuraScript();
+    }
 };
 
 enum Heartpierce
@@ -4839,6 +4877,7 @@ void AddSC_item_spell_scripts()
     new spell_item_flask_of_the_north();
     new spell_item_frozen_shadoweave();
     new spell_item_gnomish_death_ray();
+    new spell_item_harm_prevention_belt();
     new spell_item_heartpierce<SPELL_INVIGORATION_ENERGY, SPELL_INVIGORATION_MANA, SPELL_INVIGORATION_RAGE, SPELL_INVIGORATION_RP>("spell_item_heartpierce");
     new spell_item_heartpierce<SPELL_INVIGORATION_ENERGY_HERO, SPELL_INVIGORATION_MANA_HERO, SPELL_INVIGORATION_RAGE_HERO, SPELL_INVIGORATION_RP_HERO>("spell_item_heartpierce_hero");
     new spell_item_crystal_spire_of_karabor();

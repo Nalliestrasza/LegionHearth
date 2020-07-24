@@ -130,20 +130,20 @@ public:
             AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(i);
             if (areaEntry)
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = areaEntry->AreaName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = areaEntry->AreaName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = areaEntry->AreaName->Str[locale];
+                        name = areaEntry->AreaName[locale];
                         if (name.empty())
                             continue;
 
@@ -342,20 +342,20 @@ public:
             {
                 FactionState const* factionState = target ? target->GetReputationMgr().GetState(factionEntry) : NULL;
 
-                int locale = handler->GetSessionDbcLocale();
-                std::string name = factionEntry->Name->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = factionEntry->Name[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = factionEntry->Name->Str[locale];
+                        name = factionEntry->Name[locale];
                         if (name.empty())
                             continue;
 
@@ -490,20 +490,20 @@ public:
             ItemSetEntry const* set = sItemSetStore.LookupEntry(id);
             if (set)
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = set->Name->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = set->Name[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = set->Name->Str[locale];
+                        name = set->Name[locale];
                         if (name.empty())
                             continue;
 
@@ -779,20 +779,20 @@ public:
             SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(id);
             if (skillInfo)
             {
-                int locale = handler->GetSessionDbcLocale();
-                std::string name = skillInfo->DisplayName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = skillInfo->DisplayName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = skillInfo->DisplayName->Str[locale];
+                        name = skillInfo->DisplayName[locale];
                         if (name.empty())
                             continue;
 
@@ -861,21 +861,20 @@ public:
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
 
-        // Search in Spell.dbc
-        for (uint32 id = 0; id < sSpellMgr->GetSpellInfoStoreSize(); id++)
+        // Search in SpellName.dbc
+        for (SpellNameEntry const* spellName : sSpellNameStore)
         {
-            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id);
-            if (spellInfo)
+            if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellName->ID, DIFFICULTY_NONE))
             {
-                int locale = handler->GetSessionDbcLocale();
+                LocaleConstant locale = handler->GetSessionDbcLocale();
                 std::string name = spellInfo->SpellName->Str[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
@@ -897,16 +896,16 @@ public:
                         return true;
                     }
 
-                    bool known = target && target->HasSpell(id);
+                    bool known = target && target->HasSpell(spellInfo->Id);
 
                     SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
                     bool learn = effect ? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell) : NULL;
+                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, spellInfo->Difficulty) : NULL;
 
                     bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
                     bool passive = spellInfo->IsPassive();
-                    bool active = target && target->HasAura(id);
+                    bool active = target && target->HasAura(spellInfo->Id);
 
                     // unit32 used to prevent interpreting uint8 as char at output
                     // find rank of learned spell for learning spell, or talent rank
@@ -915,9 +914,9 @@ public:
                     // send spell in "id - [name, rank N] [talent] [passive] [learn] [known]" format
                     std::ostringstream ss;
                     if (handler->GetSession())
-                        ss << id << " - |cffffffff|Hspell:" << id << "|h[" << name;
+                        ss << spellInfo->Id << " - |cffffffff|Hspell:" << spellInfo->Id << "|h[" << name;
                     else
-                        ss << id << " - " << name;
+                        ss << spellInfo->Id << " - " << name;
 
                     // include rank in link name
                     if (rank)
@@ -960,9 +959,9 @@ public:
 
         uint32 id = atoi((char*)args);
 
-        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id))
+        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id, DIFFICULTY_NONE))
         {
-            int locale = handler->GetSessionDbcLocale();
+            LocaleConstant locale = handler->GetSessionDbcLocale();
             std::string name = spellInfo->SpellName->Str[locale];
             if (name.empty())
             {
@@ -975,7 +974,7 @@ public:
             SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
             bool learn = effect? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell) : NULL;
+            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, DIFFICULTY_NONE) : NULL;
 
             bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
             bool passive = spellInfo->IsPassive();
@@ -1037,12 +1036,12 @@ public:
         bool found = false;
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
-        int32 locale = handler->GetSessionDbcLocale();
+        LocaleConstant locale = handler->GetSessionDbcLocale();
 
         // Search in TaxiNodes.dbc
         for (TaxiNodesEntry const* nodeEntry : sTaxiNodesStore)
         {
-            std::string name = nodeEntry->Name->Str[locale];
+            std::string name = nodeEntry->Name[locale];
             if (name.empty())
                 continue;
 
@@ -1164,21 +1163,21 @@ public:
                     if (target && target->getGender() != gender)
                         continue;
 
-                    int32 locale = handler->GetSessionDbcLocale();
-                    std::string name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)->Str[locale];
+                    LocaleConstant locale = handler->GetSessionDbcLocale();
+                    std::string name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)[locale];
 
                     if (name.empty())
                         continue;
 
                     if (!Utf8FitTo(name, wNamePart))
                     {
-                        locale = 0;
-                        for (; locale < TOTAL_LOCALES; ++locale)
+                        locale = LOCALE_enUS;
+                        for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                         {
                             if (locale == handler->GetSessionDbcLocale())
                                 continue;
 
-                            name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)->Str[locale];
+                            name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)[locale];
                             if (name.empty())
                                 continue;
 
@@ -1241,20 +1240,20 @@ public:
         {
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = mapInfo->MapName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = mapInfo->MapName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart) && handler->GetSession())
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = mapInfo->MapName->Str[locale];
+                        name = mapInfo->MapName[locale];
                         if (name.empty())
                             continue;
 
@@ -1621,7 +1620,7 @@ public:
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
             {
                 int32 locale = handler->GetSessionDbcLocale();
-                std::string name = mapInfo->MapName->Str[locale];
+                std::string name = mapInfo->MapName.Str[locale];
                 if (name.empty())
                     continue;
 
@@ -1633,7 +1632,7 @@ public:
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = mapInfo->MapName->Str[locale];
+                        name = mapInfo->MapName.Str[locale];
                         if (name.empty())
                             continue;
 
@@ -1854,7 +1853,7 @@ public:
             ItemSparseEntry const* entryId = sItemSparseStore.LookupEntry(id);
             if (entryId) {
                 int32 locale = handler->GetSessionDbcLocale();
-                std::string name = entryId->Display->Str[locale];
+                std::string name = entryId->Display.Str[locale];
                 itemEntryId = entryId->ID;
                 if (name.empty())
                     continue;
