@@ -270,8 +270,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_CHAR_BASE_SECTION, "SELECT MAX(ID) + 1 FROM char_base_section", CONNECTION_SYNCH);
 
     // CharHairGeosets.db2
-    PrepareStatement(HOTFIX_SEL_CHAR_HAIR_GEOSETS, "SELECT ID,RaceID,SexID,VariationID,GeosetID,Showscalp,VariationType,GeosetType,ColorIndex, "
-        "CustomGeoFileDataID,HdCustomGeoFileDataID,unk83 FROM char_hair_geosets ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_CHAR_HAIR_GEOSETS, "SELECT ID,RaceID,SexID,VariationID,GeosetID,Showscalp,VariationType,GeosetType,ColorIndex,CustomGeoFileDataID,HdCustomGeoFileDataID,unk83 FROM char_hair_geosets"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_CHAR_HAIR_GEOSETS, "SELECT MAX(ID) + 1 FROM char_hair_geosets", CONNECTION_SYNCH);
 
     // CharSections.db2
     PrepareStatement(HOTFIX_SEL_CHAR_SECTIONS, "SELECT ID, RaceID, SexID, BaseSection, VariationIndex, ColorIndex, Flags, MaterialResourcesID1, "
@@ -741,7 +742,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
 		"GeosetGroup1,GeosetGroup2,GeosetGroup3,GeosetGroup4,GeosetGroup5,GeosetGroup6, "
 		"AttachmentGeosetGroup1,AttachmentGeosetGroup2,AttachmentGeosetGroup3,AttachmentGeosetGroup4,AttachmentGeosetGroup5,AttachmentGeosetGroup6, "
 		"HelmetGeosetVis1,HelmetGeosetVis2 "
-        "FROM item_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
+        "FROM item_display_info WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_ITEM_DISPLAY_INFO, "SELECT MAX(ID) + 1 FROM item_display_info", CONNECTION_SYNCH);
 
     // ItemEffect.db2
     PrepareStatement(HOTFIX_SEL_ITEM_EFFECT, "SELECT ID, LegacySlotIndex, TriggerType, Charges, CoolDownMSec, CategoryCoolDownMSec, SpellCategoryID, "
@@ -905,7 +907,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_LOCALE_STMT(HOTFIX_SEL_MAP_DIFFICULTY, "SELECT ID, Message_lang FROM map_difficulty_locale WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // ModelFileData.db2
-    PrepareStatement(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT ID, unk0, unk1, ModelID FROM model_file_data ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT ID, unk0, unk1, ModelID FROM model_file_data WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT MAX(ID) + 1 FROM model_file_data", CONNECTION_SYNCH);
 
     // ModifierTree.db2
     PrepareStatement(HOTFIX_SEL_MODIFIER_TREE, "SELECT ID, Parent, Operator, Amount, Type, Asset, SecondaryAsset, TertiaryAsset FROM modifier_tree"
@@ -956,10 +959,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_NAMES_RESERVED_LOCALE, "SELECT MAX(ID) + 1 FROM names_reserved_locale", CONNECTION_SYNCH);
 
     // NPCModelItemSlotDisplayInfo.db2
-    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, DisplayID, Slot, ExtendedDisplayID FROM npc_model_item_slot_display_info ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT ID, DisplayID, Slot, ExtendedDisplayID FROM npc_model_item_slot_display_info WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_NPC_MODEL_ITEM_SLOT_DISPLAY_INFO, "SELECT MAX(ID) + 1 FROM npc_model_item_slot_display_info", CONNECTION_SYNCH);
 
     // NPCSounds.db2
-    PrepareStatement(HOTFIX_SEL_NPC_SOUNDS, "SELECT ID, hello, goodbye, pissed, ack FROM npc_sounds ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_NPC_SOUNDS, "SELECT ID, hello, goodbye, pissed, ack FROM npc_sounds WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_NPC_SOUNDS, "SELECT MAX(ID) + 1 FROM npc_sounds", CONNECTION_SYNCH);
 
     // NumTalentsAtLevel.db2
     PrepareStatement(HOTFIX_SEL_NUM_TALENTS_AT_LEVEL, "SELECT ID, NumTalents, NumTalentsDeathKnight, NumTalentsDemonHunter FROM num_talents_at_level"
@@ -1379,7 +1384,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_TAXI_PATH_NODE, "SELECT MAX(ID) + 1 FROM taxi_path_node", CONNECTION_SYNCH);
 
     // TextureFileData.db2
-    PrepareStatement(HOTFIX_SEL_TEXTURE_FILE_DATA, "SELECT ID, UsageType, TextureID FROM texture_file_data ORDER BY ID DESC", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_TEXTURE_FILE_DATA, "SELECT ID, UsageType, TextureID FROM texture_file_data WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_TEXTURE_FILE_DATA, "SELECT MAX(ID) + 1 FROM texture_file_data", CONNECTION_SYNCH);
 
     // TotemCategory.db2
     PrepareStatement(HOTFIX_SEL_TOTEM_CATEGORY, "SELECT ID, Name, TotemCategoryType, TotemCategoryMask FROM totem_category"

@@ -1,0 +1,1 @@
+ALTER TABLE `gameobject`ADD COLUMN `hasDoodads` TINYINT NOT NULL DEFAULT '1';
