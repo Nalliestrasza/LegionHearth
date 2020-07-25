@@ -2958,12 +2958,23 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
 {
     VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
     VMAP::AreaAndLiquidData vmapData;
+    Map* currentMap = this;
+
     uint32 terrainMapId = PhasingHandler::GetTerrainMapId(phaseShift, this, x, y);
+    if (this->GetId() >= MAP_CUSTOM_PHASE) {
+        if (MapEntry const* entry = sMapStore.AssertEntry(this->GetId())) {
+            if (Map* parentMap = sMapMgr->FindMap(entry->ParentMapID, 0)) {
+                terrainMapId = PhasingHandler::GetTerrainMapId(phaseShift, parentMap, x, y);
+                currentMap = parentMap;
+            }
+        }
+    }
+
     vmgr->getAreaAndLiquidData(terrainMapId, x, y, z, reqLiquidType, vmapData);
     if (vmapData.areaInfo)
         data.areaInfo = boost::in_place(vmapData.areaInfo->adtId, vmapData.areaInfo->rootId, vmapData.areaInfo->groupId, vmapData.areaInfo->mogpFlags);
 
-    GridMap* gmap = GetGrid(terrainMapId, x, y);
+    GridMap* gmap = currentMap->GetGrid(terrainMapId, x, y);
     float mapHeight = gmap->getHeight(x, y);
 
     // area lookup
@@ -2997,7 +3008,7 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
     if (vmapData.liquidInfo && vmapData.liquidInfo->level > vmapData.floorZ && z + 2.0f > vmapData.floorZ)
     {
         uint32 liquidType = vmapData.liquidInfo->type;
-        if (GetId() == 530 && liquidType == 2) // gotta love blizzard hacks
+        if (currentMap->GetId() == 530 && liquidType == 2) // gotta love blizzard hacks
             liquidType = 15;
 
         uint32 liquidFlagType = 0;
@@ -3044,7 +3055,7 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
         ZLiquidStatus gridMapStatus = gmap->GetLiquidStatus(x, y, z, reqLiquidType, &gridMapLiquid);
         if (gridMapStatus != LIQUID_MAP_NO_WATER && (gridMapLiquid.level > vmapData.floorZ))
         {
-            if (GetId() == 530 && gridMapLiquid.entry == 2)
+            if (currentMap->GetId() == 530 && gridMapLiquid.entry == 2)
                 gridMapLiquid.entry = 15;
             data.liquidInfo = gridMapLiquid;
             data.liquidStatus = gridMapStatus;

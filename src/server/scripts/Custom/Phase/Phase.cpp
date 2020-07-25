@@ -126,7 +126,7 @@ public:
         ++tId;
 
         // Check if parentmap values is aphase map
-        if (pMap >= 5000)
+        if (pMap >= MAP_CUSTOM_PHASE)
         {
             handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, pMap);
             handler->SetSentErrorMessage(true);
@@ -146,7 +146,7 @@ public:
             HotfixDatabasePreparedStatement* map = HotfixDatabase.GetPreparedStatement(HOTFIX_INS_CREATE_PHASE);
 
             map->setUInt32(0, tId);
-            if (tId < 5000 || tId > 65535) // Si plus petit 5000 & plus grand 65535 > message.
+            if (tId < MAP_CUSTOM_PHASE || tId > 65535) // Si plus petit MAP_CUSTOM_PHASE & plus grand 65535 > message.
             {
 
                 handler->PSendSysMessage(LANG_PHASE_CREATED_BADID);
@@ -333,7 +333,7 @@ public:
             return false;
         }
 
-        if (player->GetMapId() >= 5000)
+        if (player->GetMapId() >= MAP_CUSTOM_PHASE)
         {
             QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID FROM map WHERE id = %u", map);
             Field* mapfields = mapresult->Fetch();
@@ -370,8 +370,8 @@ public:
         }
 
         // Si le joueur est dans une phase, on envoit le packet à tous les joueurs présent dans la phase, sinon qu'à lui même
-        if (player->GetMapId() >= 5000)
-            sWorld->SendMapSkybox(player->GetMapId(), WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
+        if (player->GetMapId() >= MAP_CUSTOM_PHASE)
+            sWorld->SendMapMessage(player->GetMapId(), WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(replaceID)).Write());
         else
         {
             WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
@@ -426,7 +426,7 @@ public:
         if (!tId)
             return false;
 
-        if (mapId < 5000)
+        if (mapId < MAP_CUSTOM_PHASE)
             return false;
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
@@ -488,7 +488,7 @@ public:
         if (!*args)
             return false;
 
-        if (mapId < 5000)
+        if (mapId < MAP_CUSTOM_PHASE)
             return false;
 
         if (!player->IsPhaseOwner())
@@ -543,6 +543,7 @@ public:
         data << areaId;
         data << mapId;
         data << player->GetZoneId();
+        data << uint32_t(0); // delete bool
         data << zoneName;
         data << subZoneName;
 
@@ -557,7 +558,7 @@ public:
         uint32 mapId = player->GetMapId();
         uint32 areaId = player->GetAreaId();
 
-        if (mapId < 5000)
+        if (mapId < MAP_CUSTOM_PHASE)
             return false;
 
         if (!player->IsPhaseOwner())
@@ -578,6 +579,17 @@ public:
             stmt->setInt32(0, mapId);
             stmt->setInt32(1, areaId);
             WorldDatabase.Execute(stmt);
+
+            WorldPacket data;
+            data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
+            data << areaId;
+            data << mapId;
+            data << player->GetZoneId();
+            data << uint32_t(1); // delete bool
+            data << "placeholder";
+            data << "placeholder";
+
+            sWorld->SendMapMessage(mapId, &data);
         }
         else
         {
@@ -606,7 +618,7 @@ public:
             return false;
         }
 
-        if (mapId < 5000)
+        if (mapId < MAP_CUSTOM_PHASE)
             return false;
 
         QueryResult checkSql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapId);
@@ -650,7 +662,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 mapId = player->GetMapId();
 
-        if (mapId > 5000)
+        if (mapId > MAP_CUSTOM_PHASE)
         {
             sWorld->SendMapText(mapId, LANG_PHASE_EVENT_MESSAGE, args);
         }
@@ -674,7 +686,7 @@ public:
             return false;
         }
 
-        if (mapid > 5000) {
+        if (mapid > MAP_CUSTOM_PHASE) {
 
             QueryResult query = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner where accountOwner = %u and phaseId = %u", handler->GetSession()->GetAccountId(), mapid);
 
@@ -686,7 +698,7 @@ public:
                 if (accId == handler->GetSession()->GetAccountId()) {
 
                     handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND, soundId);
-                    sWorld->SendMapSound(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId).Write());
+                    sWorld->SendMapMessage(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId).Write());
                     return true;
 
                 }
@@ -745,7 +757,7 @@ public:
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist
@@ -872,7 +884,7 @@ public:
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist
@@ -982,7 +994,7 @@ public:
             uint32 accId = field[0].GetUInt32();
 
             // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
                 return false;
 
             if (accId == handler->GetSession()->GetAccountId())
@@ -1021,7 +1033,7 @@ public:
             uint32 accId = field[0].GetUInt32();
 
             // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
                 return false;
 
             if (accId == handler->GetSession()->GetAccountId())
@@ -1074,7 +1086,7 @@ public:
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist

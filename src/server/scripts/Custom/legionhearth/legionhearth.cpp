@@ -103,7 +103,7 @@ public:
 
         if (skyboxId != 0)
         {
-            if (map > 5000)
+            if (map > MAP_CUSTOM_PHASE)
             {
        
                 QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
@@ -125,7 +125,7 @@ public:
                 data << skyboxId;
                 data << 200;
 
-                sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(skyboxId)).Write());
+                sWorld->SendMapMessage(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(skyboxId)).Write());
 
             }
             else
