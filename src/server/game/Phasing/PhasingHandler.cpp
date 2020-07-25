@@ -29,6 +29,7 @@
 #include "Player.h"
 #include "SpellAuraEffects.h"
 #include <sstream>
+#include "AuroraPackets.h"
 
 namespace
 {
@@ -237,7 +238,7 @@ void PhasingHandler::OnAreaChange(WorldObject* object)
     uint32 mapID = object->GetMapId();
 
 
-    if (object->ToPlayer() && mapID >= 5000) {
+    if (object->ToPlayer() && mapID >= MAP_CUSTOM_PHASE) {
         auto player = object->ToPlayer();
         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
         stmt->setInt32(0, mapID);
@@ -245,21 +246,20 @@ void PhasingHandler::OnAreaChange(WorldObject* object)
         PreparedQueryResult customArea = WorldDatabase.Query(stmt);
 
         if (customArea) {
-            Field* fieldS = customArea->Fetch();
+            Field* fields = customArea->Fetch();
 
-            std::string zoneName = fieldS[2].GetString();;
-            std::string subZone = fieldS[3].GetString();
-            WorldPacket data;
+            std::string zoneName = fields[2].GetString();
+            std::string subZone = fields[3].GetString();
 
-            data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
-            data << areaId;
-            data << player->GetMapId();
-            data << player->GetZoneId();
-            data << zoneName;
-            data << subZone;
-            data << uint32_t(0);
+            WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
+            zoneCustom.AreaID = areaId;
+            zoneCustom.MapID = player->GetMapId();
+            zoneCustom.ZoneID = player->GetZoneId();
+            zoneCustom.ZoneName = zoneName;
+            zoneCustom.SubZoneName = subZone;
+            zoneCustom.Delete = 0;
 
-            player->SendDirectMessage(&data);
+            player->SendDirectMessage(zoneCustom.Write());
         }
     }
 

@@ -61,6 +61,8 @@
 #include "WorldSession.h"
 #include "GameEventMgr.h"
 #include <regex>
+#include "AuroraPackets.h"
+
  // temporary hack until database includes are sorted out (don't want to pull in Windows.h everywhere from mysql.h)
 #ifdef GetClassName
 #undef GetClassName
@@ -243,19 +245,13 @@ public:
         char const* phId = strtok(NULL, " ");
 
         if (targetName == NULL)
-        {
-            printf("if targetname");
             return false;
-        }
+
         std::string strName = targetName;
         uint32 iPhaseId = uint32(atoi(phId));
 
         if (!PhaseExist(iPhaseId))
-        {
-            printf("if phase exist");
-                printf("%" PRIu32 "%" "\n", ((uint32)phId));
-                return false;
-        }
+            return false;
 
         // Check Part
 
@@ -539,16 +535,15 @@ public:
         }
 
 
-        WorldPacket data;
-        data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
-        data << areaId;
-        data << mapId;
-        data << player->GetZoneId();
-        data << zoneName;
-        data << subZoneName;
-        data << uint32_t(0);
+        WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
+        zoneCustom.AreaID = areaId;
+        zoneCustom.MapID = mapId;
+        zoneCustom.ZoneID = player->GetZoneId();
+        zoneCustom.ZoneName = zoneName;
+        zoneCustom.SubZoneName = subZoneName;
+        zoneCustom.Delete = 0;
 
-        sWorld->SendAreaIDMessage(areaId, &data);
+        sWorld->SendAreaIDMessage(areaId, zoneCustom.Write());
 
         return true;
     }
@@ -581,18 +576,15 @@ public:
             stmt->setInt32(1, areaId);
             WorldDatabase.Execute(stmt);
 
+            WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
+            zoneCustom.AreaID = areaId;
+            zoneCustom.MapID = mapId;
+            zoneCustom.ZoneID = player->GetZoneId();
+            zoneCustom.ZoneName = " ";
+            zoneCustom.SubZoneName = " ";
+            zoneCustom.Delete = 1;
 
-            WorldPacket data;
-            data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
-            data << areaId;
-            data << mapId;
-            data << player->GetZoneId();
-            data << "placeholder";
-            data << "placeholder";
-            data << uint32_t(1);
-
-            sWorld->SendMapMessage(mapId, &data);
-
+            sWorld->SendMapMessage(mapId, zoneCustom.Write());
         }
         else
         {

@@ -783,6 +783,10 @@ namespace WorldPackets
         class AuroraMoveGameObject;
         class AuroraDeleteGameObject;
         class AuroraEnableFreelook;
+
+        class AuroraZoneCustom;
+        class AuroraTracker;
+        class AuroraCustomWorldModelObject;
     }
 
     class Null final : public ClientPacket
@@ -1764,6 +1768,10 @@ class TC_GAME_API WorldSession
         void HandleAuroraMoveGameObject(WorldPackets::Aurora::AuroraMoveGameObject& gameobjectMoveData);
         void HandleAuroraDeleteGameObject(WorldPackets::Aurora::AuroraDeleteGameObject& gameobjectDeleteData);
         void HandleAuroraEnableCommentator(WorldPackets::Aurora::AuroraEnableFreelook& clientEnableFreelook);
+
+        void SendAuroraZoneCustom(WorldPackets::Aurora::AuroraZoneCustom& zoneCustom);
+        void SendAuroraTracker(WorldPackets::Aurora::AuroraTracker& tracker);
+        void SendAuroraCustomWorldModelObject(WorldPackets::Aurora::AuroraCustomWorldModelObject& worldModelObject);
 
         union ConnectToKey
         {

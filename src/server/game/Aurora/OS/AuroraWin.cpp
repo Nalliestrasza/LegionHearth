@@ -34,11 +34,7 @@ void AuroraWin::RequestData()
 {
     TC_LOG_DEBUG("misc", "Serverside side HWID Checker for client %llu sending a request ...", _session->GetAccountId());
 
-    WorldPacket pkt;
-    pkt.Initialize(SMSG_AURORA_TRACKER, 1);
-    pkt << 666;
-
-    _session->SendPacket(&pkt);
+    _session->SendAuroraTracker(WorldPackets::Aurora::AuroraTracker(666));
     _dataSent = true;
 }
 

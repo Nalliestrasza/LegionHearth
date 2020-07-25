@@ -28,6 +28,8 @@ namespace WorldPackets
 {
     namespace Aurora
     {
+        /* CMSG */
+
         class AuroraHWID final : public ClientPacket
         {
         public:
@@ -97,6 +99,51 @@ namespace WorldPackets
 
             bool Enable = true;
         };
+
+        /* SMSG */
+
+        class AuroraZoneCustom final : public ServerPacket
+        {
+        public:
+            AuroraZoneCustom() : ServerPacket(SMSG_AURORA_ZONE_CUSTOM, 2) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 AreaID;
+            uint32 MapID;
+            uint32 ZoneID;
+            std::string ZoneName;
+            std::string SubZoneName;
+            uint32 Delete;
+        };
+
+        class AuroraTracker final : public ServerPacket
+        {
+        public:
+            AuroraTracker(uint32 key) : ServerPacket(SMSG_AURORA_TRACKER, 4), Key(key) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Key;
+        };
+
+        class AuroraCustomWorldModelObject final : public ServerPacket
+        {
+        public:
+            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, 8 * 2 + 4 * 3 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint64 GuidLow;
+            uint64 GuidHigh;
+            float Yaw;
+            float Pitch;
+            float Roll;
+            float Scale;
+            uint32 HasDoodads;
+        };
+
+
     }
 }
 

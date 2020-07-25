@@ -26,6 +26,8 @@
 #include "PhasingHandler.h"
 #include "ObjectMgr.h"
 
+/* CMSG */
+
 void WorldSession::HandleAuroraCreateGameObject(WorldPackets::Aurora::AuroraCreateGameObject& gameobjectData)
 {
     if (!_player->IsPhaseOwner())
@@ -125,4 +127,21 @@ void WorldSession::HandleAuroraEnableCommentator(WorldPackets::Aurora::AuroraEna
         _player->RemovePlayerFlag(PLAYER_FLAGS_UBER);
         _player->RemovePlayerFlag(PLAYER_FLAGS_COMMENTATOR2);
     }
+}
+
+/* SMSG */
+
+void WorldSession::SendAuroraZoneCustom(WorldPackets::Aurora::AuroraZoneCustom& zoneCustom)
+{
+    SendPacket(zoneCustom.Write());
+}
+
+void WorldSession::SendAuroraTracker(WorldPackets::Aurora::AuroraTracker& tracker)
+{
+    SendPacket(tracker.Write());
+}
+
+void WorldSession::SendAuroraCustomWorldModelObject(WorldPackets::Aurora::AuroraCustomWorldModelObject& worldModelObject)
+{
+    SendPacket(worldModelObject.Write());
 }

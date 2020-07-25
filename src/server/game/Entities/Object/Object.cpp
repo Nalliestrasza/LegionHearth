@@ -49,6 +49,7 @@
 #include "World.h"
 #include "WorldSession.h"
 #include <G3D/Vector3.h>
+#include "AuroraPackets.h"
 
 constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
 {
@@ -144,19 +145,18 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 
 		go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
 
-		WorldPacket data;
-		data.Initialize(SMSG_AURORA_UPDATE_WMO, 1);
-		data << low;
-		data << high;
-		data << yaw;
-		data << pitch;
-		data << roll;
-		data << go->GetObjectScale();
-        data << static_cast<uint32_t>(go->HasDoodads());
+		WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
+        customWMO.GuidLow = low;
+        customWMO.GuidHigh = high;
+        customWMO.Yaw = yaw;
+        customWMO.Pitch = pitch;
+        customWMO.Roll = roll;
+        customWMO.Scale = go->GetObjectScale();
+        customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
 
         //TC_LOG_ERROR("misc", "Object %s doodad: %d", GetGUID().ToString().c_str(), (uint32)go->HasDoodads());
 
-		player->SendDirectMessage(&data);
+		player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
 	}
 }
 

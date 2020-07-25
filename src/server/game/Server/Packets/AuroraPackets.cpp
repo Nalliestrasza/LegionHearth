@@ -99,6 +99,36 @@ void WorldPackets::Aurora::AuroraEnableFreelook::Read()
     _worldPacket >> Enable;
 }
 
+WorldPacket const* WorldPackets::Aurora::AuroraZoneCustom::Write()
+{
+    _worldPacket << uint32(AreaID);
+    _worldPacket << uint32(MapID);
+    _worldPacket << uint32_t(ZoneID);
 
+    _worldPacket << std::string(ZoneName);
+    _worldPacket << std::string(SubZoneName);
 
+    _worldPacket << uint32_t(Delete);
 
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Aurora::AuroraTracker::Write()
+{
+    _worldPacket << Key;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Aurora::AuroraCustomWorldModelObject::Write()
+{
+    _worldPacket << GuidLow;
+    _worldPacket << GuidHigh;
+    _worldPacket << Yaw;
+    _worldPacket << Pitch;
+    _worldPacket << Roll;
+    _worldPacket << Scale;
+    _worldPacket << HasDoodads;
+
+    return &_worldPacket;
+}
