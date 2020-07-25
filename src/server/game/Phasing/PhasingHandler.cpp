@@ -250,12 +250,14 @@ void PhasingHandler::OnAreaChange(WorldObject* object)
             std::string zoneName = fieldS[2].GetString();;
             std::string subZone = fieldS[3].GetString();
             WorldPacket data;
+
             data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
             data << areaId;
             data << player->GetMapId();
             data << player->GetZoneId();
             data << zoneName;
             data << subZone;
+            data << uint32_t(0);
 
             player->SendDirectMessage(&data);
         }

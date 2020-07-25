@@ -5008,7 +5008,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist
@@ -5159,7 +5159,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist
@@ -5286,7 +5286,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (phaseId < 1)
             return false;
 
-        if (phaseId < 5000)
+        if (phaseId < MAP_CUSTOM_PHASE)
             return false;
 
         // Check if map exist
@@ -5396,7 +5396,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             uint32 accId = field[0].GetUInt32();
         
             // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
                 return false;
 
             if (accId == handler->GetSession()->GetAccountId())
@@ -5435,7 +5435,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             uint32 accId = field[0].GetUInt32();
 
             // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < 5000)
+            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
                 return false;
 
             if (accId == handler->GetSession()->GetAccountId())

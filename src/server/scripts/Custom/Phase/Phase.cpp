@@ -485,7 +485,14 @@ public:
         uint32 mapId = player->GetMapId();
         uint32 areaId = player->GetAreaId();
 
-        if (!*args)
+        std::string trinityArgs(args);
+
+        if (trinityArgs.find(";") == std::string::npos || trinityArgs.empty())
+            return false;
+
+        Tokenizer dataArgs(trinityArgs, ';', 0, false);
+
+        if (dataArgs.size() < 2)
             return false;
 
         if (mapId < MAP_CUSTOM_PHASE)
@@ -497,18 +504,12 @@ public:
             return false;
         }
 
-        char const* zoneName = strtok((char*)args, ";");
-
-        if (!zoneName)
-            return false;
-
-        char const* subZoneName = strtok(NULL, " ");
-
-        if (!subZoneName)
-            return false;
+        std::string zoneName = dataArgs[0];
+        std::string subZoneName = dataArgs[1];
 
         // max buffer size by blizzard
-        if (strlen(zoneName) > 1024 || strlen(subZoneName) > 1024)
+        const auto maxBufferSize = 1024;
+        if (zoneName.length() > maxBufferSize || subZoneName.length() > maxBufferSize)
             return false;
 
         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
@@ -543,9 +544,9 @@ public:
         data << areaId;
         data << mapId;
         data << player->GetZoneId();
-        data << uint32_t(0); // delete bool
         data << zoneName;
         data << subZoneName;
+        data << uint32_t(0);
 
         sWorld->SendAreaIDMessage(areaId, &data);
 
@@ -580,16 +581,18 @@ public:
             stmt->setInt32(1, areaId);
             WorldDatabase.Execute(stmt);
 
+
             WorldPacket data;
             data.Initialize(SMSG_AURORA_ZONE_CUSTOM, 1);
             data << areaId;
             data << mapId;
             data << player->GetZoneId();
-            data << uint32_t(1); // delete bool
             data << "placeholder";
             data << "placeholder";
+            data << uint32_t(1);
 
             sWorld->SendMapMessage(mapId, &data);
+
         }
         else
         {
@@ -1140,11 +1143,11 @@ public:
                     if (handler->needReportToTarget(target))
                     {
                         // Sanctuaire Coords
-                        uint32 mapId = 1374;
-                        float x = 2018.339355f;
-                        float y = 2953.082031f;
-                        float z = 25.213768f;
-                        float o = 6.224421f;
+                        const uint32 mapId = 1374;
+                        const float x = 2018.339355f;
+                        const float y = 2953.082031f;
+                        const float z = 25.213768f;
+                        const float o = 6.224421f;
 
                         // Send Packet to target player
                         sDB2Manager.LoadHotfixData();
