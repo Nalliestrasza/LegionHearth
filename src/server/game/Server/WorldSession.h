@@ -34,6 +34,7 @@
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
+#include "PhaseChat.h"
 
 class BattlePetMgr;
 class BigNumber;
@@ -956,6 +957,18 @@ class TC_GAME_API WorldSession
         void LoadPermissions();
         QueryCallback LoadPermissionsAsync();
         void InvalidateRBACData(); // Used to force LoadPermissions at next HasPermission check
+
+        /* Kuretar */
+        bool GetPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions);
+        void AddPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission);
+        void AddPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size);
+        void AddPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions);
+        void RemovePhasePermission(uint32_t phaseId, PhaseChat::Permissions permission);
+        void RemovePhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size);
+        bool HasPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission);
+        bool HasPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size);
+
+        bool HasPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions> permissions);
 
         AccountTypes GetSecurity() const { return _security; }
         uint32 GetAccountId() const { return _accountId; }

@@ -106,19 +106,13 @@ public:
             if (map > MAP_CUSTOM_PHASE)
             {
        
-                QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
-                Field* mapfields = mapresult->Fetch();
-                map = mapfields[0].GetUInt16();
-
-                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-                if (!results)
+                if (player->GetMapId() >= MAP_CUSTOM_PHASE)
                 {
-                    return;
+                    if (MapEntry const* entry = sMapStore.AssertEntry(map))
+                        map = entry->ParentMapID;
                 }
 
-                Field* fields = results->Fetch();
-                uint32 lightId = fields[0].GetUInt32();
+                uint32 lightId = DB2Manager::GetMapLightId(map);
 
                 WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
                 data << lightId;
@@ -130,15 +124,7 @@ public:
             }
             else
             {
-                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-                if (!results)
-                {
-                    return;
-                }
-
-                Field* fields = results->Fetch();
-                uint32 lightId = fields[0].GetUInt32();
+                uint32 lightId = DB2Manager::GetMapLightId(map);
 
                 WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
                 data << lightId;

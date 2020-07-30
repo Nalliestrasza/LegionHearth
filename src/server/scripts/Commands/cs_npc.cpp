@@ -219,49 +219,49 @@ public:
     {
         static std::vector<ChatCommand> npcAddCommandTable =
         {
-            { "formation", rbac::RBAC_PERM_COMMAND_NPC_ADD_FORMATION, false, &HandleNpcAddFormationCommand,      "" },
-            { "item",      rbac::RBAC_PERM_COMMAND_NPC_ADD_ITEM,      false, &HandleNpcAddVendorItemCommand,     "" },
-            { "move",      rbac::RBAC_PERM_COMMAND_NPC_ADD_MOVE,      false, &HandleNpcAddMoveCommand,           "" },
-            { "temp",      rbac::RBAC_PERM_COMMAND_NPC_ADD_TEMP,      false, &HandleNpcAddTempSpawnCommand,      "" },
+            { "formation", rbac::RBAC_PERM_COMMAND_NPC_ADD_FORMATION, false, &HandleNpcAddFormationCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "item",      rbac::RBAC_PERM_COMMAND_NPC_ADD_ITEM,      false, &HandleNpcAddVendorItemCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "move",      rbac::RBAC_PERM_COMMAND_NPC_ADD_MOVE,      false, &HandleNpcAddMoveCommand,           "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "temp",      rbac::RBAC_PERM_COMMAND_NPC_ADD_TEMP,      false, &HandleNpcAddTempSpawnCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Create} },
             //{ "weapon",    rbac::RBAC_PERM_COMMAND_NPC_ADD_WEAPON,    false, &HandleNpcAddWeaponCommand,         "" },
-            { "",          rbac::RBAC_PERM_COMMAND_NPC_ADD,           false, &HandleNpcAddCommand,               "" },
+            { "",          rbac::RBAC_PERM_COMMAND_NPC_ADD,           false, &HandleNpcAddCommand,               "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Create} },
         };
         static std::vector<ChatCommand> npcDeleteCommandTable =
         {
-            { "item", rbac::RBAC_PERM_COMMAND_NPC_DELETE_ITEM, false, &HandleNpcDeleteVendorItemCommand,  "" },
-            { "",     rbac::RBAC_PERM_COMMAND_NPC_DELETE,      false, &HandleNpcDeleteCommand,            "" },
+            { "item", rbac::RBAC_PERM_COMMAND_NPC_DELETE_ITEM, false, &HandleNpcDeleteVendorItemCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "",     rbac::RBAC_PERM_COMMAND_NPC_DELETE,      false, &HandleNpcDeleteCommand,            "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Delete}  },
         };
         static std::vector<ChatCommand> npcFollowCommandTable =
         {
-            { "stop", rbac::RBAC_PERM_COMMAND_NPC_FOLLOW_STOP, false, &HandleNpcUnFollowCommand,          "" },
-            { "",     rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,      false, &HandleNpcFollowCommand,            "" },
+            { "stop", rbac::RBAC_PERM_COMMAND_NPC_FOLLOW_STOP, false, &HandleNpcUnFollowCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "",     rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,      false, &HandleNpcFollowCommand,            "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
         };
         static std::vector<ChatCommand> npcSetCommandTable =
         {
-            { "allowmove",  rbac::RBAC_PERM_COMMAND_NPC_SET_ALLOWMOVE, false, &HandleNpcSetAllowMovementCommand, "" },
-            { "entry",      rbac::RBAC_PERM_COMMAND_NPC_SET_ENTRY,     false, &HandleNpcSetEntryCommand,         "" },
-            { "factionid",  rbac::RBAC_PERM_COMMAND_NPC_SET_FACTIONID, false, &HandleNpcSetFactionIdCommand,     "" },
-            { "flag",       rbac::RBAC_PERM_COMMAND_NPC_SET_FLAG,      false, &HandleNpcSetFlagCommand,          "" },
-            { "level",      rbac::RBAC_PERM_COMMAND_NPC_SET_LEVEL,     false, &HandleNpcSetLevelCommand,         "" },
-            { "link",       rbac::RBAC_PERM_COMMAND_NPC_SET_LINK,      false, &HandleNpcSetLinkCommand,          "" },
-            { "model",      rbac::RBAC_PERM_COMMAND_NPC_SET_MODEL,     false, &HandleNpcSetModelCommand,         "" },
-            { "movetype",   rbac::RBAC_PERM_COMMAND_NPC_SET_MOVETYPE,  false, &HandleNpcSetMoveTypeCommand,      "" },
-            { "phase",      rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseCommand,         "" },
-            { "phasegroup", rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseGroup,           "" },
-            { "scale",      rbac::RBAC_PERM_COMMAND_NPC_SET_SCALE,     false, &HandleNpcSetScaleCommand,         "" },
-            { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "" },
-            { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "" },
-            { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "" },
-			{ "anim",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimCommand,          "" },
-			{ "aura",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAuraCommand,          "" },
-			{ "mount",      rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetMountCommand,         "" },
-            { "animkit",    rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimKitCommand,       "" },
+            { "allowmove",  rbac::RBAC_PERM_COMMAND_NPC_SET_ALLOWMOVE, false, &HandleNpcSetAllowMovementCommand, "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "entry",      rbac::RBAC_PERM_COMMAND_NPC_SET_ENTRY,     false, &HandleNpcSetEntryCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "factionid",  rbac::RBAC_PERM_COMMAND_NPC_SET_FACTIONID, false, &HandleNpcSetFactionIdCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "flag",       rbac::RBAC_PERM_COMMAND_NPC_SET_FLAG,      false, &HandleNpcSetFlagCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "level",      rbac::RBAC_PERM_COMMAND_NPC_SET_LEVEL,     false, &HandleNpcSetLevelCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "link",       rbac::RBAC_PERM_COMMAND_NPC_SET_LINK,      false, &HandleNpcSetLinkCommand,          "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}},
+            { "model",      rbac::RBAC_PERM_COMMAND_NPC_SET_MODEL,     false, &HandleNpcSetModelCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "movetype",   rbac::RBAC_PERM_COMMAND_NPC_SET_MOVETYPE,  false, &HandleNpcSetMoveTypeCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "phase",      rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "phasegroup", rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseGroup,           "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "scale",      rbac::RBAC_PERM_COMMAND_NPC_SET_SCALE,     false, &HandleNpcSetScaleCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}  },
+            { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "anim",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "aura",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAuraCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "mount",      rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetMountCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "animkit",    rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimKitCommand,       "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
         };
         static std::vector<ChatCommand> npcCommandTable =
         {
             { "info",      rbac::RBAC_PERM_COMMAND_NPC_INFO,      false, &HandleNpcInfoCommand,              ""       },
             { "near",      rbac::RBAC_PERM_COMMAND_NPC_NEAR,      false, &HandleNpcNearCommand,              ""       },
-            { "move",      rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcMoveCommand,              ""       },
+            { "move",      rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcMoveCommand,              "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}        },
             { "playemote", rbac::RBAC_PERM_COMMAND_NPC_PLAYEMOTE, false, &HandleNpcPlayEmoteCommand,         ""       },
             { "say",       rbac::RBAC_PERM_COMMAND_NPC_SAY,       false, &HandleNpcSayCommand,               ""       },
             { "textemote", rbac::RBAC_PERM_COMMAND_NPC_TEXTEMOTE, false, &HandleNpcTextEmoteCommand,         ""       },
@@ -291,13 +291,6 @@ public:
     {
         if (!*args)
             return false;
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         char* charID = handler->extractKeyFromLink((char*)args, "Hcreature_entry");
         if (!charID)
@@ -660,13 +653,6 @@ public:
 
     static bool HandleNpcDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         Creature* unit = nullptr;
 
         if (*args)
@@ -1010,12 +996,6 @@ public:
     //move selected creature
     static bool HandleNpcMoveCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         ObjectGuid::LowType lowguid = UI64LIT(0);
 
@@ -1341,13 +1321,6 @@ public:
     {
         if (!*args)
             return false;
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         Creature* creature = handler->getSelectedCreature();
         if (!creature)

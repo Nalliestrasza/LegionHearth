@@ -189,6 +189,8 @@ DB2Storage<ItemXBonusTreeEntry>                 sItemXBonusTreeStore("ItemXBonus
 DB2Storage<KeychainEntry>                       sKeychainStore("Keychain.db2", KeychainLoadInfo::Instance());
 DB2Storage<LFGDungeonsEntry>                    sLFGDungeonsStore("LFGDungeons.db2", LfgDungeonsLoadInfo::Instance());
 DB2Storage<LightEntry>                          sLightStore("Light.db2", LightLoadInfo::Instance());
+DB2Storage<LightSkyboxEntry>                    sLightSkyboxStore("LightSkybox.db2", LightSkyboxLoadInfo::Instance());
+DB2Storage<LightParamsEntry>                    sLightParamsStore("LightParams.db2", LightParamsLoadInfo::Instance());
 DB2Storage<LiquidTypeEntry>                     sLiquidTypeStore("LiquidType.db2", LiquidTypeLoadInfo::Instance());
 DB2Storage<LockEntry>                           sLockStore("Lock.db2", LockLoadInfo::Instance());
 DB2Storage<MailTemplateEntry>                   sMailTemplateStore("MailTemplate.db2", MailTemplateLoadInfo::Instance());
@@ -241,6 +243,7 @@ DB2Storage<SkillLineEntry>                      sSkillLineStore("SkillLine.db2",
 DB2Storage<SkillLineAbilityEntry>               sSkillLineAbilityStore("SkillLineAbility.db2", SkillLineAbilityLoadInfo::Instance());
 DB2Storage<SkillRaceClassInfoEntry>             sSkillRaceClassInfoStore("SkillRaceClassInfo.db2", SkillRaceClassInfoLoadInfo::Instance());
 DB2Storage<SoundKitEntry>                       sSoundKitStore("SoundKit.db2", SoundKitLoadInfo::Instance());
+DB2Storage<SoundKitNameEntry>                   sSoundKitNameStore("SoundKitName.db2", SoundKitNameLoadInfo::Instance());
 DB2Storage<SpecializationSpellsEntry>           sSpecializationSpellsStore("SpecializationSpells.db2", SpecializationSpellsLoadInfo::Instance());
 DB2Storage<SpecSetMemberEntry>                  sSpecSetMemberStore("SpecSetMember.db2", SpecSetMemberLoadInfo::Instance());
 DB2Storage<SpellAuraOptionsEntry>               sSpellAuraOptionsStore("SpellAuraOptions.db2", SpellAuraOptionsLoadInfo::Instance());
@@ -716,6 +719,8 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sKeychainStore);
     LOAD_DB2(sLFGDungeonsStore);
     LOAD_DB2(sLightStore);
+    LOAD_DB2(sLightParamsStore);
+    LOAD_DB2(sLightSkyboxStore);
     LOAD_DB2(sLiquidTypeStore);
     LOAD_DB2(sLockStore);
     LOAD_DB2(sMailTemplateStore);
@@ -768,6 +773,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sSkillLineAbilityStore);
     LOAD_DB2(sSkillRaceClassInfoStore);
     LOAD_DB2(sSoundKitStore);
+    LOAD_DB2(sSoundKitNameStore);
     LOAD_DB2(sSpecializationSpellsStore);
     LOAD_DB2(sSpecSetMemberStore);
     LOAD_DB2(sSpellAuraOptionsStore);
@@ -2322,6 +2328,119 @@ uint32 DB2Manager::GetDefaultMapLight(uint32 mapId)
     }
 
     return 0;
+}
+
+uint32 DB2Manager::GetMapLightId(uint32 mapId)
+{
+    for (int32 i = 0; i <= sLightStore.GetNumRows(); ++i)
+    {
+        LightEntry const* light = sLightStore.LookupEntry(uint32(i));
+        if (!light)
+            continue;
+
+        if (light->ContinentID == int16(mapId))
+            return light->ID;
+    }
+
+    return 0;
+}
+
+std::vector<LightEntry const*> DB2Manager::GetMapLights(uint32 mapId)
+{
+    std::vector<LightEntry const*> mapLights;
+
+    for (int32 i = 0; i <= sLightStore.GetNumRows(); ++i)
+    {
+        LightEntry const* light = sLightStore.LookupEntry(uint32(i));
+        if (!light)
+            continue;
+
+        if (light->ContinentID == int16(mapId))
+            mapLights.emplace_back(light);
+    }
+
+    return mapLights;
+}
+
+std::map<uint32, uint32> DB2Manager::GetMapParamsIds()
+{
+    std::map<uint32, uint32> lightIds;
+    for (int32 i = sLightStore.GetNumRows(); i >= 0; --i)
+    {
+        LightEntry const* light = sLightStore.LookupEntry(uint32(i));
+
+        if (!light)
+            continue;
+
+        for (uint32 j = 0; j < 8; j++) {
+            if (light->LightParamsID[j] != 0) {
+                lightIds.insert(std::make_pair(light->LightParamsID[j], light->ID));
+            }
+        }
+    }
+
+    return lightIds;
+}
+
+
+std::map<uint16, uint32> DB2Manager::GetMapLightSkyboxIds()
+{
+    std::map<uint16, uint32>  lightSkyboxsIds;
+    std::map<uint32, uint32> lightIds = GetMapParamsIds();
+
+    for (int32 i = sLightParamsStore.GetNumRows(); i >= 0; --i)
+    {
+        LightParamsEntry const* lightParams = sLightParamsStore.LookupEntry(uint32(i));
+        if (!lightParams)
+            continue;
+
+        if (lightParams->LightSkyboxID == 0)
+            continue;
+
+        auto paramsIterator = lightIds.find(lightParams->ID);
+        if (paramsIterator != lightIds.end()) {
+            lightSkyboxsIds.insert(std::make_pair(lightParams->LightSkyboxID, paramsIterator->second));
+        }
+    }
+
+    return lightSkyboxsIds;
+}
+
+std::map<uint32, std::string> DB2Manager::GetMapSkyboxs()
+{
+    std::map<uint32, std::string> mapSkyboxs;
+    std::map<uint16, uint32> lightSkyboxsIds = GetMapLightSkyboxIds();
+
+    for (int32 i = sLightSkyboxStore.GetNumRows(); i >= 0; --i)
+    {
+        LightSkyboxEntry const* lightSkybox = sLightSkyboxStore.LookupEntry(uint32(i));
+        if (!lightSkybox)
+            continue;
+
+        auto paramsIterator = lightSkyboxsIds.find(lightSkybox->ID);
+        if (paramsIterator != lightSkyboxsIds.end()) {
+            mapSkyboxs.insert(std::make_pair(paramsIterator->second, lightSkybox->Name));
+        }
+    }
+
+    return mapSkyboxs;
+}
+
+std::map<uint32, std::string> DB2Manager::GetSoundKitsNames()
+{
+    std::map<uint32, std::string> soundKitsNames;
+
+    for (int32 i = sSoundKitNameStore.GetNumRows(); i >= 0; --i)
+    {
+        SoundKitNameEntry const* soundKitName = sSoundKitNameStore.LookupEntry(uint32(i));
+        if (!soundKitName)
+            continue;
+
+        soundKitsNames.insert(std::make_pair(soundKitName->ID, soundKitName->Name));
+
+    }
+
+    return soundKitsNames;
 }
 
 uint32 DB2Manager::GetLiquidFlags(uint32 liquidType)

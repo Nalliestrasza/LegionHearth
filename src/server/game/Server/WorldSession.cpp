@@ -1151,6 +1151,155 @@ void WorldSession::InvalidateRBACData()
     _RBACData = NULL;
 }
 
+bool WorldSession::GetPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions)
+{
+    bool permissionsExists = false;
+
+    LoginDatabasePreparedStatement* stmtPermissions = LoginDatabase.GetPreparedStatement(LOGIN_SEL_PHASE_PERMISSION);
+    stmtPermissions->setUInt32(0, this->GetAccountId());
+    stmtPermissions->setUInt32(1, phaseId);
+
+    PreparedQueryResult resultPermissions = LoginDatabase.Query(stmtPermissions);
+
+    if (resultPermissions) {
+        Field* field = resultPermissions->Fetch();
+        permissions = PhaseChat::GetPermissionsFromVector(field[0].GetBinary());
+        permissionsExists = true;
+    }
+
+    return permissionsExists;
+}
+
+void WorldSession::AddPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->AddPhasePermissions(phaseId, &permission, 1);
+}
+
+void WorldSession::AddPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+
+    LoginDatabasePreparedStatement* stmt;
+
+    if (!this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.set(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(dataPermissions));
+    }
+    else {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.set(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(dataPermissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+void WorldSession::AddPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions)
+{
+    LoginDatabasePreparedStatement* stmt;
+    std::bitset<PhaseChat::PhaseMaxPermissions> playerPermissions;
+    if (!this->GetPhasePermissions(phaseId, playerPermissions)) {
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(permissions));
+    }
+    else {
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(permissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+void WorldSession::RemovePhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->RemovePhasePermissions(phaseId, &permission, 1);
+}
+
+
+void WorldSession::RemovePhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    if (permissions == nullptr)
+        return;
+
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+
+    LoginDatabasePreparedStatement* stmt;
+
+    if (!this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.reset(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(dataPermissions));
+    }
+    else {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.reset(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(dataPermissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+bool WorldSession::HasPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->HasPhasePermissions(phaseId, &permission, 1);
+}
+
+bool WorldSession::HasPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+    bool hasPerms = true;
+
+    if (this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++) {
+            if (!dataPermissions.test(PhaseChat::GetPermissionsAs<size_t>(permissions[i]))) {
+                hasPerms = false;
+                break;
+            }
+        }
+    }
+    else {
+        hasPerms = false;
+    }
+
+    return hasPerms;
+}
+
+bool WorldSession::HasPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions> permissions)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+    bool hasPerms = true;
+
+    if (this->GetPhasePermissions(phaseId, dataPermissions)) {
+        hasPerms = (permissions & ~dataPermissions).none();
+    }
+    else {
+        hasPerms = false;
+    }
+
+    return hasPerms;
+}
+
 bool WorldSession::DosProtection::EvaluateOpcode(WorldPacket& p, time_t time) const
 {
     uint32 maxPacketCounterAllowed = GetMaxPacketCounterAllowed(p.GetOpcode());

@@ -871,6 +871,16 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_LIGHT, "SELECT MAX(ID) + 1 FROM light", CONNECTION_SYNCH);
 
+    // LightSkybox.db2
+    PrepareStatement(HOTFIX_SEL_LIGHT_SKYBOX, "SELECT ID, Name, Flags, SkyboxFileDataID, CelestialSkyboxFileDataID FROM light_skybox"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_LIGHT_SKYBOX, "SELECT MAX(ID) + 1 FROM light_skybox", CONNECTION_SYNCH);
+
+    // LightParams.db2
+    PrepareStatement(HOTFIX_SEL_LIGHT_PARAMS, "SELECT OverrideCelestialSphere1, OverrideCelestialSphere2, OverrideCelestialSphere3, ID, HighlightSky, LightSkyboxID, CloudTypeID, Glow, WaterShallowAlpha, WaterDeepAlpha, OceanShallowAlpha, OceanDeepAlpha, Flags, SsaoSettingsID FROM light_params"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_LIGHT_PARAMS, "SELECT MAX(ID) + 1 FROM light_params", CONNECTION_SYNCH);
+
     // LiquidType.db2
     PrepareStatement(HOTFIX_SEL_LIQUID_TYPE, "SELECT ID, Name, Texture1, Texture2, Texture3, Texture4, Texture5, Texture6, Flags, SoundBank, SoundID, "
         "SpellID, MaxDarkenDepth, FogDarkenIntensity, AmbDarkenIntensity, DirDarkenIntensity, LightID, ParticleScale, ParticleMovement, "
@@ -1152,6 +1162,10 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "VolumeVariationPlus, VolumeVariationMinus, PitchVariationPlus, PitchVariationMinus, DialogType, PitchAdjust, BusOverwriteID, MaxInstances"
         " FROM sound_kit WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_SOUND_KIT, "SELECT MAX(ID) + 1 FROM sound_kit", CONNECTION_SYNCH);
+
+    // SoundKitName.db2
+    PrepareStatement(HOTFIX_SEL_SOUND_KIT_NAME, "SELECT ID, Name FROM sound_kit_name WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_SOUND_KIT_NAME, "SELECT MAX(ID) + 1 FROM sound_kit_name", CONNECTION_SYNCH);
 
     // SpecializationSpells.db2
     PrepareStatement(HOTFIX_SEL_SPECIALIZATION_SPELLS, "SELECT Description, ID, SpecID, SpellID, OverridesSpellID, DisplayOrder"

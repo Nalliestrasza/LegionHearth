@@ -147,6 +147,8 @@ TC_GAME_API extern DB2Storage<ItemSpecEntry>                        sItemSpecSto
 TC_GAME_API extern DB2Storage<ItemSpecOverrideEntry>                sItemSpecOverrideStore;
 TC_GAME_API extern DB2Storage<LFGDungeonsEntry>                     sLFGDungeonsStore;
 TC_GAME_API extern DB2Storage<LightEntry>                           sLightStore;
+TC_GAME_API extern DB2Storage<LightSkyboxEntry>                     sLightSkyboxStore;
+TC_GAME_API extern DB2Storage<LightParamsEntry>                     sLightParamsStore;
 TC_GAME_API extern DB2Storage<LiquidTypeEntry>                      sLiquidTypeStore;
 TC_GAME_API extern DB2Storage<LockEntry>                            sLockStore;
 TC_GAME_API extern DB2Storage<MailTemplateEntry>                    sMailTemplateStore;
@@ -179,6 +181,7 @@ TC_GAME_API extern DB2Storage<SceneScriptPackageEntry>              sSceneScript
 TC_GAME_API extern DB2Storage<SkillLineAbilityEntry>                sSkillLineAbilityStore;
 TC_GAME_API extern DB2Storage<SkillRaceClassInfoEntry>              sSkillRaceClassInfoStore;
 TC_GAME_API extern DB2Storage<SoundKitEntry>                        sSoundKitStore;
+TC_GAME_API extern DB2Storage<SoundKitNameEntry>                    sSoundKitNameStore;
 TC_GAME_API extern DB2Storage<SpellAuraOptionsEntry>                sSpellAuraOptionsStore;
 TC_GAME_API extern DB2Storage<SpellAuraRestrictionsEntry>           sSpellAuraRestrictionsStore;
 TC_GAME_API extern DB2Storage<SpellCastTimesEntry>                  sSpellCastTimesStore;
@@ -338,6 +341,12 @@ public:
     std::vector<ItemSpecOverrideEntry const*> const* GetItemSpecOverrides(uint32 itemId) const;
     static LFGDungeonsEntry const* GetLfgDungeon(uint32 mapId, Difficulty difficulty);
     static uint32 GetDefaultMapLight(uint32 mapId);
+    static uint32 GetMapLightId(uint32 mapId);
+    static std::vector<LightEntry const*> GetMapLights(uint32 mapId);
+    static std::map<uint32, uint32> GetMapParamsIds();
+    static std::map<uint16, uint32>  GetMapLightSkyboxIds();
+    static std::map<uint32, std::string> GetMapSkyboxs();
+    static std::map<uint32, std::string> GetSoundKitsNames();
     static uint32 GetLiquidFlags(uint32 liquidType);
     MapDifficultyContainer const& GetMapDifficulties() const;
     MapDifficultyEntry const* GetDefaultMapDifficulty(uint32 mapId, Difficulty* difficulty = nullptr) const;

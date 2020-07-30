@@ -23,6 +23,8 @@
 #include "StringFormat.h"
 #include <vector>
 
+#include "PhaseChat.h"
+
 class ChatHandler;
 class Creature;
 class GameObject;
@@ -41,7 +43,7 @@ class TC_GAME_API ChatCommand
     typedef bool(*pHandler)(ChatHandler*, char const*);
 
     public:
-        ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands = std::vector<ChatCommand>());
+        ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands = std::vector<ChatCommand>(), std::initializer_list<PhaseChat::Permissions> phasePermissions = { });
 
         char const* Name;
         uint32 Permission;                   // function pointer required correct align (use uint32)
@@ -49,6 +51,7 @@ class TC_GAME_API ChatCommand
         pHandler Handler;
         std::string Help;
         std::vector<ChatCommand> ChildCommands;
+        std::bitset<PhaseChat::PhaseMaxPermissions> PhasePermissions;
 };
 
 class TC_GAME_API ChatHandler

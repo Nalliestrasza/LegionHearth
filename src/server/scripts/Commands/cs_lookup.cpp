@@ -1465,26 +1465,24 @@ public:
         if (!str)
             return false;
 
-        std::string fix = str;
-        if (fix.find('\'') != std::string::npos) {
+        std::string requestName = str;
+        if (requestName.find('\'') != std::string::npos) {
             handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
         else {
-            std::stringstream ss;
-            ss << "'%" << str << "%'";
-            std::string namePart = ss.str();
+            auto query = DB2Manager::GetMapSkyboxs();
+            if (query.size() != 0) {
+                for(const auto& skyboxData : query) {
+                    std::string skyboxName = skyboxData.second;
 
-            QueryResult query = WorldDatabase.PQuery("SELECT m_ID, name FROM skybox WHERE name LIKE %s", namePart.c_str());
+                    std::transform(skyboxName.begin(), skyboxName.end(), skyboxName.begin(),
+                        [](unsigned char c) { return std::tolower(c); });
 
-            if (query) {
-                do {
-                    Field* result = query->Fetch();
-                    uint32 id = result[0].GetUInt32();
-                    std::string name = result[1].GetString();
-                    handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, id, name.c_str());
-                } while (query->NextRow());
+                    if(skyboxName.find(requestName) != std::string::npos)
+                        handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, skyboxData.first, skyboxName.c_str());
+                }
             }
             else {
 
@@ -1521,27 +1519,18 @@ public:
             return false;
         }
 
-        QueryResult query = WorldDatabase.PQuery("SELECT m_ID, LightParamsID_1, LightParamsID_2, LightParamsID_3, LightParamsID_4 FROM light l WHERE MapID = %u AND NOT EXISTS"
-            " (SELECT * from skybox s WHERE l.m_ID = s.m_ID)", map_id);
+        auto query = DB2Manager::GetMapLights(map_id);
 
-        if (query) {
+
+        if (query.size() > 0) {
 
             std::stringstream s1;
             s1 << map_id;
             handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ARE, s1.str().c_str());
-            do {
 
-                Field* result = query->Fetch();
-
-                uint32 no1 = result[0].GetUInt32();
-                uint16 no2 = result[1].GetUInt16();
-                uint16 no3 = result[2].GetUInt16();
-                uint16 no4 = result[3].GetUInt16();
-                uint16 no5 = result[4].GetUInt16();
-
-                handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE, no1, no2, no3, no4, no5);
-
-            } while (query->NextRow());
+            for (const auto& mapLight : query) {
+                handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE, mapLight->ID, mapLight->LightParamsID[0], mapLight->LightParamsID[1], mapLight->LightParamsID[2], mapLight->LightParamsID[3]);
+            }          
         }
         else {
             handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ERROR);
@@ -1562,30 +1551,26 @@ public:
         if (!name)
             return false;
 
-        std::string fix = name;
-        if (fix.find('\'') != std::string::npos) {
+        std::string requestName = name;
+        if (requestName.find('\'') != std::string::npos) {
             handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
         else {
-            std::stringstream ss;
-            ss << "'%" << name << "%'";
-            std::string namePart = ss.str();
+    
+            auto soundKitsNames = DB2Manager::GetSoundKitsNames();
+            if (soundKitsNames.size() > 0) {
 
-            QueryResult query = WorldDatabase.PQuery("SELECT m_id, field4 from soundkitname where field4 like %s", namePart);
-            if (query) {
+                for (const auto& soundKitsName : soundKitsNames) {
+                    std::string soundKitNameStr = soundKitsName.second;
 
-                do {
+                    std::transform(soundKitNameStr.begin(), soundKitNameStr.end(), soundKitNameStr.begin(),
+                        [](unsigned char c) { return std::tolower(c); });
 
-                    Field* result = query->Fetch();
-
-                    uint32 id = result[0].GetUInt32();
-                    std::string soundName = result[1].GetString();
-
-                    handler->PSendSysMessage(LANG_LOOKUP_SOUND, id, soundName.c_str());
-
-                } while (query->NextRow());
+                    if (soundKitNameStr.find(requestName) != std::string::npos)
+                        handler->PSendSysMessage(LANG_LOOKUP_SOUND, soundKitsName.first, soundKitNameStr);
+                }
             }
             else {
                 handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
@@ -1614,7 +1599,7 @@ public:
         uint32 counter = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
 
-        // search in Map.dbc
+        // search in Map.db2
         for (uint32 id = 0; id < sMapStore.GetNumRows(); ++id)
         {
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))

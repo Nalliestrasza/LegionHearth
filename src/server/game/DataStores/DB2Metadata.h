@@ -13078,4 +13078,20 @@ struct ZoneStoryMeta
     }
 };
 
+// Custom Kuretar
+
+struct SoundKitNameMeta
+{
+    static DB2Meta const* Instance()
+    {
+        static DB2MetaField const fields[1] =
+        {
+            { FT_STRING_NOT_LOCALIZED, 1, true },
+        };
+        static DB2Meta instance(1665033, -1, 1, 1, 0xF6F6B04B, fields, -1);
+
+        return &instance;
+    }
+};
+
 #endif // DB2Metadata_h__

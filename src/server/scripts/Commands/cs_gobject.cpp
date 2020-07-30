@@ -40,6 +40,7 @@ EndScriptData */
 #include "RBAC.h"
 #include "WorldSession.h"
 #include <sstream>
+#include "PhaseChat.h"
 
 class gobject_commandscript : public CommandScript
 {
@@ -50,38 +51,38 @@ public:
     {
         static std::vector<ChatCommand> gobjectAddCommandTable =
         {
-            { "temp", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD_TEMP, false, &HandleGameObjectAddTempCommand,   "" },
-            { "",     rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, &HandleGameObjectAddCommand,       "" },
+            { "temp", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD_TEMP, false, &HandleGameObjectAddTempCommand,   "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create} },
+            { "",     rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, &HandleGameObjectAddCommand,       "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create} },
         };
         static std::vector<ChatCommand> gobjectSetCommandTable =
         {
-            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand,  "" },
-            { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "" },
-            { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "" },
+            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
+            { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
+            { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}  },
         };
         static std::vector<ChatCommand> gobjectDuplicationCommandTable =
         {
             { "create", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationCreateCommand,   "" },
-            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationAddCommand,      "" },
+            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationAddCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create}  },
             { "target", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_READ,     false, &HandleGameObjectDuplicationTargetCommand,   "" },
-            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationDeleteCommand,   "" },
+            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationDeleteCommand,   "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Delete}  },
             { "private",rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationPrivateCommand,  "" },
             { "remove", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationRemoveCommand,   "" },
         };
         static std::vector<ChatCommand> gobjectCommandTable =
         {
-            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  ""       },
-            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    ""       },
+            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}        },
+            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Delete}        },
             { "info",       rbac::RBAC_PERM_COMMAND_GOBJECT_INFO,     false, &HandleGameObjectInfoCommand,      ""       },
-            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      ""       },
+            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
             { "near",       rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
             { "target",     rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
-            { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      ""       },
+            { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
             { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",        rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
             { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },
-            { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         ""        },
+            { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
 
         };
         static std::vector<ChatCommand> commandTable =
@@ -128,13 +129,6 @@ public:
     {
         if (!*args)
             return false;
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
@@ -404,12 +398,6 @@ public:
     //delete object by selection or guid
     static bool HandleGameObjectDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
@@ -800,14 +788,7 @@ public:
     }
 
     static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, char const* args)
-    {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-            
+    {         
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)
@@ -869,14 +850,6 @@ public:
 
     static bool HandleGameDoodadCommand(ChatHandler* handler, char const* args)
     {
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)
@@ -1128,14 +1101,6 @@ public:
 
     static bool HandleGameObjectDuplicationAddCommand(ChatHandler* handler, char const* args)
     {
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         // Player
         Player* player = handler->GetSession()->GetPlayer();
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
@@ -1383,13 +1348,6 @@ public:
 
     static bool HandleGameObjectDuplicationDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         // Player
         Player* player = handler->GetSession()->GetPlayer();
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();

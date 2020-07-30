@@ -2701,6 +2701,12 @@ struct SoundKitEntry
     uint8 MaxInstances;
 };
 
+struct SoundKitNameEntry
+{
+    uint32 ID;
+    char const* Name;
+};
+
 struct SpecializationSpellsEntry
 {
     LocalizedString Description;
@@ -3497,6 +3503,43 @@ struct WorldStateExpressionEntry
     uint32 ID;
     char const* Expression;
 };
+
+struct ZoneLightEntry
+{
+    uint32 ID;
+    char const* Name;
+    uint16 MapID;
+    uint16 LightID;
+    uint8 Flags;
+    float Zmin;
+    float Zmax;
+};
+
+struct LightSkyboxEntry
+{
+    uint32 ID;
+    char const* Name;
+    uint8 Flags;
+    int32 SkyboxFileDataID;
+    int32 CelestialSkyboxFileDataID;
+};
+
+struct LightParamsEntry
+{
+    float OverrideCelestialSphere[3];
+    uint32 ID;
+    uint8 HighlightSky;
+    uint16 LightSkyboxID;
+    uint8 CloudTypeID;
+    float Glow;
+    float WaterShallowAlpha;
+    float WaterDeepAlpha;
+    float OceanShallowAlpha;
+    float OceanDeepAlpha;
+    int32 Flags;
+    int32 SsaoSettingsID;
+};
+
 
 #pragma pack(pop)
 #endif

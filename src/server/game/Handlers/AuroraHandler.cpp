@@ -25,13 +25,15 @@
 #include "Map.h"
 #include "PhasingHandler.h"
 #include "ObjectMgr.h"
-
+#include "Chat.h"
 /* CMSG */
 
 void WorldSession::HandleAuroraCreateGameObject(WorldPackets::Aurora::AuroraCreateGameObject& gameobjectData)
 {
-    if (!_player->IsPhaseOwner())
+    WorldSession* session = _player->GetSession();
+    if (!session->HasPhasePermission(_player->GetMapId(), PhaseChat::Permissions::Gameobjects_Create)) {
         return;
+    }
 
     for (auto& gameObject : gameobjectData.GameObjects) {
 
@@ -75,8 +77,10 @@ void WorldSession::HandleAuroraCreateGameObject(WorldPackets::Aurora::AuroraCrea
 
 void WorldSession::HandleAuroraMoveGameObject(WorldPackets::Aurora::AuroraMoveGameObject& gameobjectData)
 {
-    if (!_player->IsPhaseOwner())
+    WorldSession* session = _player->GetSession();
+    if (!session->HasPhasePermission(_player->GetMapId(), PhaseChat::Permissions::Gameobjects_Update)) {
         return;
+    }
 
     Map* map = _player->GetMap();
     for (auto& gameObject : gameobjectData.GameObjects) {
@@ -100,8 +104,10 @@ void WorldSession::HandleAuroraMoveGameObject(WorldPackets::Aurora::AuroraMoveGa
 
 void WorldSession::HandleAuroraDeleteGameObject(WorldPackets::Aurora::AuroraDeleteGameObject& gameobjectData)
 {
-    if (!_player->IsPhaseOwner())
+    WorldSession* session = _player->GetSession();
+    if (!session->HasPhasePermission(_player->GetMapId(), PhaseChat::Permissions::Gameobjects_Delete)) {
         return;
+    }
 
     Map* map = _player->GetMap();
 

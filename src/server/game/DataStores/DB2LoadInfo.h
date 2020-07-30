@@ -3318,6 +3318,50 @@ struct LightLoadInfo
     }
 };
 
+struct LightParamsLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_FLOAT, "OverrideCelestialSphere1" },
+            { false, FT_FLOAT, "OverrideCelestialSphere2" },
+            { false, FT_FLOAT, "OverrideCelestialSphere3" },
+            { false, FT_INT, "ID" },
+            { false, FT_BYTE, "HighlightSky" },
+            { false, FT_SHORT,"LightSkyboxID" },
+            { false, FT_BYTE, "CloudTypeID" },
+            { false, FT_FLOAT, "Glow" },
+            { false, FT_FLOAT, "WaterShallowAlpha" },
+            { false, FT_FLOAT, "WaterDeepAlpha" },
+            { false, FT_FLOAT, "OceanShallowAlpha" },
+            { false, FT_FLOAT, "OceanDeepAlpha" },
+            { true, FT_INT, "Flags" },
+            { true, FT_INT, "SsaoSettingsID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, LightParamsMeta::Instance(), HOTFIX_SEL_LIGHT_PARAMS);
+        return &loadInfo;
+    }
+};
+
+struct LightSkyboxLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_STRING_NOT_LOCALIZED, "Name" },
+            { false, FT_BYTE, "Flags" },
+            { true, FT_INT, "SkyboxFileDataID" },
+            { true, FT_INT, "CelestialSkyboxFileDataID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, LightSkyboxMeta::Instance(), HOTFIX_SEL_LIGHT_SKYBOX);
+        return &loadInfo;
+    }
+};
+
+
 struct LiquidTypeLoadInfo
 {
     static DB2LoadInfo const* Instance()
@@ -4513,6 +4557,20 @@ struct SoundKitLoadInfo
             { false, FT_BYTE, "MaxInstances" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, SoundKitMeta::Instance(), HOTFIX_SEL_SOUND_KIT);
+        return &loadInfo;
+    }
+};
+
+struct SoundKitNameLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_STRING_NOT_LOCALIZED, "Name" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, SoundKitNameMeta::Instance(), HOTFIX_SEL_SOUND_KIT_NAME);
         return &loadInfo;
     }
 };

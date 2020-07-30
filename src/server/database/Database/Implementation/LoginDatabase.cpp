@@ -181,6 +181,17 @@ void LoginDatabaseConnection::DoPrepareStatements()
     // custom
     PrepareStatement(LOGIN_INS_DENIED_PERMISSION, "INSERT INTO rbac_account_permissions (accountId, permissionId, granted, realmId) VALUES (?, ?, 0, -1)", CONNECTION_ASYNC);
 
+    // phase permissions
+    PrepareStatement(LOGIN_INS_PHASE_PERMISSION, "INSERT INTO phase_account_permissions (accountId, phaseId, permissions) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_SEL_PHASE_PERMISSION, "SELECT permissions from phase_account_permissions WHERE accountId = ? AND phaseId = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_UPD_PHASE_PERMISSION, "UPDATE phase_account_permissions SET permissions = ? WHERE accountId = ? AND phaseId = ?", CONNECTION_ASYNC);
+
+    PrepareStatement(LOGIN_INS_PHASE_RANK, "INSERT INTO phase_rank_permissions (phaseId, rankName, permissions) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_SEL_PHASE_RANK, "SELECT permissions from phase_rank_permissions WHERE phaseId = ? AND rankName = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_PHASE_ALL_RANKS, "SELECT rankName, permissions from phase_rank_permissions WHERE phaseId = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_UPD_PHASE_RANK, "UPDATE phase_rank_permissions SET permissions = ? WHERE phaseId = ? AND rankName = ?", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_DEL_PHASE_RANK, "DELETE FROM phase_rank_permissions WHERE phaseId = ? AND rankName = ?", CONNECTION_ASYNC);
+
     // hwid_bans
     PrepareStatement(LOGIN_SEL_HWID_INFO_ACC, "SELECT physicalDriveID, cpuID, volumeInformation, isVM from hwid_bans WHERE accountID = ?", CONNECTION_SYNCH);
     PrepareStatement(LOGIN_SEL_HWID_BAN, "SELECT accountID, banned from hwid_bans WHERE physicalDriveID = ? AND cpuID = ? AND volumeInformation = ?", CONNECTION_SYNCH);

@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2016,7 +2016,7 @@ public:
         handler->PSendSysMessage(LANG_PINFO_ACC_OS, OS.c_str(), latency);
 
         // Output VII. bis LANG_PINFO_ACC_HWID
-        handler->PSendSysMessage("â”‚ VM: %s", isVM ? "true" : "false");
+        handler->PSendSysMessage("? VM: %s", isVM ? "true" : "false");
 
         // Output VIII. LANG_PINFO_ACC_REGMAILS
         handler->PSendSysMessage(LANG_PINFO_ACC_REGMAILS, regMail.c_str(), eMail.c_str());
@@ -3272,7 +3272,7 @@ public:
             else
                 targetName = target->GetName();
         }
-        //Phase 3 : Calcul des positions et distance en mÃ¨tres (Ã  deux decimal pres, arrondi Ã  l'infÃ©rieur )
+        //Phase 3 : Calcul des positions et distance en mètres (à deux decimal pres, arrondi à l'inférieur )
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -3361,7 +3361,7 @@ public:
     }
 
 
-    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomSayCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3413,7 +3413,7 @@ public:
         return true;
     }
 
-    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleRandomMPCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -3460,7 +3460,7 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         std::string playerName = player->GetName();
         char msg[255];
-        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privÃ©", playerName.c_str(), roll, min, max);
+        sprintf(msg, "%s a fait un jet de %u (%u-%u) [Rand en privé", playerName.c_str(), roll, min, max);
         Unit* target = player->GetSelectedUnit();
         if (!target)
         {
@@ -3496,7 +3496,7 @@ public:
             player->setFactionForRace(RACE_PANDAREN_ALLIANCE);
             player->SaveToDB();
             player->LearnSpell(108130, false); // Language Pandaren Alliance
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de l'alliance !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de l'alliance !");
         }
         else if (argstr == "horde")
         {
@@ -3504,11 +3504,11 @@ public:
             player->setFactionForRace(RACE_PANDAREN_HORDE);
             player->SaveToDB();
             player->LearnSpell(108131, false); // Language Pandaren Horde
-            handler->PSendSysMessage("Vous Ãªtes dÃ©sormais un Pandaren de la horde !");
+            handler->PSendSysMessage("Vous êtes désormais un Pandaren de la horde !");
         }
         else
         {
-            handler->PSendSysMessage("ParamÃ¨tre incorrect, veuillez entrez horde ou alliance");
+            handler->PSendSysMessage("Paramètre incorrect, veuillez entrez horde ou alliance");
         }
 
         return true;
@@ -3897,7 +3897,7 @@ public:
         if (argstr == "off")
         {
             target->RemoveAura(185394);
-            handler->SendSysMessage("Nuit noire dÃ©sactivÃ©e !");
+            handler->SendSysMessage("Nuit noire désactivée !");
             return true;
         }
         else if (argstr == "on")
@@ -3908,7 +3908,7 @@ public:
                 ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                 Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target, target->GetMap()->GetDifficultyID());
             }
-            handler->SendSysMessage("Nuit noire activÃ©e ! Tapez .nuit off pour la dÃ©sactivÃ©e.");
+            handler->SendSysMessage("Nuit noire activée ! Tapez .nuit off pour la désactivée.");
             return true;
         }
 
@@ -4197,7 +4197,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd Ã  retest
+    static bool HandleDebugSyncCommand(ChatHandler* handler, const char* args) //Cmd à retest
     {
         char* temp = (char*)args;
         char* str1 = strtok(temp, "-");
@@ -4925,538 +4925,6 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
     }
 
-    static bool HandleDeletePhaseOwnCommand(ChatHandler* handler, const char* args) {
-
-        if (!*args)
-            return false;
-
-        const char* pId = strtok((char*)args, " ");
-
-        if (!pId || pId == NULL)
-            return false;
-
-        std::string checkId = pId;
-        if(!std::all_of(checkId.begin(), checkId.end(), ::isdigit)){
-            handler->PSendSysMessage(LANG_PHASE_LOOKUP_BAD_ARG);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-        else {
-            uint16 phaseId = atoi(pId);
-
-            QueryResult check = WorldDatabase.PQuery("SELECT phaseId FROM phase_owner WHERE accountOwner = %u AND phaseId = %u", handler->GetSession()->GetAccountId(), phaseId);
-            if (check) {
-
-                QueryResult query = WorldDatabase.PQuery("SELECT map FROM phaseown_map WHERE map = %u", phaseId);
-                if (query) {
-
-                    Field* result = query->Fetch();
-
-                    uint16 toDelete = result[0].GetUInt16();
-
-                    WorldDatabasePreparedStatement* deleteLookupEntry = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASEOWN_MAP);
-                    deleteLookupEntry->setUInt16(0, toDelete);
-                    WorldDatabase.Execute(deleteLookupEntry);
-
-                    handler->PSendSysMessage(LANG_PHASE_LOOKUP_ENTRY_DELETE, toDelete);
-
-                    return true;
-
-                }
-                else {
-                    handler->PSendSysMessage(LANG_PHASE_LOOKUP_NO_ENTRY);
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
-            }
-            else {
-                handler->PSendSysMessage(LANG_PHASE_LOOKUP_NOT_OWNER, phaseId);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-        }
-    }
-
-    static bool HandlePhaseRemoveInviteCommand(ChatHandler * handler, char const* args)
-    {
-        // Define ALL the player variables!
-        Player* target;
-        ObjectGuid targetGuid;
-
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
-
-        if (!targetName || targetName == NULL)
-            return false;
-        if (!phId || phId == NULL)
-            return false;
-        if (!targetName && !phId || targetName == NULL && phId == NULL)
-            return false;
-
-        std::string pName = targetName;
-        uint32 phaseId = uint32(atoi(phId));
-
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-        std::string nameLink = handler->playerLink(pName);
-        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
-
-        if (phaseId < 1)
-            return false;
-
-        if (phaseId < MAP_CUSTOM_PHASE)
-            return false;
-
-        // Check if map exist
-        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
-        if (!cExist)
-            return false;
-
-        if (target)
-        {
-
-            // check online security
-            if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
-                return false;
-
-            //sql
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-
-                QueryResult alreadyDel = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                if (!alreadyDel)
-                    return false;
-
-
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_DEL_OWNER, nameLink);
-
-                if (target->GetSession() == NULL) {
-                    handler->PSendSysMessage(LANG_ERROR);
-                }
-                else {
-
-                    if (handler->needReportToTarget(target))
-                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_INVITE_DEL_TARGET, phaseId, ownerLink);
-
-                    if (handler->needReportToTarget(target))
-                    {
-                        // Sanctuaire Coords
-                        uint32 mapId = 1374;
-                        float x = 2018.339355f;
-                        float y = 2953.082031f;
-                        float z = 25.213768f;
-                        float o = 6.224421f;
-      
-                        // Send Packet to target player
-                        sDB2Manager.LoadHotfixData();
-                        sMapStore.LoadFromDB();
-                        sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                        target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
-                        target->TeleportTo(mapId, x, y, z, o);
-          
-                    }
-
-                    return true;
-                }
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-        }
-        else {
-
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                WorldDatabase.Execute(invit);
-
-                //handler->PSendSysMessage(LANG_PHASE_INVITE_DEL_TARGET, phaseId, ownerLink);
-                return true;
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-
-        }
-
-        return true;
-
-    }
-
-    static bool HandlePhaseSetOwnerCommand(ChatHandler * handler, char const* args)
-    {
-        // Define ALL the player variables!
-        Player* target;
-        ObjectGuid targetGuid;
-
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
-
-        if (!targetName || targetName == NULL)
-            return false;
-        if (!phId || phId == NULL)
-            return false;
-        if (!targetName && !phId || targetName == NULL && phId == NULL)
-            return false;
-
-        std::string pName = targetName;
-        uint32 phaseId = uint32(atoi(phId));
-
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-        std::string nameLink = handler->playerLink(pName);
-        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
-
-        if (phaseId < 1)
-            return false;
-
-        if (phaseId < MAP_CUSTOM_PHASE)
-            return false;
-
-        // Check if map exist
-        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
-        if (!cExist)
-            return false;
-
-        if (target)
-        {
-            //sql
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-
-                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                if (alreadyExist)
-                    return false;
-
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_OWNER, nameLink);
-
-                if (target->GetSession() == NULL) {
-                    handler->PSendSysMessage(LANG_ERROR);
-                }
-                else {
-
-                    if (handler->needReportToTarget(target))
-                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_INVITE_OWNER_TARGET, phaseId, ownerLink);
-
-                    return true;
-                }
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-        }
-        else {
-
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_OWNER);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_OWNER, nameLink);
-                return true;
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-
-        }
-
-        return true;
-
-    }
-
-    static bool HandlePhaseRemoveOwnerCommand(ChatHandler * handler, char const* args)
-    {
-        // Define ALL the player variables!
-        Player* target;
-        ObjectGuid targetGuid;
-
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
-
-        if (!targetName || targetName == NULL)
-            return false;
-        if (!phId || phId == NULL)
-            return false;
-        if (!targetName && !phId || targetName == NULL && phId == NULL)
-            return false;
-
-        std::string pName = targetName;
-        uint32 phaseId = uint32(atoi(phId));
-
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-        std::string nameLink = handler->playerLink(pName);
-        std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
-
-        if (phaseId < 1)
-            return false;
-
-        if (phaseId < MAP_CUSTOM_PHASE)
-            return false;
-
-        // Check if map exist
-        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
-        if (!cExist)
-            return false;
-
-        if (target)
-        {
-            //sql
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-			if (!checksql)
-			{
-				handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-				handler->SetSentErrorMessage(true);
-				return false;
-			}
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-
-                QueryResult alreadyExist = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                if (!alreadyExist)
-                    return false;
-
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_DEL_OWNER, nameLink);
-
-                if (target->GetSession() == NULL) {
-                    handler->PSendSysMessage(LANG_ERROR);
-                }
-                else {
-
-                    if (handler->needReportToTarget(target))
-                        ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_DEL_OWNER_TARGET, phaseId, ownerLink);
-
-                    return true;
-                }
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-        }
-        else {
-
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
-            QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", phaseId, handler->GetSession()->GetAccountId());
-            if (!checksql)
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                handler->SetSentErrorMessage(true);
-                return false;
-            }
-            Field* field1 = checksql->Fetch();
-            uint32 OwnerId = field1[0].GetUInt32();
-
-            if (OwnerId == handler->GetSession()->GetAccountId())
-            {
-                // ajouter
-                WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_SET_OWNER);
-                invit->setUInt32(0, phaseId);
-                invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
-                WorldDatabase.Execute(invit);
-
-                handler->PSendSysMessage(LANG_PHASE_DEL_OWNER, nameLink);
-                return true;
-
-            }
-            else {
-
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-
-
-        }
-
-        return true;
-    }
-    static bool HandlePhaseSetPublicCommand(ChatHandler * handler, char const* args)
-    {
-        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-
-        if (!checksql)
-        {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-			handler->SetSentErrorMessage(true);
-            return false;
-        }
-        else
-        {
-            Field* field = checksql->Fetch();
-            uint32 accId = field[0].GetUInt32();
-        
-            // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
-                return false;
-
-            if (accId == handler->GetSession()->GetAccountId())
-            {
-                WorldDatabasePreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
-                set->setUInt16(0, 1);
-                set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
-                WorldDatabase.Execute(set);
-
-                handler->PSendSysMessage(LANG_PHASE_IS_NOW_PUBLIC);
-            }
-            else
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-        }
-
-        return true;
-
-    }
-
-    static bool HandlePhaseSetPrivateCommand(ChatHandler * handler, char const* args)
-    {
-        QueryResult checksql = WorldDatabase.PQuery("SELECT accountOwner FROM phase_owner WHERE phaseId = %u AND accountOwner = %u", handler->GetSession()->GetPlayer()->GetMapId(), handler->GetSession()->GetAccountId());
-
-        if (!checksql)
-        {
-            handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-			handler->SetSentErrorMessage(true);
-            return false;
-        }
-        else
-        { 
-            Field* field = checksql->Fetch();
-            uint32 accId = field[0].GetUInt32();
-
-            // Fix for mangolian
-            if (handler->GetSession()->GetPlayer()->GetMapId() < MAP_CUSTOM_PHASE)
-                return false;
-
-            if (accId == handler->GetSession()->GetAccountId())
-            {
-                WorldDatabasePreparedStatement* set = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_SET_TYPE);
-                set->setUInt16(0, 0);
-                set->setUInt32(1, handler->GetSession()->GetPlayer()->GetMapId());
-                WorldDatabase.Execute(set);
-
-                handler->PSendSysMessage(LANG_PHASE_IS_NOW_PRIVATE);
-            }
-            else
-            {
-                handler->PSendSysMessage(LANG_PHASE_INVITE_ERROR);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /*
     *  Check if the argument is correct for a rand
     *
@@ -5599,7 +5067,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
     *   @pre : playerName, the name of player
     *          args, argument from a roll command
     *
-    *   @post : "EntrÃ©es invalides" if args does not respect checkRandParsing conditions
+    *   @post : "Entrées invalides" if args does not respect checkRandParsing conditions
     *and min > max && dice > 30 && max >= 10000 && bonus >= 1000
     *           else, the sentence to send for a roll command.
     */
@@ -6169,10 +5637,8 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         if (q.empty())
             return false;
 
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
+        if (!handler->GetSession()->HasPhasePermission(handler->GetSession()->GetPlayer()->GetMapId(), PhaseChat::Permissions::Gameobjects_Create)) {
+            handler->PSendSysMessage("You don't have the permission to do that");
             return false;
         }
 
@@ -6265,7 +5731,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
         PhasingHandler::InheritPhaseShift(object, player);
 
         // fill the gameobject data and save to the db
-        // on rÃ©cup le scale 
+        // on récup le scale 
         object->SetObjectScale(sizeF);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });

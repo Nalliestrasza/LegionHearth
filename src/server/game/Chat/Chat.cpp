@@ -37,8 +37,8 @@
 #include "World.h"
 #include "WorldSession.h"
 
-ChatCommand::ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands /*= std::vector<ChatCommand>()*/)
-    : Name(ASSERT_NOTNULL(name)), Permission(permission), AllowConsole(allowConsole), Handler(handler), Help(std::move(help)), ChildCommands(std::move(childCommands))
+ChatCommand::ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands /*= std::vector<ChatCommand>()*/, std::initializer_list<PhaseChat::Permissions> phasePermissions /* { PhaseChat::Permissions::None } */)
+    : Name(ASSERT_NOTNULL(name)), Permission(permission), AllowConsole(allowConsole), Handler(handler), Help(std::move(help)), ChildCommands(std::move(childCommands)), PhasePermissions(std::move(PhaseChat::GetPermissionsFromParameters(phasePermissions)))
 {
 }
 
@@ -86,7 +86,17 @@ char const* ChatHandler::GetTrinityString(uint32 entry) const
 
 bool ChatHandler::isAvailable(ChatCommand const& cmd) const
 {
-    return HasPermission(cmd.Permission);
+    bool hasGlobaPerm = HasPermission(cmd.Permission);
+    uint32_t mapId = m_session->GetPlayer()->m_mapId;
+
+    if (mapId >= MAP_CUSTOM_PHASE && cmd.PhasePermissions.to_ullong() != 0) {
+        hasGlobaPerm = hasGlobaPerm && m_session->HasPhasePermissions(mapId, cmd.PhasePermissions);
+    }
+
+
+    // to:do : make an error message specific for phase permissions
+
+    return hasGlobaPerm;
 }
 
 bool ChatHandler::HasPermission(uint32 permission) const
