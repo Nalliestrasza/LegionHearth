@@ -83,7 +83,7 @@ Map* MapManager::CreateBaseMap(uint32 id)
             CreateBaseMap(entry->ParentMapID != -1 ? entry->ParentMapID : entry->CosmeticParentMapID);
 
             // must have been created by parent map
-            if (id < 5000)
+            if (id < MAP_CUSTOM_PHASE)
             {
                 map = FindBaseMap(id);
                 return ASSERT_NOTNULL(map);

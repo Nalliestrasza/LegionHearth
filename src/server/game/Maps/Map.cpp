@@ -2964,9 +2964,13 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
     if (this->GetId() >= MAP_CUSTOM_PHASE) {
         if (MapEntry const* entry = sMapStore.AssertEntry(this->GetId())) {
             if (Map* parentMap = sMapMgr->FindMap(entry->ParentMapID, 0)) {
-                terrainMapId = PhasingHandler::GetTerrainMapId(phaseShift, parentMap, x, y);
                 currentMap = parentMap;
             }
+            else {
+                currentMap = sMapMgr->CreateBaseMap(entry->ParentMapID);
+
+            }
+            terrainMapId = PhasingHandler::GetTerrainMapId(phaseShift, currentMap, x, y);
         }
     }
 
@@ -2975,6 +2979,7 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
         data.areaInfo = boost::in_place(vmapData.areaInfo->adtId, vmapData.areaInfo->rootId, vmapData.areaInfo->groupId, vmapData.areaInfo->mogpFlags);
 
     GridMap* gmap = currentMap->GetGrid(terrainMapId, x, y);
+
     float mapHeight = gmap->getHeight(x, y);
 
     // area lookup

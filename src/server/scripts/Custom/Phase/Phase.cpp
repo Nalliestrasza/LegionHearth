@@ -458,14 +458,6 @@ public:
         if (mapId < MAP_CUSTOM_PHASE)
             return false;
 
-        MapEntry const* mapEntry = sMapStore.LookupEntry(terrainMap);
-        if (!mapEntry)
-        {
-            handler->PSendSysMessage(LANG_PHASE_CREATED_PARENTMAP_INVALID, terrainMap);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         QueryResult checkAlready = WorldDatabase.PQuery("SELECT MapId, TerrainSwapMap FROM terrain_swap_defaults WHERE MapId = %u AND TerrainSwapMap = %u", mapId, terrainMap);
         if (checkAlready)
             return false;
