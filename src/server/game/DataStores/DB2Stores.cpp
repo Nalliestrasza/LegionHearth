@@ -1100,12 +1100,11 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     _mapDifficulties[0][0] = _mapDifficulties[1][0]; // map 0 is missing from MapDifficulty.dbc so we cheat a bit
 
     // small memory leak ^ tm
-    MapDifficultyEntry* customEntry = new MapDifficultyEntry();
     for (uint16 i = MAP_CUSTOM_PHASE; i < std::numeric_limits<uint16>::max(); i++) {
+        MapDifficultyEntry* customEntry = new MapDifficultyEntry();
         customEntry->MapID = i;
         _mapDifficulties[i][0] = customEntry;
     }
-
 
     for (MountEntry const* mount : sMountStore)
         _mountsBySpellId[mount->SourceSpellID] = mount;
