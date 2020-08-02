@@ -1922,18 +1922,16 @@ public:
             OS = fields[11].GetString();
         }
 
-
         LoginDatabasePreparedStatement* hwidBan = LoginDatabase.GetPreparedStatement(LOGIN_SEL_HWID_INFO_ACC);
         hwidBan->setUInt32(0, accId);
+        PreparedQueryResult hwidDataRequest = LoginDatabase.Query(hwidBan);
 
-        if (result) {
-            PreparedQueryResult result = LoginDatabase.Query(hwidBan);
-
-            Field* fields = result->Fetch();
-            hddID = fields[0].GetUInt32();
-            cpuID = fields[1].GetUInt32();
-            volumeID = fields[2].GetUInt32();
-            isVM = fields[3].GetBool();
+        if (hwidDataRequest) {
+            Field* fieldsHwid = hwidDataRequest->Fetch();
+            hddID = fieldsHwid[0].GetUInt32();
+            cpuID = fieldsHwid[1].GetUInt32();
+            volumeID = fieldsHwid[2].GetUInt32();
+            isVM = fieldsHwid[3].GetBool();
         }
 
         // Creates a chat link to the character. Returns nameLink
