@@ -2980,6 +2980,9 @@ void Map::GetFullTerrainStatusForPosition(PhaseShift const& phaseShift, float x,
 
     GridMap* gmap = currentMap->GetGrid(terrainMapId, x, y);
 
+    if (gmap == nullptr)
+        return;
+
     float mapHeight = gmap->getHeight(x, y);
 
     // area lookup
