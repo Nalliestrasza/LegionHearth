@@ -450,6 +450,8 @@ namespace
     std::unordered_multimap<int32, UiMapAssignmentEntry const*> _uiMapAssignmentByWmoGroup[MAX_UI_MAP_SYSTEM];
     std::unordered_set<int32> _uiMapPhases;
     WMOAreaTableLookupContainer _wmoAreaTableLookup;
+
+    std::vector<MapDifficultyEntry> _phasesDifficulties;
 }
 
 template<typename T>
@@ -1095,13 +1097,17 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
         LoadAzeriteEmpoweredItemUnlockMappings(azeriteUnlockMappings, kvp.first);
 
     for (MapDifficultyEntry const* entry : sMapDifficultyStore)
-        _mapDifficulties[entry->MapID][entry->DifficultyID] = entry;
+    {
+        if (_mapDifficulties[entry->MapID][0] == nullptr)
+            _mapDifficulties[entry->MapID][0] = entry;
 
+        _mapDifficulties[entry->MapID][entry->DifficultyID] = entry;
+    }
     _mapDifficulties[0][0] = _mapDifficulties[1][0]; // map 0 is missing from MapDifficulty.dbc so we cheat a bit
 
-    // small memory leak ^ tm
+    _phasesDifficulties.reserve((std::numeric_limits<uint16>::max() - MAP_CUSTOM_PHASE) + 1);
     for (uint16 i = MAP_CUSTOM_PHASE; i < std::numeric_limits<uint16>::max(); i++) {
-        MapDifficultyEntry* customEntry = new MapDifficultyEntry();
+        MapDifficultyEntry* customEntry = &_phasesDifficulties[i % MAP_CUSTOM_PHASE];
         customEntry->MapID = i;
         _mapDifficulties[i][0] = customEntry;
     }
