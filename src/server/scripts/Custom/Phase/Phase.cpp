@@ -278,7 +278,7 @@ public:
         else
             return false;
 
-        if (!PhaseExists(phaseId))
+        if (!IsValidPhase(phaseId))
             return false;
 
         if (!session->HasPhasePermission(phaseId, PhaseChat::Permissions::Phase_Invite)) {
@@ -714,47 +714,28 @@ public:
     {
         // Define ALL the player variables!
         WorldSession* session = handler->GetSession();
-        Player* target;
-        ObjectGuid targetGuid;
+    
+        std::string trinityArgs(args);
+        Tokenizer dataArgs(trinityArgs, ' ', 0, false);
 
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
-
-        if (!targetName || targetName == NULL)
+        if (dataArgs.size() < 2) {
+            handler->PSendSysMessage("Not enough arguments");
             return false;
-        if (!phId || phId == NULL)
-            return false;
-        if (!targetName && !phId || targetName == NULL && phId == NULL)
-            return false;
+        }
 
-        std::string pName = targetName;
-        std::string phName = phId;
-        uint32 phaseId;
+        uint32_t phaseId;
+        std::string phaseIdStr = dataArgs[0];
+        std::string playerName = dataArgs[1];
 
-        if (std::all_of(phName.begin(), phName.end(), ::isdigit))
-            phaseId = uint32(atoi(phId));
+        if (std::all_of(phaseIdStr.begin(), phaseIdStr.end(), ::isdigit))
+            phaseId = uint32(std::stoul(phaseIdStr));
         else
             return false;
 
-        if (!handler->extractPlayerTarget((char*)args, &target, &targetGuid, &pName))
-            return false;
-
-        targetGuid = sCharacterCache->GetCharacterGuidByName(pName.c_str());
-        target = ObjectAccessor::FindConnectedPlayer(targetGuid);
-
-
-        std::string nameLink = handler->playerLink(pName);
+        std::string nameLink = handler->playerLink(playerName);
         std::string ownerLink = handler->playerLink(handler->GetSession()->GetPlayerName());
 
-        if (phaseId < 1)
-            return false;
-
-        if (phaseId < MAP_CUSTOM_PHASE)
-            return false;
-
-        // Check if map exist
-        QueryResult cExist = HotfixDatabase.PQuery("SELECT ID from Map WHERE ID = %u", phaseId);
-        if (!cExist)
+        if (!IsValidPhase(phaseId))
             return false;
 
         if (!session->HasPhasePermission(phaseId, PhaseChat::Permissions::Phase_Moderation)) {
@@ -762,13 +743,10 @@ public:
             return false;
         }
 
-        if (target)
+        Player* target = GetPlayerFromName(handler, playerName);
+
+        if (target != nullptr)
         {
-
-            // check online security
-            if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
-                return false;
-
             if (target->IsPhaseOwner(phaseId))
                 return false;
 
@@ -814,11 +792,7 @@ public:
 
         }
         else {
-
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
-            // ajouter
+       
             WorldDatabasePreparedStatement* invit = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_INVITE);
             invit->setUInt32(0, phaseId);
             invit->setUInt32(1, sCharacterCache->GetCharacterAccountIdByName(target->GetSession()->GetPlayerName().c_str()));
