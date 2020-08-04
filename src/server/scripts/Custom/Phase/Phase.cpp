@@ -270,8 +270,8 @@ public:
         }
 
         uint32_t phaseId;
-        std::string phaseIdStr = dataArgs[0];
-        std::string playerName = dataArgs[1];
+        std::string phaseIdStr = dataArgs[1];
+        std::string playerName = dataArgs[0];
 
         if (std::all_of(phaseIdStr.begin(), phaseIdStr.end(), ::isdigit))
             phaseId = uint32(std::stoul(phaseIdStr));
@@ -719,13 +719,13 @@ public:
         Tokenizer dataArgs(trinityArgs, ' ', 0, false);
 
         if (dataArgs.size() < 2) {
-            handler->PSendSysMessage("Not enough arguments");
+            handler->PSendSysMessage("Not enough arguments.");
             return false;
         }
 
         uint32_t phaseId;
-        std::string phaseIdStr = dataArgs[0];
-        std::string playerName = dataArgs[1];
+        std::string phaseIdStr = dataArgs[1];
+        std::string playerName = dataArgs[0];
 
         if (std::all_of(phaseIdStr.begin(), phaseIdStr.end(), ::isdigit))
             phaseId = uint32(std::stoul(phaseIdStr));
