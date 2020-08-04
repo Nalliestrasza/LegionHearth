@@ -258,77 +258,75 @@ public:
     {
 
         WorldSession* session = handler->GetSession();
-        // Player & Target variables
-        Player* _target;
-        ObjectGuid _targetGuid;
+        Player* player = session->GetPlayer();
+        std::string strOwnerLink = handler->playerLink(player->GetName().c_str());
 
-        // User input
-        char const* targetName = strtok((char*)args, " ");
-        char const* phId = strtok(NULL, " ");
+        std::string trinityArgs(args);
+        Tokenizer dataArgs(trinityArgs, ' ', 0, false);
 
-        if (targetName == NULL)
+        if (dataArgs.size() < 2) {
+            handler->PSendSysMessage("Not enough arguments");
             return false;
+        }
 
-        std::string phName = phId;
-        std::string strName = targetName;
-        uint32 iPhaseId;
+        uint32_t phaseId;
+        std::string phaseIdStr = dataArgs[0];
+        std::string playerName = dataArgs[1];
 
-        if (std::all_of(phName.begin(), phName.end(), ::isdigit))
-            iPhaseId = uint32(atoi(phId));
+        if (std::all_of(phaseIdStr.begin(), phaseIdStr.end(), ::isdigit))
+            phaseId = uint32(std::stoul(phaseIdStr));
         else
             return false;
 
-        if (!PhaseExists(iPhaseId))
+        if (!PhaseExists(phaseId))
             return false;
 
-        if (!session->HasPhasePermission(iPhaseId, PhaseChat::Permissions::Phase_Invite)) {
+        if (!session->HasPhasePermission(phaseId, PhaseChat::Permissions::Phase_Invite)) {
             handler->PSendSysMessage("You don't have the permission to do that");
             return false;
         }
 
         // Check Part
-
-        if (!handler->extractPlayerTarget((char*)args, &_target, &_targetGuid, &strName))
+        auto target = GetPlayerFromName(handler, playerName);
+        if (target == nullptr)
             return false;
 
-        Player* _player = handler->GetSession()->GetPlayer();
-        std::string strOwnerLink = handler->playerLink(_player->GetName().c_str());
-        if (_target == _player || _targetGuid == _player->GetGUID())
+        if (player->GetGUID() == target->GetGUID())
             return false;
 
-        if (_target)
+        if (target)
         {
-            std::string strNameLink = handler->playerLink(targetName);
-            AddPlayerToPhase(iPhaseId, _target);
+            std::string strNameLink = handler->playerLink(playerName);
+            AddPlayerToPhase(phaseId, target);
 
             handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, strNameLink.c_str());
 
-            if (handler->needReportToTarget(_target))
+            if (handler->needReportToTarget(target))
             {
-                ChatHandler(_target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, iPhaseId, strOwnerLink.c_str());
+                ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, strOwnerLink.c_str());
                 // Send Packet to target player
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
                 sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+                target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
 
         }
         else
         {
-            std::string strNameLink = handler->playerLink(targetName);
-            AddPlayerToPhase(iPhaseId, _target);
+            std::string strNameLink = handler->playerLink(playerName);
+            AddPlayerToPhase(phaseId, target);
 
             handler->PSendSysMessage(LANG_PHASE_INVITE_SUCCESS, strNameLink.c_str());
 
-            if (handler->needReportToTarget(_target))
+            if (handler->needReportToTarget(target))
             {
-                ChatHandler(_target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, iPhaseId, strOwnerLink.c_str());
+                ChatHandler(target->GetSession()).PSendSysMessage(LANG_PHASE_PHASE_INVITE_INI, phaseId, strOwnerLink.c_str());
                 // Send Packet to target player
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
                 sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                _target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+                target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
             }
         }
 
