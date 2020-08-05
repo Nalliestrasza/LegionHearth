@@ -138,25 +138,25 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 	if (GetGUID().GetHigh() == HighGuid::GameObject) {
 		float yaw, pitch, roll;
 
-		GameObject const* go = ToGameObject();
-        
-		uint64_t low = GetGUID().GetRawValue(0);
-		uint64_t high = GetGUID().GetRawValue(1);
+        if (GameObject const* go = ToGameObject()) {
 
-		go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
+            uint64_t low = GetGUID().GetRawValue(0);
+            uint64_t high = GetGUID().GetRawValue(1);
 
-		WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
-        customWMO.GuidLow = low;
-        customWMO.GuidHigh = high;
-        customWMO.Yaw = yaw;
-        customWMO.Pitch = pitch;
-        customWMO.Roll = roll;
-        customWMO.Scale = go->GetObjectScale();
-        customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
+            go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
 
-        //TC_LOG_ERROR("misc", "Object %s doodad: %d", GetGUID().ToString().c_str(), (uint32)go->HasDoodads());
+            WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
+            customWMO.GuidLow = low;
+            customWMO.GuidHigh = high;
+            customWMO.Yaw = yaw;
+            customWMO.Pitch = pitch;
+            customWMO.Roll = roll;
+            customWMO.Scale = go->GetObjectScale();
+            customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
 
-		player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
+            if(player != nullptr && player->GetSession() != nullptr)
+                player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
+        }
 	}
 }
 

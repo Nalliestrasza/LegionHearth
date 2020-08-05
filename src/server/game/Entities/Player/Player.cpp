@@ -1392,6 +1392,10 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     if (mapid > MAP_CUSTOM_PHASE)
     {
         QueryResult getType = WorldDatabase.PQuery("SELECT type FROM phase_allow WHERE phaseId = %u", mapid);
+
+        if (!getType)
+            return true;
+
         Field* field = getType->Fetch();
         uint16 type = field[0].GetUInt16();
         if (type == 1)
@@ -18452,7 +18456,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder* holder)
     GetSession()->GetCollectionMgr()->LoadMounts();
     GetSession()->GetCollectionMgr()->LoadItemAppearances();
 
-    LearnSpecializationSpells();
+    //LearnSpecializationSpells();
 
     _LoadGlyphs(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GLYPHS));
     _LoadAuras(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AURAS), holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AURA_EFFECTS), time_diff);
@@ -24260,7 +24264,13 @@ void Player::ApplyEquipCooldown(Item* pItem)
     std::chrono::steady_clock::time_point now = GameTime::GetGameTimeSteadyPoint();
     for (ItemEffectEntry const* effectData : pItem->GetEffects())
     {
+        if (effectData->SpellID == 0)
+            return;
+
+        TC_LOG_ERROR("misc", "ApplyEquipCooldown : %d \n", effectData->SpellID);
+
         SpellInfo const* effectSpellInfo = sSpellMgr->AssertSpellInfo(effectData->SpellID, DIFFICULTY_NONE);
+
         // apply proc cooldown to equip auras if we have any
         if (effectData->TriggerType == ITEM_SPELLTRIGGER_ON_EQUIP)
         {

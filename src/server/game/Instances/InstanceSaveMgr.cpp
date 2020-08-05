@@ -95,7 +95,8 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
     if (!difficultyEntry || difficultyEntry->InstanceType != entry->InstanceType)
     {
         TC_LOG_ERROR("misc", "InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d, wrong dificalty %u!", mapId, instanceId, difficulty);
-        return NULL;
+        difficulty = Difficulty::DIFFICULTY_NONE;
+        difficultyEntry = sDifficultyStore.LookupEntry(difficulty);
     }
 
     if (entranceId && !sObjectMgr->GetWorldSafeLoc(entranceId))

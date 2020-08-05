@@ -130,17 +130,17 @@ namespace WorldPackets
         class AuroraCustomWorldModelObject final : public ServerPacket
         {
         public:
-            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, 8 * 2 + 4 * 3 + 4 + 4) { }
+            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, (8 * 2) + (4*4) + 4 ) { }
 
             WorldPacket const* Write() override;
 
-            uint64 GuidLow;
-            uint64 GuidHigh;
-            float Yaw;
-            float Pitch;
-            float Roll;
-            float Scale;
-            uint32 HasDoodads;
+            uint64 GuidLow = 0;
+            uint64 GuidHigh = 0;
+            float Yaw = 0.0;
+            float Pitch = 0.0;
+            float Roll = 0.0;
+            float Scale = 1.0;
+            uint32 HasDoodads = 0;
         };
 
 
