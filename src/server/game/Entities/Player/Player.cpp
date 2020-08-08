@@ -24269,6 +24269,10 @@ void Player::ApplyEquipCooldown(Item* pItem)
 
         TC_LOG_ERROR("misc", "ApplyEquipCooldown : %d \n", effectData->SpellID);
 
+
+        if (!sSpellMgr->GetSpellInfo(effectData->SpellID, DIFFICULTY_NONE))
+            continue;
+
         SpellInfo const* effectSpellInfo = sSpellMgr->AssertSpellInfo(effectData->SpellID, DIFFICULTY_NONE);
 
         // apply proc cooldown to equip auras if we have any
