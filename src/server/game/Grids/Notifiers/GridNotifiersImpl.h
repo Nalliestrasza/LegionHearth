@@ -32,6 +32,9 @@ inline void Trinity::VisibleNotifier::Visit(GridRefManager<T> &m)
 {
     for (typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
     {
+        if (iter->GetSource() == nullptr)
+            continue;
+
         vis_guids.erase(iter->GetSource()->GetGUID());
         i_player.UpdateVisibilityOf(iter->GetSource(), i_data, i_visibleNow);
     }
@@ -559,10 +562,13 @@ void Trinity::CreatureLastSearcher<Check>::Visit(CreatureMapType &m)
 template<class Check>
 void Trinity::CreatureListSearcher<Check>::Visit(CreatureMapType &m)
 {
-    for (CreatureMapType::iterator itr=m.begin(); itr != m.end(); ++itr)
-        if (itr->GetSource()->IsInPhase(_searcher))
-            if (i_check(itr->GetSource()))
+    for (CreatureMapType::iterator itr = m.begin(); itr != m.end(); ++itr) {
+        if (itr->GetSource()->IsInPhase(_searcher)) {
+            if (i_check(itr->GetSource())) {
                 Insert(itr->GetSource());
+            }
+        }
+    }
 }
 
 template<class Check>

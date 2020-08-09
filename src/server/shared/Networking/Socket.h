@@ -216,13 +216,20 @@ private:
         if (!error)
         {
             _isWritingAsync = false;
-            _writeQueue.front().ReadCompleted(transferedBytes);
-            if (!_writeQueue.front().GetActiveSize())
-                _writeQueue.pop();
 
-            if (!_writeQueue.empty())
-                AsyncProcessQueue();
-            else if (_closing)
+            // calling front() on empty queue ? yeah it's big brain time
+            if (!_writeQueue.empty()) {
+                _writeQueue.front().ReadCompleted(transferedBytes);
+                if (!_writeQueue.empty() && !_writeQueue.front().GetActiveSize())
+                    _writeQueue.pop();
+
+                // recheck if queue is empty
+                if (!_writeQueue.empty())
+                    AsyncProcessQueue();
+                else if (_closing)
+                    CloseSocket();
+            }
+            else
                 CloseSocket();
         }
         else
