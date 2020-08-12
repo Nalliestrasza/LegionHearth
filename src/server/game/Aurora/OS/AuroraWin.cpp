@@ -1,5 +1,3 @@
-#include "Cryptography/HmacHash.h"
-#include "Cryptography/SessionKeyGeneration.h"
 #include "Common.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
@@ -8,25 +6,39 @@
 #include "ByteBuffer.h"
 #include "Database/DatabaseEnv.h"
 #include "GameTime.h"
+#include "SessionKeyGenerator.h"
 #include "World.h"
 #include "Player.h"
 #include "Util.h"
 #include "AuroraWin.h"
-#include "SHA1.h"
 #include "Random.h"
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <openssl/md5.h>
 #include "AuroraPackets.h"
+#include <vector>
 
-AuroraWin::AuroraWin() : Aurora(), _serverTicks(0) {}
+enum class AuroraOpcodes : uint8
+{
+    AURORA_SMSG_HEADER = 0,
+    AURORA_SMSG_CLEAN = 1,
+    AURORA_SMSG_HONEYPOT = 2,
+};
+
+AuroraWin::AuroraWin() : Aurora(), _serverTicks(0)
+{}
 
 AuroraWin::~AuroraWin() { }
 
-void AuroraWin::Init(WorldSession* session)
+void AuroraWin::Init(WorldSession* session, SessionKey const& K)
 {
+    SessionKeyGenerator<Trinity::Crypto::SHA1> WK(K);
+    WK.Generate(_inputKey, 16);
+    _keyCrypto.Init(_inputKey);
+
     _session = session;
     _initialized = true;
+
     TC_LOG_DEBUG("misc", "Server side HWID Checker for client %llu initializing ...", session->GetAccountId());
 }
 
@@ -34,8 +46,10 @@ void AuroraWin::RequestData()
 {
     TC_LOG_DEBUG("misc", "Serverside side HWID Checker for client %llu sending a request ...", _session->GetAccountId());
 
-    _session->SendAuroraTracker(WorldPackets::Aurora::AuroraTracker(666));
+    _session->SendAuroraTracker(WorldPackets::Aurora::AuroraTracker(0, 0));
+
     _dataSent = true;
+    _initialPacket = true;
 }
 
 void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)

@@ -660,25 +660,29 @@ public:
             }
             else if (map->Instanceable())
             {
-                Group* targetGroup = target->GetGroup();
-                Map* targetMap = target->GetMap();
-                Player* targetGroupLeader = ObjectAccessor::GetPlayer(map, targetGroup->GetLeaderGUID());
+                // 09.08.2020 -> quick fix.
+                if (_player->IsInSameGroupWith(target) || _player->IsInSameRaidWith(target))
+                {
+                    Group* targetGroup = target->GetGroup();
+                    Map* targetMap = target->GetMap();
+                    Player* targetGroupLeader = ObjectAccessor::GetPlayer(map, targetGroup->GetLeaderGUID());
 
-                // check if far teleport is allowed
-                if (!targetGroupLeader || (targetGroupLeader->GetMapId() != map->GetId()) || (targetGroupLeader->GetInstanceId() != map->GetInstanceId()))
-                    if ((targetMap->GetId() != map->GetId()) || (targetMap->GetInstanceId() != map->GetInstanceId()))
+                    // check if far teleport is allowed
+                    if (!targetGroupLeader || (targetGroupLeader->GetMapId() != map->GetId()) || (targetGroupLeader->GetInstanceId() != map->GetInstanceId()))
+                        if ((targetMap->GetId() != map->GetId()) || (targetMap->GetInstanceId() != map->GetInstanceId()))
+                        {
+                            handler->PSendSysMessage(LANG_CANNOT_SUMMON_TO_INST);
+                            handler->SetSentErrorMessage(true);
+                            return false;
+                        }
+
+                    // check if we're already in a different instance of the same map
+                    if ((targetMap->GetId() == map->GetId()) && (targetMap->GetInstanceId() != map->GetInstanceId()))
                     {
-                        handler->PSendSysMessage(LANG_CANNOT_SUMMON_TO_INST);
+                        handler->PSendSysMessage(LANG_CANNOT_SUMMON_INST_INST, nameLink.c_str());
                         handler->SetSentErrorMessage(true);
                         return false;
                     }
-
-                // check if we're already in a different instance of the same map
-                if ((targetMap->GetId() == map->GetId()) && (targetMap->GetInstanceId() != map->GetInstanceId()))
-                {
-                    handler->PSendSysMessage(LANG_CANNOT_SUMMON_INST_INST, nameLink.c_str());
-                    handler->SetSentErrorMessage(true);
-                    return false;
                 }
             }
 

@@ -83,6 +83,7 @@ public:
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
             { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },
             { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
+            { "visibility", rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameVisibilityCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
 
         };
         static std::vector<ChatCommand> commandTable =
@@ -907,6 +908,62 @@ public:
             return false;
 
         handler->PSendSysMessage("Doodad for object %s %s \n", object->GetGUID().ToString().c_str(), object->HasDoodads() ? "ON" : "OFF");
+    }
+
+    static bool HandleGameVisibilityCommand(ChatHandler* handler, char const* args)
+    {
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+
+        std::string trinityArgs(args);
+        Tokenizer dataArgs(trinityArgs, ' ', 0, false);
+
+        if (dataArgs.size() < 2) {
+            handler->PSendSysMessage("Not enough arguments");
+            return false;
+        }
+
+        std::string id = handler->extractKeyFromLink((char*)(dataArgs[0]), "Hgameobject");
+
+        ObjectGuid::LowType guidLow = std::stoull(id);
+        if (!guidLow)
+            return false;
+
+        float distance = std::atof(dataArgs[1]);
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (distance > SIZE_OF_GRIDS) {
+            object->GetMap()->AddInfiniteGameObject(object);
+            handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+        }
+        else {
+            auto infinites = object->GetMap()->GetInfiniteGameObjects();
+            if (std::find(infinites.begin(), infinites.end(), object) != infinites.end())
+                object->GetMap()->RemoveInfiniteGameObject(object);
+
+            handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+        }
+
+        const_cast<GameObjectData*>(object->GetGOData())->visibility = distance;
+
+        Map* map = object->GetMap();
+        object->SetVisibilityDistanceOverride(distance);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB();
+
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+        if (!object)
+            return false;
+
+        handler->PSendSysMessage("Visibility set for object %s to %f (%f) \n", object->GetGUID().ToString().c_str(), distance, object->GetVisibilityRange());
     }
 
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)

@@ -253,7 +253,7 @@ void GameObject::RemoveFromWorld()
 }
 
 
-bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads, float size /*= -1*/)
+bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads, float visibility /* 533.333f */, float size /*= -1*/)
 
 {
     ASSERT(map);
@@ -344,9 +344,7 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
 
     SetDisplayId(goInfo->displayId);
 
-    m_model = CreateModel();
-    if (m_model && m_model->isMapObject())
-        AddFlag(GO_FLAG_MAP_OBJECT);
+    CreateModel();
     // GAMEOBJECT_BYTES_1, index at 0, 1, 2 and 3
     SetGoType(GameobjectTypes(goInfo->type));
     m_prevGoState = goState;
@@ -477,6 +475,13 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     // Check if GameObject is Large
     if (goInfo->IsLargeGameObject())
         SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
+
+    SetVisibilityDistanceOverride(visibility);
+
+    if (GetVisibilityRange() > SIZE_OF_GRIDS) {
+        TC_LOG_ERROR("misc", "GetVisibilityRange() > SIZE_OF_GRIDS");
+        GetMap()->AddInfiniteGameObject(this);
+    }
 
     return true;
 }
@@ -935,6 +940,9 @@ void GameObject::Delete()
         sPoolMgr->UpdatePool<GameObject>(poolid, GetSpawnId());
     else
         AddObjectToRemoveList();
+
+    if ((GetMap()->GetInfiniteGameObjects()).find(this) != (GetMap()->GetInfiniteGameObjects()).end())
+        GetMap()->RemoveInfiniteGameObject(this);
 }
 
 void GameObject::SendGameObjectDespawn()
@@ -1026,7 +1034,7 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     data.go_state = GetGoState();
     data.spawnDifficulties = spawnDifficulties;
     data.artKit = GetGoArtKit();
-
+    data.visibility = GetVisibilityRange();
     
    
     if (data.size == 0.0f)
@@ -1093,6 +1101,7 @@ void GameObject::SaveToDB(uint32 mapid, std::vector<Difficulty> const& spawnDiff
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, data.size);
     stmt->setBool(index++, HasDoodads());
+    stmt->setFloat(index++, GetVisibilityRange());
 
 
     trans->Append(stmt);
@@ -1118,9 +1127,10 @@ bool GameObject::LoadGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, boo
     uint32 artKit = data->artKit;
     float size = data->size;
     bool hasDoodads = data->hasDoodads;
+    float visibility = data->visibility;
 
     m_spawnId = spawnId;
-    if (!Create(entry, map, pos, data->rotation, animprogress, go_state, artKit, hasDoodads, size))
+    if (!Create(entry, map, pos, data->rotation, animprogress, go_state, artKit, hasDoodads, visibility, size))
         return false;
 
     PhasingHandler::InitDbPhaseShift(GetPhaseShift(), data->phaseUseFlags, data->phaseId, data->phaseGroup);
@@ -2573,15 +2583,12 @@ void GameObject::UpdateModel()
     if (m_model)
         if (GetMap()->ContainsGameObjectModel(*m_model))
             GetMap()->RemoveGameObjectModel(*m_model);
+    RemoveFlag(GO_FLAG_MAP_OBJECT);
     delete m_model;
-    m_model = CreateModel();
+    m_model = nullptr;
+    CreateModel();
     if (m_model)
         GetMap()->InsertGameObjectModel(*m_model);
-
-    if (m_model && m_model->isMapObject())
-        AddFlag(GO_FLAG_MAP_OBJECT);
-    else
-        RemoveFlag(GO_FLAG_MAP_OBJECT);
 }
 
 Player* GameObject::GetLootRecipient() const
@@ -2802,7 +2809,9 @@ void GameObject::SetDoodads(bool hasDoodads)
     m_hasDoodads = hasDoodads;
 }
 
-GameObjectModel* GameObject::CreateModel()
+void GameObject::CreateModel()
 {
-    return GameObjectModel::Create(std::make_unique<GameObjectModelOwnerImpl>(this), sWorld->GetDataPath());
+    m_model = GameObjectModel::Create(std::make_unique<GameObjectModelOwnerImpl>(this), sWorld->GetDataPath());
+    if (m_model && m_model->isMapObject())
+        AddFlag(GO_FLAG_MAP_OBJECT);
 }

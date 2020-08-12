@@ -29,6 +29,7 @@ namespace WorldPackets
     namespace Aurora
     {
         /* CMSG */
+        using AuroraKey = std::array<uint8, 16>;
 
         class AuroraHWID final : public ClientPacket
         {
@@ -37,9 +38,10 @@ namespace WorldPackets
 
             void Read() override;
 
-            std::uint32_t PhysicalDriveId = 0;
-            std::uint32_t CPUId = 0;
-            std::uint32_t VolumeInformation = 0;
+            uint32 Seed = 0;
+            uint32 PhysicalDriveId = 0;
+            uint32 CPUId = 0;
+            uint32 VolumeInformation = 0;
             bool IsVirtualMachine = false;
         };
 
@@ -120,27 +122,30 @@ namespace WorldPackets
         class AuroraTracker final : public ServerPacket
         {
         public:
-            AuroraTracker(uint32 key) : ServerPacket(SMSG_AURORA_TRACKER, 4), Key(key) { }
+            AuroraTracker(uint8 type, uint32 seed, Optional<AuroraKey> auroraKey = boost::none) : ServerPacket(SMSG_AURORA_TRACKER, 1 + sizeof(AuroraKey) + 4),
+                Type(type), Seed(seed), AuroraKey(auroraKey) { }
 
             WorldPacket const* Write() override;
 
-            uint32 Key;
+            uint8_t Type = 0;
+            Optional<AuroraKey> AuroraKey = boost::none;
+            uint32_t Seed = 0;
         };
 
         class AuroraCustomWorldModelObject final : public ServerPacket
         {
         public:
-            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, 8 * 2 + 4 * 3 + 4 + 4) { }
+            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, (8 * 2) + (4 * 4) + 4) { }
 
             WorldPacket const* Write() override;
 
-            uint64 GuidLow;
-            uint64 GuidHigh;
-            float Yaw;
-            float Pitch;
-            float Roll;
-            float Scale;
-            uint32 HasDoodads;
+            uint64 GuidLow = 0;
+            uint64 GuidHigh = 0;
+            float Yaw = 0.0;
+            float Pitch = 0.0;
+            float Roll = 0.0;
+            float Scale = 1.0;
+            uint32 HasDoodads = 0;
         };
 
 

@@ -19,7 +19,9 @@
 #define _AURORA_BASE_H
 
 #include <map>
+#include "ARC4.h"
 #include "ByteBuffer.h"
+#include <array>
 
 class WorldSession;
 
@@ -31,10 +33,12 @@ public:
     Aurora();
     virtual ~Aurora();
 
-    virtual void Init(WorldSession* session) = 0;
+    virtual void Init(WorldSession* session, SessionKey const& K) = 0;
     virtual void RequestData() = 0;
     virtual void HandleData(WorldPackets::Aurora::AuroraHWID& packet) = 0;
 
+    void DecryptData(uint8* buffer, uint32 length);
+    void EncryptData(uint8* buffer, uint32 length);
 
     void Update();
 private:
@@ -42,8 +46,13 @@ private:
     uint32 _checkTimer;                          // Timer for sending check requests
     uint32 _clientResponseTimer;                 // Timer for client response delay
     bool _dataSent;
+
     uint32 _previousTimestamp;
     bool _initialized;
+    uint8 _inputKey[16];
+    uint32 _baseSeed;
+    bool _initialPacket;
+    Trinity::Crypto::ARC4 _keyCrypto;
 };
 
 #endif

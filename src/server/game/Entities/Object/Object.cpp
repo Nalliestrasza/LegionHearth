@@ -137,26 +137,29 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 	// WMO Scale & Rotate (X,Y,Z)
 	if (GetGUID().GetHigh() == HighGuid::GameObject) {
 		float yaw, pitch, roll;
+        if (GameObject const* go = ToGameObject()) {
+            uint64_t low = GetGUID().GetRawValue(0);
+            uint64_t high = GetGUID().GetRawValue(1);
 
-		GameObject const* go = ToGameObject();
-        
-		uint64_t low = GetGUID().GetRawValue(0);
-		uint64_t high = GetGUID().GetRawValue(1);
+            go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
 
-		go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
+            if (GameObjectTemplate const* goinfo = sObjectMgr->GetGameObjectTemplate(go->GetEntry())) {
 
-		WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
-        customWMO.GuidLow = low;
-        customWMO.GuidHigh = high;
-        customWMO.Yaw = yaw;
-        customWMO.Pitch = pitch;
-        customWMO.Roll = roll;
-        customWMO.Scale = go->GetObjectScale();
-        customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
+                // ignore .m2
+                if (goinfo->name.substr(goinfo->name.find_last_of(".") + 1) == "m2")
+                    return;
 
-        //TC_LOG_ERROR("misc", "Object %s doodad: %d", GetGUID().ToString().c_str(), (uint32)go->HasDoodads());
-
-		player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
+                WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
+                customWMO.GuidLow = low;
+                customWMO.GuidHigh = high;
+                customWMO.Yaw = yaw;
+                customWMO.Pitch = pitch;
+                customWMO.Roll = roll;
+                customWMO.Scale = go->GetObjectScale();
+                customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
+                player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
+            }
+        }
 	}
 }
 
@@ -936,10 +939,15 @@ void WorldObject::setActive(bool on)
 void WorldObject::SetVisibilityDistanceOverride(VisibilityDistanceType type)
 {
     ASSERT(type < VisibilityDistanceType::Max);
+    return SetVisibilityDistanceOverride(VisibilityDistances[AsUnderlyingType(type)]);
+}
+
+void WorldObject::SetVisibilityDistanceOverride(float distance)
+{
     if (GetTypeId() == TYPEID_PLAYER)
         return;
 
-    m_visibilityDistanceOverride = VisibilityDistances[AsUnderlyingType(type)];
+    m_visibilityDistanceOverride = distance;
 }
 
 void WorldObject::CleanupsBeforeDelete(bool /*finalCleanup*/)
@@ -1440,6 +1448,15 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth, boo
 
     if (obj->IsAlwaysVisibleFor(this) || CanAlwaysSee(obj))
         return true;
+
+    if (const GameObject* object = obj->ToGameObject()) {
+        const auto infinites = object->GetMap()->GetInfiniteGameObjects();
+        if (std::find(infinites.begin(), infinites.end(), object) != infinites.end()) {
+            float distance = GetDistance(obj);
+            TC_LOG_ERROR("misc", "[+) WorldObject::CanSeeOrDetect(Infinite) : %f ", distance);
+            return true && (distance <= 4000);
+        }
+    }
 
     bool corpseVisibility = false;
     if (distanceCheck)

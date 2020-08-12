@@ -922,7 +922,7 @@ TransactionCallback& WorldSession::AddTransactionCallback(TransactionCallback&& 
     return _transactionCallbacks.AddCallback(std::move(callback));
 }
 
-void WorldSession::InitWarden(BigNumber* k)
+void WorldSession::InitWarden(SessionKey const& k)
 {
     if (_os == "Win")
     {
@@ -939,12 +939,12 @@ void WorldSession::InitWarden(BigNumber* k)
     }
 }
 
-void WorldSession::InitAurora()
+void WorldSession::InitAurora(SessionKey const& k)
 {
 
     TC_LOG_DEBUG("misc", "Installing server side HWID Check for world session [AccountId: %u] ", GetAccountId());
     _aurora = new AuroraWin();
-    _aurora->Init(this);
+    _aurora->Init(this, k);
 }
 
 void WorldSession::LoadPermissions()
@@ -1262,6 +1262,9 @@ void WorldSession::RemovePhasePermissions(uint32_t phaseId, PhaseChat::Permissio
 
 bool WorldSession::HasPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
 {
+    if (phaseId < MAP_CUSTOM_PHASE)
+        return true;
+
     return this->HasPhasePermissions(phaseId, &permission, 1);
 }
 

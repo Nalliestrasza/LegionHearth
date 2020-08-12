@@ -74,6 +74,16 @@ void VisibleNotifier::SendToSelf()
         }
     }
 
+
+    if (Map* map = i_player.GetMap())
+    {
+        std::set<GameObject*> objects = map->GetInfiniteGameObjects();
+        for (GameObject* obj : objects) {
+            if (i_player.CanSeeOrDetect(obj, false, true))
+        }
+    }
+
+
     if (!i_data.HasData())
         return;
 
