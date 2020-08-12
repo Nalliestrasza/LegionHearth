@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -28,8 +28,6 @@ struct TC_GAME_API Position
 {
     Position(float x = 0, float y = 0, float z = 0, float o = 0)
         : m_positionX(x), m_positionY(y), m_positionZ(z), m_orientation(NormalizeOrientation(o)) { }
-
-    Position(Position const& loc) { Relocate(loc); }
 
     // streamer tags
     struct XY;
@@ -60,9 +58,9 @@ private:
     float m_orientation;
 
 public:
-    bool operator==(Position const &a);
+    bool operator==(Position const &a) const;
 
-    inline bool operator!=(Position const &a)
+    inline bool operator!=(Position const &a) const
     {
         return !(operator==(a));
     }
@@ -218,8 +216,13 @@ public:
     }
 
     bool IsWithinBox(const Position& center, float xradius, float yradius, float zradius) const;
+
+    /*
+    search using this relation: dist2d < radius && abs(dz) < height
+    */
+    bool IsWithinDoubleVerticalCylinder(Position const* center, float radius, float height) const;
     bool HasInArc(float arcangle, Position const* pos, float border = 2.0f) const;
-    bool HasInLine(Position const* pos, float width) const;
+    bool HasInLine(Position const* pos, float objSize, float width) const;
     std::string ToString() const;
 
     // modulos a radian orientation to the range of 0..2PI
@@ -236,9 +239,6 @@ public:
 
     WorldLocation(uint32 mapId, Position const& position)
         : Position(position), m_mapId(mapId) { }
-
-    WorldLocation(WorldLocation const& loc)
-        : Position(loc), m_mapId(loc.GetMapId()) { }
 
     void WorldRelocate(WorldLocation const& loc)
     {
@@ -283,6 +283,9 @@ struct TaggedPosition
     }
 
     operator Position() const { return Pos; }
+
+    friend bool operator==(TaggedPosition const& left, TaggedPosition const& right) { return left.Pos == right.Pos; }
+    friend bool operator!=(TaggedPosition const& left, TaggedPosition const& right) { return left.Pos != right.Pos; }
 
     friend ByteBuffer& operator<<(ByteBuffer& buf, TaggedPosition const& tagged) { return buf << Position::ConstStreamer<Tag>(tagged.Pos); }
     friend ByteBuffer& operator>>(ByteBuffer& buf, TaggedPosition& tagged) { return buf >> Position::Streamer<Tag>(tagged.Pos); }

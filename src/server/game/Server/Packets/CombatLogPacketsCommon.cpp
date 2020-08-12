@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,6 +17,7 @@
 
 #include "CombatLogPacketsCommon.h"
 #include "Creature.h"
+#include "Map.h"
 #include "Player.h"
 #include "Spell.h"
 #include "SpellInfo.h"
@@ -64,16 +65,18 @@ namespace WorldPackets
         bool ContentTuningParams::GenerateDataForUnits<Creature, Player>(Creature* attacker, Player* target)
         {
             CreatureTemplate const* creatureTemplate = attacker->GetCreatureTemplate();
+            CreatureLevelScaling const* creatureScaling = creatureTemplate->GetLevelScaling(attacker->GetMap()->GetDifficultyID());
 
             Type = TYPE_CREATURE_TO_PLAYER_DAMAGE;
-            PlayerLevelDelta = target->GetInt32Value(ACTIVE_PLAYER_FIELD_SCALING_PLAYER_LEVEL_DELTA);
+            PlayerLevelDelta = target->m_activePlayerData->ScalingPlayerLevelDelta;
             PlayerItemLevel = target->GetAverageItemLevel();
-            ScalingHealthItemLevelCurveID = target->GetUInt32Value(UNIT_FIELD_SCALING_HEALTH_ITEM_LEVEL_CURVE_ID);
+            TargetItemLevel = 0;
+            ScalingHealthItemLevelCurveID = target->m_unitData->ScalingHealthItemLevelCurveID;
             TargetLevel = target->getLevel();
-            Expansion = creatureTemplate->RequiredExpansion;
-            TargetMinScalingLevel = uint8(creatureTemplate->levelScaling->MinLevel);
-            TargetMaxScalingLevel = uint8(creatureTemplate->levelScaling->MaxLevel);
-            TargetScalingLevelDelta = int8(attacker->GetInt32Value(UNIT_FIELD_SCALING_LEVEL_DELTA));
+            Expansion = creatureTemplate->HealthScalingExpansion;
+            TargetMinScalingLevel = uint8(creatureScaling->MinLevel);
+            TargetMaxScalingLevel = uint8(creatureScaling->MaxLevel);
+            TargetScalingLevelDelta = int8(attacker->m_unitData->ScalingLevelDelta);
             return true;
         }
 
@@ -81,16 +84,18 @@ namespace WorldPackets
         bool ContentTuningParams::GenerateDataForUnits<Player, Creature>(Player* attacker, Creature* target)
         {
             CreatureTemplate const* creatureTemplate = target->GetCreatureTemplate();
+            CreatureLevelScaling const* creatureScaling = creatureTemplate->GetLevelScaling(target->GetMap()->GetDifficultyID());
 
             Type = TYPE_PLAYER_TO_CREATURE_DAMAGE;
-            PlayerLevelDelta = attacker->GetInt32Value(ACTIVE_PLAYER_FIELD_SCALING_PLAYER_LEVEL_DELTA);
+            PlayerLevelDelta = attacker->m_activePlayerData->ScalingPlayerLevelDelta;
             PlayerItemLevel = attacker->GetAverageItemLevel();
-            ScalingHealthItemLevelCurveID = target->GetUInt32Value(UNIT_FIELD_SCALING_HEALTH_ITEM_LEVEL_CURVE_ID);
+            TargetItemLevel = 0;
+            ScalingHealthItemLevelCurveID = target->m_unitData->ScalingHealthItemLevelCurveID;
             TargetLevel = target->getLevel();
-            Expansion = creatureTemplate->RequiredExpansion;
-            TargetMinScalingLevel = uint8(creatureTemplate->levelScaling->MinLevel);
-            TargetMaxScalingLevel = uint8(creatureTemplate->levelScaling->MaxLevel);
-            TargetScalingLevelDelta = int8(target->GetInt32Value(UNIT_FIELD_SCALING_LEVEL_DELTA));
+            Expansion = creatureTemplate->HealthScalingExpansion;
+            TargetMinScalingLevel = uint8(creatureScaling->MinLevel);
+            TargetMaxScalingLevel = uint8(creatureScaling->MaxLevel);
+            TargetScalingLevelDelta = int8(target->m_unitData->ScalingLevelDelta);
             return true;
         }
 
@@ -99,15 +104,16 @@ namespace WorldPackets
         {
             Creature* accessor = target->HasScalableLevels() ? target : attacker;
             CreatureTemplate const* creatureTemplate = accessor->GetCreatureTemplate();
+            CreatureLevelScaling const* creatureScaling = creatureTemplate->GetLevelScaling(accessor->GetMap()->GetDifficultyID());
 
             Type = TYPE_CREATURE_TO_CREATURE_DAMAGE;
             PlayerLevelDelta = 0;
             PlayerItemLevel = 0;
             TargetLevel = target->getLevel();
-            Expansion = creatureTemplate->RequiredExpansion;
-            TargetMinScalingLevel = uint8(creatureTemplate->levelScaling->MinLevel);
-            TargetMaxScalingLevel = uint8(creatureTemplate->levelScaling->MaxLevel);
-            TargetScalingLevelDelta = int8(accessor->GetInt32Value(UNIT_FIELD_SCALING_LEVEL_DELTA));
+            Expansion = creatureTemplate->HealthScalingExpansion;
+            TargetMinScalingLevel = uint8(creatureScaling->MinLevel);
+            TargetMaxScalingLevel = uint8(creatureScaling->MaxLevel);
+            TargetScalingLevelDelta = int8(accessor->m_unitData->ScalingLevelDelta);
             return true;
         }
 
@@ -171,6 +177,7 @@ ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Spells::ContentTuningPara
 {
     data << int16(contentTuningParams.PlayerLevelDelta);
     data << uint16(contentTuningParams.PlayerItemLevel);
+    data << uint16(contentTuningParams.TargetItemLevel);
     data << uint16(contentTuningParams.ScalingHealthItemLevelCurveID);
     data << uint8(contentTuningParams.TargetLevel);
     data << uint8(contentTuningParams.Expansion);

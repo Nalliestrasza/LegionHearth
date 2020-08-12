@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -16,6 +16,7 @@
  */
 
 #include "ScriptMgr.h"
+#include "GameObjectAI.h"
 #include "Creature.h"
 #include "EventMap.h"
 #include "GameObject.h"
@@ -97,7 +98,7 @@ class instance_gundrak : public InstanceMapScript
                         if (GetBossState(DATA_SLAD_RAN) == DONE)
                         {
                             if (SladRanStatueState == GO_STATE_ACTIVE)
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                             else
                                 go->SetGoState(GO_STATE_ACTIVE);
                         }
@@ -106,7 +107,7 @@ class instance_gundrak : public InstanceMapScript
                         if (GetBossState(DATA_MOORABI) == DONE)
                         {
                             if (MoorabiStatueState == GO_STATE_ACTIVE)
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                             else
                                 go->SetGoState(GO_STATE_ACTIVE);
                         }
@@ -115,7 +116,7 @@ class instance_gundrak : public InstanceMapScript
                         if (GetBossState(DATA_DRAKKARI_COLOSSUS) == DONE)
                         {
                             if (DrakkariColossusStatueState == GO_STATE_ACTIVE)
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                             else
                                 go->SetGoState(GO_STATE_ACTIVE);
                         }
@@ -171,17 +172,17 @@ class instance_gundrak : public InstanceMapScript
                     case DATA_SLAD_RAN:
                         if (state == DONE)
                             if (GameObject* go = GetGameObject(DATA_SLAD_RAN_ALTAR))
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case DATA_DRAKKARI_COLOSSUS:
                         if (state == DONE)
                             if (GameObject* go = GetGameObject(DATA_DRAKKARI_COLOSSUS_ALTAR))
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case DATA_MOORABI:
                         if (state == DONE)
                             if (GameObject* go = GetGameObject(DATA_MOORABI_ALTAR))
-                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     default:
                         break;
@@ -352,18 +353,25 @@ class go_gundrak_altar : public GameObjectScript
     public:
         go_gundrak_altar() : GameObjectScript("go_gundrak_altar") { }
 
-        bool OnGossipHello(Player* /*player*/, GameObject* go) override
+        struct go_gundrak_altarAI : public GameObjectAI
         {
-            go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-            go->SetGoState(GO_STATE_ACTIVE);
+            go_gundrak_altarAI(GameObject* go) : GameObjectAI(go), instance(go->GetInstanceScript()) { }
 
-            if (InstanceScript* instance = go->GetInstanceScript())
+            InstanceScript* instance;
+
+            bool GossipHello(Player* /*player*/) override
             {
-                instance->SetData(DATA_STATUE_ACTIVATE, go->GetEntry());
+                me->AddFlag(GO_FLAG_NOT_SELECTABLE);
+                me->SetGoState(GO_STATE_ACTIVE);
+
+                instance->SetData(DATA_STATUE_ACTIVATE, me->GetEntry());
                 return true;
             }
+        };
 
-            return false;
+        GameObjectAI* GetAI(GameObject* go) const override
+        {
+            return GetGundrakAI<go_gundrak_altarAI>(go);
         }
 };
 

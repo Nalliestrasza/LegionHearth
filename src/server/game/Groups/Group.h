@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -182,8 +181,7 @@ class Roll : public LootValidatorRef
         ItemDisenchantLootEntry const* GetItemDisenchantLoot(Player const* player) const;
 
         uint32 itemid;
-        ItemRandomEnchantmentId itemRandomPropId;
-        uint32 itemRandomSuffix;
+        ItemRandomBonusListId itemRandomBonusListId;
         uint8 itemCount;
         typedef std::map<ObjectGuid, RollVote> PlayerVote;
         PlayerVote playerVote;                              //vote position correspond with player position (in group)
@@ -312,7 +310,11 @@ class TC_GAME_API Group
         bool IsMember(ObjectGuid guid) const;
         bool IsLeader(ObjectGuid guid) const;
         ObjectGuid GetMemberGUID(const std::string& name);
-        bool IsAssistant(ObjectGuid guid) const;
+        uint8 GetMemberFlags(ObjectGuid guid) const;
+        bool IsAssistant(ObjectGuid guid) const
+        {
+            return (GetMemberFlags(guid) & MEMBER_FLAG_ASSISTANT) == MEMBER_FLAG_ASSISTANT;
+        }
 
         Player* GetInvited(ObjectGuid guid) const;
         Player* GetInvited(const std::string& name) const;
@@ -326,6 +328,7 @@ class TC_GAME_API Group
         GroupReference* GetFirstMember() { return m_memberMgr.getFirst(); }
         GroupReference const* GetFirstMember() const { return m_memberMgr.getFirst(); }
         uint32 GetMembersCount() const { return uint32(m_memberSlots.size()); }
+        uint32 GetInviteeCount() const { return m_invitees.size(); }
         GroupFlags GetGroupFlags() const { return m_groupFlags; }
 
         uint8 GetMemberGroup(ObjectGuid guid) const;
@@ -392,9 +395,9 @@ class TC_GAME_API Group
         void GroupLoot(Loot* loot, WorldObject* pLootedObject);
         void MasterLoot(Loot* loot, WorldObject* pLootedObject);
         Rolls::iterator GetRoll(ObjectGuid lootObjectGuid, uint8 lootListId);
-        void CountTheRoll(Rolls::iterator roll);
+        void CountTheRoll(Rolls::iterator roll, Map* allowedMap);
         void CountRollVote(ObjectGuid playerGuid, ObjectGuid lootObjectGuid, uint8 lootListId, uint8 choice);
-        void EndRoll(Loot* loot);
+        void EndRoll(Loot* loot, Map* allowedMap);
 
         // related to disenchant rolls
         void ResetMaxEnchantingLevel();

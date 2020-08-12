@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -103,7 +103,7 @@ public:
                 pathid = target->GetWaypointPath();
             else
             {
-                PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_DATA_MAX_ID);
+                WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_DATA_MAX_ID);
 
                 PreparedQueryResult result = WorldDatabase.Query(stmt);
 
@@ -124,7 +124,7 @@ public:
             return true;
         }
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_DATA_MAX_POINT);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_DATA_MAX_POINT);
         stmt->setUInt32(0, pathid);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
 
@@ -191,7 +191,7 @@ public:
 
         guidLow = target->GetSpawnId();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_ADDON_BY_GUID);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_ADDON_BY_GUID);
 
         stmt->setUInt64(0, guidLow);
 
@@ -248,7 +248,7 @@ public:
     {
 
         Creature* target = handler->getSelectedCreature();
-        PreparedStatement* stmt = NULL;
+        WorldDatabasePreparedStatement* stmt = NULL;
 
         if (!target)
         {
@@ -296,7 +296,7 @@ public:
 
         char* show_str = strtok((char*)args, " ");
         std::string show = show_str;
-        PreparedStatement* stmt = NULL;
+        WorldDatabasePreparedStatement* stmt = NULL;
 
         // Check
         if ((show != "add") && (show != "mod") && (show != "del") && (show != "listid"))
@@ -577,7 +577,7 @@ public:
         uint32 pathid = 0;
         uint32 point = 0;
         Creature* target = handler->getSelectedCreature();
-        PreparedStatement* stmt = NULL;
+        WorldDatabasePreparedStatement* stmt = NULL;
 
         // User did select a visual waypoint?
         if (!target || target->GetEntry() != VISUAL_WAYPOINT)
@@ -741,7 +741,7 @@ public:
 
         uint32 pathid = 0;
         Creature* target = handler->getSelectedCreature();
-        PreparedStatement* stmt = NULL;
+        WorldDatabasePreparedStatement* stmt = NULL;
 
         // Did player provide a PathID?
 
@@ -1137,7 +1137,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT move_type FROM waypoint_data WHERE id = %u", wpId);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_MOVETYPE);
+			WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_MOVETYPE);
 			stmt->setUInt64(0, wpId); // id
 			stmt->setUInt64(1, pathId); // PathID
 			stmt->setUInt8(2, moveType); // move_type
@@ -1147,7 +1147,7 @@ public:
 		else
 		{
 			// dans le cas ou le joueur souhaite définir un autre type de marche 
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_MOVETYPE);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_MOVETYPE);
 			stmt->setUInt8(0, moveType); // move_type
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
@@ -1206,7 +1206,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT delay FROM waypoint_data WHERE id = %u", wpId);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_WP_DELAY);
 			stmt->setUInt64(0, wpId); // id
 			stmt->setUInt64(1, pathId); // PathID
 			stmt->setUInt32(2, delay * 1000); // delay + *1000 for miliseconds
@@ -1216,7 +1216,7 @@ public:
 		else
 		{
 			// dans le cas ou le joueur souhaite changer le delay
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_WP_DELAY);
 			stmt->setUInt32(0, delay * 1000); //  delay * 1000 for miliseconds
 			stmt->setUInt64(1, wpId); // id
 			stmt->setUInt64(2, pathId); // PathID
@@ -1243,7 +1243,7 @@ public:
 			handler->PSendSysMessage(LANG_RANDOM_MESSAGE, "pathId");
 			return false;
 		}
-		PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_LOOKUP); // SELECT * FROM waypoint_data WHERE id = %u", pathId);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_LOOKUP); // SELECT * FROM waypoint_data WHERE id = %u", pathId);
 		stmt->setUInt32(0, pathId);
 		PreparedQueryResult result = WorldDatabase.Query(stmt);
 		if (!result)

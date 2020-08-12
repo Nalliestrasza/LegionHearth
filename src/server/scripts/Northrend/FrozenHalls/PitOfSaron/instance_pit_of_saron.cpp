@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -30,9 +30,10 @@ Position const EventLeaderPos2 = {1054.368f, 107.14620f, 628.4467f, 0.0f};
 
 DoorData const Doors[] =
 {
-    {GO_ICE_WALL,   DATA_GARFROST,  DOOR_TYPE_PASSAGE },
-    {GO_ICE_WALL,   DATA_ICK,       DOOR_TYPE_PASSAGE },
-    {GO_HALLS_OF_REFLECTION_PORTCULLIS,   DATA_TYRANNUS,       DOOR_TYPE_PASSAGE },
+    { GO_ICE_WALL,                       DATA_GARFROST,  DOOR_TYPE_PASSAGE },
+    { GO_ICE_WALL,                       DATA_ICK,       DOOR_TYPE_PASSAGE },
+    { GO_HALLS_OF_REFLECTION_PORTCULLIS, DATA_TYRANNUS,  DOOR_TYPE_PASSAGE },
+    { 0,                                 0,              DOOR_TYPE_ROOM    } // END
 };
 
 class instance_pit_of_saron : public InstanceMapScript

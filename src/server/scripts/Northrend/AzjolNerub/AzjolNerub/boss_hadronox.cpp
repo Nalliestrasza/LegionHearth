@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -97,7 +97,7 @@ enum Spells
     SPELL_ANIMATE_BONES_2                   = 53336,
 };
 
-enum SummonGroups
+enum SummonGroups : uint32
 {
     SUMMON_GROUP_CRUSHER_1      = 1,
     SUMMON_GROUP_CRUSHER_2      = 2,
@@ -280,8 +280,8 @@ public:
 
         void Initialize()
         {
-            me->SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, 9.0f);
-            me->SetFloatValue(UNIT_FIELD_COMBATREACH, 9.0f);
+            me->SetBoundingRadius(9.0f);
+            me->SetCombatReach(9.0f);
             _enteredCombat = false;
             _doorsWebbed = false;
             _lastPlayerCombatState = false;
@@ -779,7 +779,7 @@ struct npc_hadronox_foeAI : public ScriptedAI
                         me->GetMotionMaster()->MovePoint(MOVE_DOWNSTAIRS_2, downstairsMoves2[_mySpawn]);
                         break;
                     }
-                    // intentional missing break
+                    /* fallthrough */
                 case MOVE_HADRONOX:
                 case MOVE_HADRONOX_REAL:
                 {

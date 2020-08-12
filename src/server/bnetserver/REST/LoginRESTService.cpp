@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -47,7 +47,7 @@ public:
     bool InvokeIfReady()
     {
         ASSERT(_callback);
-        return _callback->InvokeIfReady() == QueryCallback::Completed;
+        return _callback->InvokeIfReady();
     }
 
     soap* GetClient() { return &_client; }
@@ -82,7 +82,6 @@ bool LoginRESTService::Start(Trinity::Asio::IoContext* ioContext)
         _port = 8081;
     }
 
-    boost::system::error_code ec;
     boost::asio::ip::tcp::resolver resolver(*ioContext);
 
     std::string configuredAddress = sConfigMgr->GetStringDefault("LoginREST.ExternalAddress", "127.0.0.1");
@@ -254,8 +253,8 @@ int32 LoginRESTService::HandleGetGameAccounts(std::shared_ptr<AsyncRequest> requ
     if (!request->GetClient()->userid)
         return 401;
 
-    request->SetCallback(Trinity::make_unique<QueryCallback>(LoginDatabase.AsyncQuery([&] {
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_GAME_ACCOUNT_LIST);
+    request->SetCallback(std::make_unique<QueryCallback>(LoginDatabase.AsyncQuery([&] {
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_GAME_ACCOUNT_LIST);
         stmt->setString(0, request->GetClient()->userid);
         return stmt;
     }())
@@ -341,12 +340,12 @@ int32 LoginRESTService::HandlePostLogin(std::shared_ptr<AsyncRequest> request)
     Utf8ToUpperOnlyLatin(login);
     Utf8ToUpperOnlyLatin(password);
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_AUTHENTICATION);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_AUTHENTICATION);
     stmt->setString(0, login);
 
     std::string sentPasswordHash = CalculateShaPassHash(login, password);
 
-    request->SetCallback(Trinity::make_unique<QueryCallback>(LoginDatabase.AsyncQuery(stmt)
+    request->SetCallback(std::make_unique<QueryCallback>(LoginDatabase.AsyncQuery(stmt)
         .WithChainingPreparedCallback([request, login, sentPasswordHash, this](QueryCallback& callback, PreparedQueryResult result)
     {
         if (result)
@@ -369,7 +368,7 @@ int32 LoginRESTService::HandlePostLogin(std::shared_ptr<AsyncRequest> request)
                     loginTicket = "TC-" + ByteArrayToHexStr(ticket.AsByteArray(20).get(), 20);
                 }
 
-                PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_AUTHENTICATION);
+                LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_AUTHENTICATION);
                 stmt->setString(0, loginTicket);
                 stmt->setUInt32(1, time(nullptr) + _loginTicketDuration);
                 stmt->setUInt32(2, accountId);
@@ -392,8 +391,8 @@ int32 LoginRESTService::HandlePostLogin(std::shared_ptr<AsyncRequest> request)
 
                 if (maxWrongPassword)
                 {
-                    SQLTransaction trans = LoginDatabase.BeginTransaction();
-                    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_FAILED_LOGINS);
+                    LoginDatabaseTransaction trans = LoginDatabase.BeginTransaction();
+                    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_FAILED_LOGINS);
                     stmt->setUInt32(0, accountId);
                     trans->Append(stmt);
 
@@ -445,8 +444,8 @@ int32 LoginRESTService::HandlePostRefreshLoginTicket(std::shared_ptr<AsyncReques
     if (!request->GetClient()->userid)
         return 401;
 
-    request->SetCallback(Trinity::make_unique<QueryCallback>(LoginDatabase.AsyncQuery([&] {
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_EXISTING_AUTHENTICATION);
+    request->SetCallback(std::make_unique<QueryCallback>(LoginDatabase.AsyncQuery([&] {
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_EXISTING_AUTHENTICATION);
         stmt->setString(0, request->GetClient()->userid);
         return stmt;
     }())
@@ -461,7 +460,7 @@ int32 LoginRESTService::HandlePostRefreshLoginTicket(std::shared_ptr<AsyncReques
             {
                 loginRefreshResult.set_login_ticket_expiry(now + _loginTicketDuration);
 
-                PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_EXISTING_AUTHENTICATION);
+                LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_EXISTING_AUTHENTICATION);
                 stmt->setUInt32(0, uint32(now + _loginTicketDuration));
                 stmt->setString(1, request->GetClient()->userid);
                 LoginDatabase.Execute(stmt);

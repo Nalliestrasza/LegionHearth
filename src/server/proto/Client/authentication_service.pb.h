@@ -720,6 +720,18 @@ class TC_PROTO_API LogonResult : public ::google::protobuf::Message {
   inline bool restricted_mode() const;
   inline void set_restricted_mode(bool value);
 
+  // optional string client_id = 11;
+  inline bool has_client_id() const;
+  inline void clear_client_id();
+  static const int kClientIdFieldNumber = 11;
+  inline const ::std::string& client_id() const;
+  inline void set_client_id(const ::std::string& value);
+  inline void set_client_id(const char* value);
+  inline void set_client_id(const char* value, size_t size);
+  inline ::std::string* mutable_client_id();
+  inline ::std::string* release_client_id();
+  inline void set_allocated_client_id(::std::string* client_id);
+
   // @@protoc_insertion_point(class_scope:bgs.protocol.authentication.v1.LogonResult)
  private:
   inline void set_has_error_code();
@@ -738,6 +750,8 @@ class TC_PROTO_API LogonResult : public ::google::protobuf::Message {
   inline void clear_has_session_key();
   inline void set_has_restricted_mode();
   inline void clear_has_restricted_mode();
+  inline void set_has_client_id();
+  inline void clear_has_client_id();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -752,6 +766,7 @@ class TC_PROTO_API LogonResult : public ::google::protobuf::Message {
   ::std::string* battle_tag_;
   ::std::string* geoip_country_;
   ::std::string* session_key_;
+  ::std::string* client_id_;
   bool restricted_mode_;
   friend void TC_PROTO_API protobuf_AddDesc_authentication_5fservice_2eproto();
   friend void protobuf_AssignDesc_authentication_5fservice_2eproto();
@@ -2151,32 +2166,18 @@ class TC_PROTO_API AuthenticationListener : public ServiceBase
   static google::protobuf::ServiceDescriptor const* descriptor();
 
   // client methods --------------------------------------------------
+  void OnModuleLoad(::bgs::protocol::authentication::v1::ModuleLoadRequest const* request, bool client = false, bool server = false);
+  void OnModuleMessage(::bgs::protocol::authentication::v1::ModuleMessageRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback, bool client = false, bool server = false);
+  void OnServerStateChange(::bgs::protocol::authentication::v1::ServerStateChangeRequest const* request, bool client = false, bool server = false);
+  void OnLogonComplete(::bgs::protocol::authentication::v1::LogonResult const* request, bool client = false, bool server = false);
+  void OnMemModuleLoad(::bgs::protocol::authentication::v1::MemModuleLoadRequest const* request, std::function<void(::bgs::protocol::authentication::v1::MemModuleLoadResponse const*)> responseCallback, bool client = false, bool server = false);
+  void OnLogonUpdate(::bgs::protocol::authentication::v1::LogonUpdateRequest const* request, bool client = false, bool server = false);
+  void OnVersionInfoUpdated(::bgs::protocol::authentication::v1::VersionInfoNotification const* request, bool client = false, bool server = false);
+  void OnLogonQueueUpdate(::bgs::protocol::authentication::v1::LogonQueueUpdateRequest const* request, bool client = false, bool server = false);
+  void OnLogonQueueEnd(::bgs::protocol::NoData const* request, bool client = false, bool server = false);
+  void OnGameAccountSelected(::bgs::protocol::authentication::v1::GameAccountSelectedRequest const* request, bool client = false, bool server = false);
 
-  void OnModuleLoad(::bgs::protocol::authentication::v1::ModuleLoadRequest const* request);
-  void OnModuleMessage(::bgs::protocol::authentication::v1::ModuleMessageRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void OnServerStateChange(::bgs::protocol::authentication::v1::ServerStateChangeRequest const* request);
-  void OnLogonComplete(::bgs::protocol::authentication::v1::LogonResult const* request);
-  void OnMemModuleLoad(::bgs::protocol::authentication::v1::MemModuleLoadRequest const* request, std::function<void(::bgs::protocol::authentication::v1::MemModuleLoadResponse const*)> responseCallback);
-  void OnLogonUpdate(::bgs::protocol::authentication::v1::LogonUpdateRequest const* request);
-  void OnVersionInfoUpdated(::bgs::protocol::authentication::v1::VersionInfoNotification const* request);
-  void OnLogonQueueUpdate(::bgs::protocol::authentication::v1::LogonQueueUpdateRequest const* request);
-  void OnLogonQueueEnd(::bgs::protocol::NoData const* request);
-  void OnGameAccountSelected(::bgs::protocol::authentication::v1::GameAccountSelectedRequest const* request);
-  // server methods --------------------------------------------------
-
-  void CallServerMethod(uint32 token, uint32 methodId, MessageBuffer buffer) override final;
-
- protected:
-  virtual uint32 HandleOnModuleLoad(::bgs::protocol::authentication::v1::ModuleLoadRequest const* request);
-  virtual uint32 HandleOnModuleMessage(::bgs::protocol::authentication::v1::ModuleMessageRequest const* request, ::bgs::protocol::NoData* response, std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)>& continuation);
-  virtual uint32 HandleOnServerStateChange(::bgs::protocol::authentication::v1::ServerStateChangeRequest const* request);
-  virtual uint32 HandleOnLogonComplete(::bgs::protocol::authentication::v1::LogonResult const* request);
-  virtual uint32 HandleOnMemModuleLoad(::bgs::protocol::authentication::v1::MemModuleLoadRequest const* request, ::bgs::protocol::authentication::v1::MemModuleLoadResponse* response, std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)>& continuation);
-  virtual uint32 HandleOnLogonUpdate(::bgs::protocol::authentication::v1::LogonUpdateRequest const* request);
-  virtual uint32 HandleOnVersionInfoUpdated(::bgs::protocol::authentication::v1::VersionInfoNotification const* request);
-  virtual uint32 HandleOnLogonQueueUpdate(::bgs::protocol::authentication::v1::LogonQueueUpdateRequest const* request);
-  virtual uint32 HandleOnLogonQueueEnd(::bgs::protocol::NoData const* request);
-  virtual uint32 HandleOnGameAccountSelected(::bgs::protocol::authentication::v1::GameAccountSelectedRequest const* request);
+  void CallServerMethod(uint32 token, uint32 methodId, MessageBuffer buffer) final;
 
  private:
   uint32 service_hash_;
@@ -2198,21 +2199,10 @@ class TC_PROTO_API AuthenticationService : public ServiceBase
 
   static google::protobuf::ServiceDescriptor const* descriptor();
 
-  // client methods --------------------------------------------------
-
-  void Logon(::bgs::protocol::authentication::v1::LogonRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void ModuleNotify(::bgs::protocol::authentication::v1::ModuleNotification const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void ModuleMessage(::bgs::protocol::authentication::v1::ModuleMessageRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void SelectGameAccount_DEPRECATED(::bgs::protocol::EntityId const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void GenerateSSOToken(::bgs::protocol::authentication::v1::GenerateSSOTokenRequest const* request, std::function<void(::bgs::protocol::authentication::v1::GenerateSSOTokenResponse const*)> responseCallback);
-  void SelectGameAccount(::bgs::protocol::authentication::v1::SelectGameAccountRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void VerifyWebCredentials(::bgs::protocol::authentication::v1::VerifyWebCredentialsRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback);
-  void GenerateWebCredentials(::bgs::protocol::authentication::v1::GenerateWebCredentialsRequest const* request, std::function<void(::bgs::protocol::authentication::v1::GenerateWebCredentialsResponse const*)> responseCallback);
-  // server methods --------------------------------------------------
-
-  void CallServerMethod(uint32 token, uint32 methodId, MessageBuffer buffer) override final;
+  void CallServerMethod(uint32 token, uint32 methodId, MessageBuffer buffer) final;
 
  protected:
+  // server methods --------------------------------------------------
   virtual uint32 HandleLogon(::bgs::protocol::authentication::v1::LogonRequest const* request, ::bgs::protocol::NoData* response, std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)>& continuation);
   virtual uint32 HandleModuleNotify(::bgs::protocol::authentication::v1::ModuleNotification const* request, ::bgs::protocol::NoData* response, std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)>& continuation);
   virtual uint32 HandleModuleMessage(::bgs::protocol::authentication::v1::ModuleMessageRequest const* request, ::bgs::protocol::NoData* response, std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)>& continuation);
@@ -3671,6 +3661,82 @@ inline void LogonResult::set_restricted_mode(bool value) {
   set_has_restricted_mode();
   restricted_mode_ = value;
   // @@protoc_insertion_point(field_set:bgs.protocol.authentication.v1.LogonResult.restricted_mode)
+}
+
+// optional string client_id = 11;
+inline bool LogonResult::has_client_id() const {
+  return (_has_bits_[0] & 0x00000400u) != 0;
+}
+inline void LogonResult::set_has_client_id() {
+  _has_bits_[0] |= 0x00000400u;
+}
+inline void LogonResult::clear_has_client_id() {
+  _has_bits_[0] &= ~0x00000400u;
+}
+inline void LogonResult::clear_client_id() {
+  if (client_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    client_id_->clear();
+  }
+  clear_has_client_id();
+}
+inline const ::std::string& LogonResult::client_id() const {
+  // @@protoc_insertion_point(field_get:bgs.protocol.authentication.v1.LogonResult.client_id)
+  return *client_id_;
+}
+inline void LogonResult::set_client_id(const ::std::string& value) {
+  set_has_client_id();
+  if (client_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    client_id_ = new ::std::string;
+  }
+  client_id_->assign(value);
+  // @@protoc_insertion_point(field_set:bgs.protocol.authentication.v1.LogonResult.client_id)
+}
+inline void LogonResult::set_client_id(const char* value) {
+  set_has_client_id();
+  if (client_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    client_id_ = new ::std::string;
+  }
+  client_id_->assign(value);
+  // @@protoc_insertion_point(field_set_char:bgs.protocol.authentication.v1.LogonResult.client_id)
+}
+inline void LogonResult::set_client_id(const char* value, size_t size) {
+  set_has_client_id();
+  if (client_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    client_id_ = new ::std::string;
+  }
+  client_id_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:bgs.protocol.authentication.v1.LogonResult.client_id)
+}
+inline ::std::string* LogonResult::mutable_client_id() {
+  set_has_client_id();
+  if (client_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    client_id_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:bgs.protocol.authentication.v1.LogonResult.client_id)
+  return client_id_;
+}
+inline ::std::string* LogonResult::release_client_id() {
+  clear_has_client_id();
+  if (client_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = client_id_;
+    client_id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LogonResult::set_allocated_client_id(::std::string* client_id) {
+  if (client_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete client_id_;
+  }
+  if (client_id) {
+    set_has_client_id();
+    client_id_ = client_id;
+  } else {
+    clear_has_client_id();
+    client_id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:bgs.protocol.authentication.v1.LogonResult.client_id)
 }
 
 // -------------------------------------------------------------------

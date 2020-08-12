@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -244,10 +243,14 @@ namespace VMAP
         if (!result.File)
         {
             int32 parentMapId = vm->getParentMapId(mapID);
-            if (parentMapId != -1)
+            while (parentMapId != -1)
             {
                 result.Name = basePath + getTileFileName(parentMapId, tileX, tileY);
                 result.File = fopen(result.Name.c_str(), "rb");
+                if (result.File)
+                    break;
+
+                parentMapId = vm->getParentMapId(uint32(parentMapId));
             }
         }
 
@@ -276,7 +279,10 @@ namespace VMAP
         }
         FILE* tf = OpenMapTileFile(basePath, mapID, tileX, tileY, vm).File;
         if (!tf)
+        {
+            fclose(rf);
             return LoadResult::FileNotFound;
+        }
         else
         {
             std::string tilefile = basePath + getTileFileName(mapID, tileX, tileY);

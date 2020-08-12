@@ -20,6 +20,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "GameObject.h"
+#include "GameObjectAI.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
@@ -160,45 +161,72 @@ class go_endlesshalls_orbe : public GameObjectScript
 public:
     go_endlesshalls_orbe() : GameObjectScript("go_endlesshalls_orbe") { }
 
-    bool OnGossipHello(Player* player, GameObject* go) override
+    struct go_endlesshalls_orbeAI : public GameObjectAI
     {
-        // Keep only 1 orb when picking orb.
-        uint32 checkSpell = go->GetGOInfo()->goober.spell;
-        for (uint32 spellid : SpellOrbEntries)
-        {
-            if (checkSpell != spellid)
-                player->RemoveAurasDueToSpell(spellid);
-            else
-                player->AddAura(spellid, player);
-        }
+        go_endlesshalls_orbeAI(GameObject* go) : GameObjectAI(go), instance(go) { }
 
-        if (InstanceScript* instance = go->GetInstanceScript())
+        GameObject* instance;
+
+        bool GossipHello(Player* player) override
         {
-            instance->SetData(DATA_PICK_ORBE, go->GetEntry());
+            // Keep only 1 orb when picking orb.
+            uint32 checkSpell = instance->GetGOInfo()->goober.spell;
+            for (uint32 spellid : SpellOrbEntries)
+            {
+                if (checkSpell != spellid)
+                    player->RemoveAurasDueToSpell(spellid);
+                else
+                    player->AddAura(spellid, player);
+            }
+
+            if (InstanceScript* instanceScript = instance->GetInstanceScript())
+            {
+                instanceScript->SetData(DATA_PICK_ORBE, instance->GetEntry());
+                return false;
+            }
+
             return false;
         }
+    };
 
-        return false;
+    GameObjectAI* GetAI(GameObject* go) const override
+    {
+        return GetEndlessHallsAI<go_endlesshalls_orbeAI>(go);
     }
 };
+
+
 
 class go_endlesshalls_rune : public GameObjectScript
 {
 public:
     go_endlesshalls_rune() : GameObjectScript("go_endlesshalls_rune") { }
 
-    bool OnGossipHello(Player* player, GameObject* go) override
-    {
-        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-        go->SetGoState(GO_STATE_ACTIVE);
 
-        if (InstanceScript* instance = go->GetInstanceScript())
+    struct go_endlesshalls_runeAI : public GameObjectAI
+    {
+        go_endlesshalls_runeAI(GameObject* go) : GameObjectAI(go), instance(go) { }
+
+        GameObject* instance;
+
+        bool GossipHello(Player* player) override
         {
-            instance->SetData(DATA_PICK_RUNE, go->GetEntry());
+            instance->AddFlag(GO_FLAG_NOT_SELECTABLE);
+            instance->SetGoState(GO_STATE_ACTIVE);
+
+            if (InstanceScript* instanceScript = instance->GetInstanceScript())
+            {
+                instanceScript->SetData(DATA_PICK_RUNE, instance->GetEntry());
+                return false;
+            }
+
             return false;
         }
+    };
 
-        return false;
+    GameObjectAI* GetAI(GameObject* go) const override
+    {
+        return GetEndlessHallsAI<go_endlesshalls_runeAI>(go);
     }
 };
 

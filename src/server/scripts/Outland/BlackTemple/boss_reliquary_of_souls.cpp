@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -165,7 +165,7 @@ public:
             {
                 _inCombat = true;
                 DoZoneInCombat();
-                me->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_STATE, UNIT_STAND_STATE_STAND);
+                me->SetStandState(UNIT_STAND_STATE_STAND);
                 events.ScheduleEvent(EVENT_SUBMERGE, Seconds(10));
             }
         }
@@ -351,6 +351,8 @@ public:
                     Talk(SUFF_SAY_RECAP);
                     me->AttackStop();
                     me->SetReactState(REACT_PASSIVE);
+                    events.Reset();
+                    me->InterruptNonMeleeSpells(false);
                     me->GetMotionMaster()->MovePoint(RELIQUARY_DESPAWN_WAYPOINT, DespawnPoint);
                 }
             }
@@ -479,6 +481,8 @@ public:
                     Talk(DESI_SAY_RECAP);
                     me->AttackStop();
                     me->SetReactState(REACT_PASSIVE);
+                    events.Reset();
+                    me->InterruptNonMeleeSpells(false);
                     me->GetMotionMaster()->MovePoint(RELIQUARY_DESPAWN_WAYPOINT, DespawnPoint);
                 }
             }
@@ -743,7 +747,7 @@ class spell_reliquary_of_souls_aura_of_desire : public SpellScriptLoader
                 caster->CastCustomSpell(SPELL_AURA_OF_DESIRE_DAMAGE, SPELLVALUE_BASE_POINT0, bp, caster, true, nullptr, aurEff);
             }
 
-            void UpdateAmount(AuraEffect const* /*effect*/)
+            void UpdateAmount(AuraEffect* /*aurEff*/)
             {
                 if (AuraEffect* effect = GetAura()->GetEffect(EFFECT_1))
                     effect->ChangeAmount(effect->GetAmount() - 5);
@@ -752,7 +756,7 @@ class spell_reliquary_of_souls_aura_of_desire : public SpellScriptLoader
             void Register() override
             {
                 OnEffectProc += AuraEffectProcFn(spell_reliquary_of_souls_aura_of_desire_AuraScript::OnProcSpell, EFFECT_0, SPELL_AURA_MOD_HEALING_PCT);
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_reliquary_of_souls_aura_of_desire_AuraScript::UpdateAmount, EFFECT_2, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+                OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_reliquary_of_souls_aura_of_desire_AuraScript::UpdateAmount, EFFECT_2, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
             }
         };
 
@@ -774,12 +778,12 @@ class spell_reliquary_of_souls_submerge : public SpellScriptLoader
 
             void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                GetTarget()->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_STATE, UNIT_STAND_STATE_SUBMERGED);
+                GetTarget()->SetStandState(UNIT_STAND_STATE_SUBMERGED);
             }
 
             void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
-                GetTarget()->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_STATE, UNIT_STAND_STATE_STAND);
+                GetTarget()->SetStandState(UNIT_STAND_STATE_STAND);
             }
 
 

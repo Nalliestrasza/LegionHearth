@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -151,7 +150,7 @@ class boss_high_astromancer_solarian : public CreatureScript
                 Initialize();
                 _Reset();
                 me->SetArmor(defaultarmor, 0);
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                 me->SetVisible(true);
                 me->SetObjectScale(defaultsize);
                 me->SetDisplayId(MODEL_HUMAN);
@@ -217,7 +216,7 @@ class boss_high_astromancer_solarian : public CreatureScript
                         AppearDelay = false;
                         if (Phase == 2)
                         {
-                            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                            me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                             me->SetVisible(false);
                         }
                         AppearDelay_Timer = 2000;
@@ -292,7 +291,7 @@ class boss_high_astromancer_solarian : public CreatureScript
                         Phase1_Timer = 50000;
                         //After these 50 seconds she portals to the middle of the room and disappears, leaving 3 light portals behind.
                         me->GetMotionMaster()->Clear();
-                        me->SetPosition(CENTER_X, CENTER_Y, CENTER_Z, CENTER_O);
+                        me->UpdatePosition(CENTER_X, CENTER_Y, CENTER_Z, CENTER_O);
                         for (uint8 i=0; i <= 2; ++i)
                         {
                             if (!i)
@@ -320,7 +319,7 @@ class boss_high_astromancer_solarian : public CreatureScript
                         {
                             if (Creature* Summoned = me->SummonCreature(NPC_ASTROMANCER_SOLARIAN_SPOTLIGHT, Portals[i][0], Portals[i][1], Portals[i][2], CENTER_O, TEMPSUMMON_TIMED_DESPAWN, Phase2_Timer+Phase3_Timer+AppearDelay_Timer+1700))
                             {
-                                Summoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                                Summoned->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                                 Summoned->CastSpell(Summoned, SPELL_SPOTLIGHT, false);
                             }
                         }
@@ -358,13 +357,13 @@ class boss_high_astromancer_solarian : public CreatureScript
                         //15 seconds later Solarian reappears out of one of the 3 portals. Simultaneously, 2 healers appear in the two other portals.
                         int i = rand32() % 3;
                         me->GetMotionMaster()->Clear();
-                        me->SetPosition(Portals[i][0], Portals[i][1], Portals[i][2], CENTER_O);
+                        me->UpdatePosition(Portals[i][0], Portals[i][1], Portals[i][2], CENTER_O);
 
                         for (int j=0; j <= 2; j++)
                             if (j != i)
                                 SummonMinion(NPC_SOLARIUM_PRIEST, Portals[j][0], Portals[j][1], Portals[j][2]);
 
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                         me->SetVisible(true);
 
                         Talk(SAY_SUMMON2);
@@ -399,7 +398,7 @@ class boss_high_astromancer_solarian : public CreatureScript
                 {
                     Phase = 4;
                     //To make sure she wont be invisible or not selecatble
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                     me->SetVisible(true);
                     Talk(SAY_VOIDA);
                     Talk(SAY_VOIDB);

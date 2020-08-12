@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -150,14 +149,14 @@ public:
             if (!Intro || IsIntro)
                 return;
 
-            if (Creature* Madrigosa = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_MADRIGOSA)))
+            if (Creature* Madrigosa = instance->GetCreature(DATA_MADRIGOSA))
             {
                 Madrigosa->Respawn();
                 Madrigosa->setActive(true);
                 IsIntro = true;
                 Madrigosa->SetMaxHealth(me->GetMaxHealth());
                 Madrigosa->SetHealth(me->GetMaxHealth());
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                me->AddUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                 me->Attack(Madrigosa, true);
                 Madrigosa->Attack(me, true);
             }
@@ -171,7 +170,7 @@ public:
 
         void EndIntro()
         {
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             Intro = false;
             IsIntro = false;
         }
@@ -185,7 +184,7 @@ public:
 
         void DoIntro()
         {
-            Creature* Madrigosa = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_MADRIGOSA));
+            Creature* Madrigosa = instance->GetCreature(DATA_MADRIGOSA);
             if (!Madrigosa)
                 return;
 
@@ -197,8 +196,8 @@ public:
                     ++IntroPhase;
                     break;
                 case 1:
-                    me->SetInFront(Madrigosa);
-                    Madrigosa->SetInFront(me);
+                    me->SetFacingToObject(Madrigosa);
+                    Madrigosa->SetFacingToObject(me);
                     Madrigosa->AI()->Talk(YELL_MADR_INTRO, me);
                     IntroPhaseTimer = 9000;
                     ++IntroPhase;
@@ -288,7 +287,7 @@ public:
                 {
                     if (IntroFrostBoltTimer <= diff)
                     {
-                        if (Creature* Madrigosa = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_MADRIGOSA)))
+                        if (Creature* Madrigosa = instance->GetCreature(DATA_MADRIGOSA))
                         {
                             Madrigosa->CastSpell(me, SPELL_INTRO_FROSTBOLT, true);
                             IntroFrostBoltTimer = 2000;

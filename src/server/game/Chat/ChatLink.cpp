@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -186,35 +186,16 @@ bool ItemChatLink::Initialize(std::istringstream& iss)
     if (!CheckDelimiter(iss, DELIMITER, "item"))
         return false;
 
-    if (HasValue(iss) && !ReadInt32(iss, _randomPropertyId))
+    if (HasValue(iss) && !ReadInt32(iss, zero))
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading item random property id", iss.str().c_str());
         return false;
     }
 
-    if (_randomPropertyId > 0)
-    {
-        _property = sItemRandomPropertiesStore.LookupEntry(_randomPropertyId);
-        if (!_property)
-        {
-            TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid item property id %u in |item command", iss.str().c_str(), _randomPropertyId);
-            return false;
-        }
-    }
-    else if (_randomPropertyId < 0)
-    {
-        _suffix = sItemRandomSuffixStore.LookupEntry(-_randomPropertyId);
-        if (!_suffix)
-        {
-            TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid item suffix id %u in |item command", iss.str().c_str(), -_randomPropertyId);
-            return false;
-        }
-    }
-
     if (!CheckDelimiter(iss, DELIMITER, "item"))
         return false;
 
-    if (HasValue(iss) && !ReadInt32(iss, _randomPropertySeed))
+    if (HasValue(iss) && !ReadInt32(iss, zero))
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): sequence finished unexpectedly while reading item random property seed", iss.str().c_str());
         return false;
@@ -381,7 +362,8 @@ bool ItemChatLink::ValidateName(char* buffer, char const* context)
 {
     ChatLink::ValidateName(buffer, context);
 
-    LocalizedString* suffixStrings = _suffix ? _suffix->Name : (_property ? _property->Name : nullptr);
+    // TODO: use suffix from ItemNameDescription
+    LocalizedString* suffixStrings = nullptr;
 
     for (uint8 locale = LOCALE_enUS; locale < TOTAL_LOCALES; ++locale)
     {
@@ -479,7 +461,7 @@ bool SpellChatLink::Initialize(std::istringstream& iss)
         return false;
     }
     // Validate spell
-    _spell = sSpellMgr->GetSpellInfo(spellId);
+    _spell = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
     if (!_spell)
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |spell command", iss.str().c_str(), spellId);
@@ -514,10 +496,10 @@ bool SpellChatLink::ValidateName(char* buffer, char const* context)
             return false;
         }
 
-        for (uint8 i = 0; i < TOTAL_LOCALES; ++i)
+        for (LocaleConstant i = LOCALE_enUS; i < TOTAL_LOCALES; i = LocaleConstant(i + 1))
         {
-            uint32 skillLineNameLength = strlen(skillLine->DisplayName->Str[i]);
-            if (skillLineNameLength > 0 && strncmp(skillLine->DisplayName->Str[i], buffer, skillLineNameLength) == 0)
+            uint32 skillLineNameLength = strlen(skillLine->DisplayName[i]);
+            if (skillLineNameLength > 0 && strncmp(skillLine->DisplayName[i], buffer, skillLineNameLength) == 0)
             {
                 // found the prefix, remove it to perform spellname validation below
                 // -2 = strlen(": ")
@@ -585,12 +567,12 @@ bool AchievementChatLink::ValidateName(char* buffer, char const* context)
 {
     ChatLink::ValidateName(buffer, context);
 
-    for (uint8 locale = LOCALE_enUS; locale < TOTAL_LOCALES; ++locale)
+    for (LocaleConstant locale = LOCALE_enUS; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
     {
         if (locale == LOCALE_none)
             continue;
 
-        if (strcmp(_achievement->Title->Str[locale], buffer) == 0)
+        if (strcmp(_achievement->Title[locale], buffer) == 0)
             return true;
     }
 
@@ -612,7 +594,7 @@ bool TradeChatLink::Initialize(std::istringstream& iss)
         return false;
     }
     // Validate spell
-    _spell = sSpellMgr->GetSpellInfo(spellId);
+    _spell = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
     if (!_spell)
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |trade command", iss.str().c_str(), spellId);
@@ -670,7 +652,7 @@ bool TalentChatLink::Initialize(std::istringstream& iss)
         return false;
     }
     // Validate talent's spell
-    _spell = sSpellMgr->GetSpellInfo(talentInfo->SpellID);
+    _spell = sSpellMgr->GetSpellInfo(talentInfo->SpellID, DIFFICULTY_NONE);
     if (!_spell)
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |trade command", iss.str().c_str(), talentInfo->SpellID);
@@ -702,7 +684,7 @@ bool EnchantmentChatLink::Initialize(std::istringstream& iss)
         return false;
     }
     // Validate spell
-    _spell = sSpellMgr->GetSpellInfo(spellId);
+    _spell = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
     if (!_spell)
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |enchant command", iss.str().c_str(), spellId);
@@ -741,7 +723,7 @@ bool GlyphChatLink::Initialize(std::istringstream& iss)
         return false;
     }
     // Validate glyph's spell
-    _spell = sSpellMgr->GetSpellInfo(_glyph->SpellID);
+    _spell = sSpellMgr->GetSpellInfo(_glyph->SpellID, DIFFICULTY_NONE);
     if (!_spell)
     {
         TC_LOG_TRACE("chat.system", "ChatHandler::isValidChatMessage('%s'): got invalid spell id %u in |glyph command", iss.str().c_str(), _glyph->SpellID);

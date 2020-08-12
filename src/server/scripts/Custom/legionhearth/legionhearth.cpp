@@ -103,42 +103,28 @@ public:
 
         if (skyboxId != 0)
         {
-            if (map > 5000)
+            if (map > MAP_CUSTOM_PHASE)
             {
        
-                QueryResult mapresult = HotfixDatabase.PQuery("SELECT ParentMapID From map where id = %u", map);
-                Field* mapfields = mapresult->Fetch();
-                map = mapfields[0].GetUInt16();
-
-                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-                if (!results)
+                if (player->GetMapId() >= MAP_CUSTOM_PHASE)
                 {
-                    return;
+                    if (MapEntry const* entry = sMapStore.AssertEntry(map))
+                        map = entry->ParentMapID;
                 }
 
-                Field* fields = results->Fetch();
-                uint32 lightId = fields[0].GetUInt32();
+                uint32 lightId = DB2Manager::GetMapLightId(map);
 
                 WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
                 data << lightId;
                 data << skyboxId;
                 data << 200;
 
-                sWorld->SendMapSkybox(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(skyboxId)).Write());
+                sWorld->SendMapMessage(mapCache, WorldPackets::Misc::OverrideLight(int32(lightId), int32(200), int32(skyboxId)).Write());
 
             }
             else
             {
-                QueryResult results = WorldDatabase.PQuery("Select m_ID from light where mapid = %u", map);
-
-                if (!results)
-                {
-                    return;
-                }
-
-                Field* fields = results->Fetch();
-                uint32 lightId = fields[0].GetUInt32();
+                uint32 lightId = DB2Manager::GetMapLightId(map);
 
                 WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
                 data << lightId;
@@ -153,8 +139,31 @@ public:
 
 };
 
+class Player_panda : public PlayerScript
+{
+public:
+    Player_panda() : PlayerScript("Player_panda") {}
+    void OnLogin(Player* player, bool firstLogin)
+    {
+        if (player->getRace() == RACE_PANDAREN_NEUTRAL)
+        {
+            // A new Panda join the world ! Fabulous...
+            if (firstLogin)
+            {
+                player->ShowNeutralPlayerFactionSelectUI();
+       
+
+            }
+        }
+   
+    }
+
+
+};
+
 // Add some script here
 void AddSC_legionhearth()
 {
 	new Player_perm();
+    new Player_panda();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -57,7 +57,7 @@ class icecrown_citadel_teleport : public GameObjectScript
 
                 ClearGossipMenuFor(player);
                 CloseGossipMenuFor(player);
-                SpellInfo const* spell = sSpellMgr->GetSpellInfo(TeleportSpells[gossipListId]);
+                SpellInfo const* spell = sSpellMgr->GetSpellInfo(TeleportSpells[gossipListId], DIFFICULTY_NONE);
                 if (!spell)
                     return false;
 
@@ -88,7 +88,7 @@ class at_frozen_throne_teleport : public AreaTriggerScript
         {
             if (player->IsInCombat())
             {
-                if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(FROZEN_THRONE_TELEPORT))
+                if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(FROZEN_THRONE_TELEPORT, DIFFICULTY_NONE))
                 {
                     ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, player->GetMapId(), spell->Id, player->GetMap()->GenerateLowGuid<HighGuid::Cast>());
                     Spell::SendCastResult(player, spell, 0, castId, SPELL_FAILED_AFFECTING_COMBAT);

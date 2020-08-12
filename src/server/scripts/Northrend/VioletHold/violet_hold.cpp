@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -22,6 +22,7 @@
 #include "Map.h"
 #include "MotionMaster.h"
 #include "Player.h"
+#include "GameObjectAI.h"
 #include "ScriptedGossip.h"
 #include "ScriptedEscortAI.h"
 #include "SpellAuraEffects.h"
@@ -316,30 +317,6 @@ class npc_sinclari_vh : public CreatureScript
     public:
         npc_sinclari_vh() : CreatureScript("npc_sinclari_vh") { }
 
-        bool OnGossipHello(Player* player, Creature* creature) override
-        {
-            // override default gossip
-            if (InstanceScript* instance = creature->GetInstanceScript())
-            {
-                switch (instance->GetData(DATA_MAIN_EVENT_STATE))
-                {
-                    case IN_PROGRESS:
-                        player->PrepareGossipMenu(creature, GOSSIP_MENU_SEND_ME_IN, true);
-                        player->SendPreparedGossip(creature);
-                        return true;
-                    case DONE:
-                        return true; // NYI
-                    case NOT_STARTED:
-                    case FAIL:
-                    default:
-                        break;
-                }
-            }
-
-            // load default gossip
-            return false;
-        }
-
         struct npc_sinclariAI : public ScriptedAI
         {
             npc_sinclariAI(Creature* creature) : ScriptedAI(creature), _summons(creature)
@@ -355,7 +332,7 @@ class npc_sinclari_vh : public CreatureScript
                         summon->AI()->SetData(DATA_PORTAL_LOCATION, i);
 
                 me->SetVisible(true);
-                me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                me->AddNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
                 std::list<Creature*> guardList;
                 me->GetCreatureListWithEntryInGrid(guardList, NPC_VIOLET_HOLD_GUARD, 100.0f);
@@ -368,11 +345,32 @@ class npc_sinclari_vh : public CreatureScript
                 }
             }
 
-            void sGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+            bool GossipHello(Player* player) override
+            {
+                // override default gossip
+                switch (_instance->GetData(DATA_MAIN_EVENT_STATE))
+                {
+                    case IN_PROGRESS:
+                        player->PrepareGossipMenu(me, GOSSIP_MENU_SEND_ME_IN, true);
+                        player->SendPreparedGossip(me);
+                        return true;
+                    case DONE:
+                        return true; // NYI
+                    case NOT_STARTED:
+                    case FAIL:
+                    default:
+                        break;
+                }
+
+                // load default gossip
+                return false;
+            }
+
+            bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
             {
                 if (menuId == GOSSIP_MENU_START_ENCOUNTER && gossipListId == 0)
                 {
-                    me->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                    me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     _instance->SetData(DATA_MAIN_EVENT_STATE, SPECIAL);
                     ScheduleIntro();
                     player->PlayerTalkClass->SendCloseGossip();
@@ -382,6 +380,7 @@ class npc_sinclari_vh : public CreatureScript
                     me->CastSpell(player, SPELL_TELEPORT_PLAYER, true);
                     player->PlayerTalkClass->SendCloseGossip();
                 }
+                return false;
             }
 
             void DoAction(int32 actionId) override
@@ -469,7 +468,7 @@ class npc_sinclari_vh : public CreatureScript
                             if (GameObject* mainDoor = _instance->GetGameObject(DATA_MAIN_DOOR))
                             {
                                 mainDoor->SetGoState(GO_STATE_READY);
-                                mainDoor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+                                mainDoor->AddFlag(GO_FLAG_LOCKED);
                             }
                             task.Repeat(Seconds(5));
                             break;
@@ -496,7 +495,7 @@ class npc_sinclari_vh : public CreatureScript
 
                     task.Schedule(Seconds(10), [this](TaskContext /*task*/)
                     {
-                        me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                        me->AddNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     });
                 });
             }
@@ -1301,10 +1300,20 @@ class go_activation_crystal : public GameObjectScript
     public:
         go_activation_crystal() : GameObjectScript("go_activation_crystal") { }
 
-        bool OnGossipHello(Player* player, GameObject* /*go*/) override
+        struct go_activation_crystalAI : public GameObjectAI
         {
-            player->CastSpell(player, SPELL_CRYSTAL_ACTIVATION, true);
-            return false;
+            go_activation_crystalAI(GameObject* go) : GameObjectAI(go) { }
+
+            bool GossipHello(Player* player) override
+            {
+                player->CastSpell(player, SPELL_CRYSTAL_ACTIVATION, true);
+                return false;
+            }
+        };
+
+        GameObjectAI* GetAI(GameObject* go) const override
+        {
+            return GetVioletHoldAI<go_activation_crystalAI>(go);
         }
 };
 

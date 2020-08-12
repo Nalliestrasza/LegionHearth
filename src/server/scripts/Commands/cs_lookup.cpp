@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -36,6 +36,7 @@ EndScriptData */
 #include "SpellMgr.h"
 #include "World.h"
 #include "WorldSession.h"
+#include <sstream>
 
 class lookup_commandscript : public CommandScript
 {
@@ -129,20 +130,20 @@ public:
             AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(i);
             if (areaEntry)
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = areaEntry->AreaName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = areaEntry->AreaName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = areaEntry->AreaName->Str[locale];
+                        name = areaEntry->AreaName[locale];
                         if (name.empty())
                             continue;
 
@@ -341,20 +342,20 @@ public:
             {
                 FactionState const* factionState = target ? target->GetReputationMgr().GetState(factionEntry) : NULL;
 
-                int locale = handler->GetSessionDbcLocale();
-                std::string name = factionEntry->Name->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = factionEntry->Name[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = factionEntry->Name->Str[locale];
+                        name = factionEntry->Name[locale];
                         if (name.empty())
                             continue;
 
@@ -433,7 +434,7 @@ public:
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
 
-        // Search in `item_template`
+        // Search in ItemSparse
         ItemTemplateContainer const* its = sObjectMgr->GetItemTemplateStore();
         for (ItemTemplateContainer::const_iterator itr = its->begin(); itr != its->end(); ++itr)
         {
@@ -489,20 +490,20 @@ public:
             ItemSetEntry const* set = sItemSetStore.LookupEntry(id);
             if (set)
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = set->Name->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = set->Name[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = set->Name->Str[locale];
+                        name = set->Name[locale];
                         if (name.empty())
                             continue;
 
@@ -778,20 +779,20 @@ public:
             SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(id);
             if (skillInfo)
             {
-                int locale = handler->GetSessionDbcLocale();
-                std::string name = skillInfo->DisplayName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = skillInfo->DisplayName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = skillInfo->DisplayName->Str[locale];
+                        name = skillInfo->DisplayName[locale];
                         if (name.empty())
                             continue;
 
@@ -860,21 +861,20 @@ public:
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
 
-        // Search in Spell.dbc
-        for (uint32 id = 0; id < sSpellMgr->GetSpellInfoStoreSize(); id++)
+        // Search in SpellName.dbc
+        for (SpellNameEntry const* spellName : sSpellNameStore)
         {
-            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id);
-            if (spellInfo)
+            if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellName->ID, DIFFICULTY_NONE))
             {
-                int locale = handler->GetSessionDbcLocale();
+                LocaleConstant locale = handler->GetSessionDbcLocale();
                 std::string name = spellInfo->SpellName->Str[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart))
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
@@ -896,16 +896,16 @@ public:
                         return true;
                     }
 
-                    bool known = target && target->HasSpell(id);
+                    bool known = target && target->HasSpell(spellInfo->Id);
 
                     SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
                     bool learn = effect ? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell) : NULL;
+                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, spellInfo->Difficulty) : NULL;
 
                     bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
                     bool passive = spellInfo->IsPassive();
-                    bool active = target && target->HasAura(id);
+                    bool active = target && target->HasAura(spellInfo->Id);
 
                     // unit32 used to prevent interpreting uint8 as char at output
                     // find rank of learned spell for learning spell, or talent rank
@@ -914,9 +914,9 @@ public:
                     // send spell in "id - [name, rank N] [talent] [passive] [learn] [known]" format
                     std::ostringstream ss;
                     if (handler->GetSession())
-                        ss << id << " - |cffffffff|Hspell:" << id << "|h[" << name;
+                        ss << spellInfo->Id << " - |cffffffff|Hspell:" << spellInfo->Id << "|h[" << name;
                     else
-                        ss << id << " - " << name;
+                        ss << spellInfo->Id << " - " << name;
 
                     // include rank in link name
                     if (rank)
@@ -959,9 +959,9 @@ public:
 
         uint32 id = atoi((char*)args);
 
-        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id))
+        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(id, DIFFICULTY_NONE))
         {
-            int locale = handler->GetSessionDbcLocale();
+            LocaleConstant locale = handler->GetSessionDbcLocale();
             std::string name = spellInfo->SpellName->Str[locale];
             if (name.empty())
             {
@@ -974,7 +974,7 @@ public:
             SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
             bool learn = effect? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell) : NULL;
+            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, DIFFICULTY_NONE) : NULL;
 
             bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
             bool passive = spellInfo->IsPassive();
@@ -1036,12 +1036,12 @@ public:
         bool found = false;
         uint32 count = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
-        int32 locale = handler->GetSessionDbcLocale();
+        LocaleConstant locale = handler->GetSessionDbcLocale();
 
         // Search in TaxiNodes.dbc
         for (TaxiNodesEntry const* nodeEntry : sTaxiNodesStore)
         {
-            std::string name = nodeEntry->Name->Str[locale];
+            std::string name = nodeEntry->Name[locale];
             if (name.empty())
                 continue;
 
@@ -1163,21 +1163,21 @@ public:
                     if (target && target->getGender() != gender)
                         continue;
 
-                    int32 locale = handler->GetSessionDbcLocale();
-                    std::string name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)->Str[locale];
+                    LocaleConstant locale = handler->GetSessionDbcLocale();
+                    std::string name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)[locale];
 
                     if (name.empty())
                         continue;
 
                     if (!Utf8FitTo(name, wNamePart))
                     {
-                        locale = 0;
-                        for (; locale < TOTAL_LOCALES; ++locale)
+                        locale = LOCALE_enUS;
+                        for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                         {
                             if (locale == handler->GetSessionDbcLocale())
                                 continue;
 
-                            name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)->Str[locale];
+                            name = (gender == GENDER_MALE ? titleInfo->Name : titleInfo->Name1)[locale];
                             if (name.empty())
                                 continue;
 
@@ -1196,7 +1196,7 @@ public:
 
                         char const* knownStr = target && target->HasTitle(titleInfo) ? handler->GetTrinityString(LANG_KNOWN) : "";
 
-                        char const* activeStr = target && target->GetInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->MaskID
+                        char const* activeStr = target && *target->m_playerData->PlayerTitle == titleInfo->MaskID
                             ? handler->GetTrinityString(LANG_ACTIVE)
                             : "";
 
@@ -1240,20 +1240,20 @@ public:
         {
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
             {
-                int32 locale = handler->GetSessionDbcLocale();
-                std::string name = mapInfo->MapName->Str[locale];
+                LocaleConstant locale = handler->GetSessionDbcLocale();
+                std::string name = mapInfo->MapName[locale];
                 if (name.empty())
                     continue;
 
                 if (!Utf8FitTo(name, wNamePart) && handler->GetSession())
                 {
-                    locale = 0;
-                    for (; locale < TOTAL_LOCALES; ++locale)
+                    locale = LOCALE_enUS;
+                    for (; locale < TOTAL_LOCALES; locale = LocaleConstant(locale + 1))
                     {
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = mapInfo->MapName->Str[locale];
+                        name = mapInfo->MapName[locale];
                         if (name.empty())
                             continue;
 
@@ -1342,7 +1342,7 @@ public:
 			ip = player->GetSession()->GetRemoteAddress();
 		}
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BY_IP);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BY_IP);
         stmt->setString(0, ip);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
@@ -1361,7 +1361,7 @@ public:
         if (!Utf8ToUpperOnlyLatin(account))
             return false;
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_LIST_BY_NAME);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_LIST_BY_NAME);
         stmt->setString(0, account);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
@@ -1377,7 +1377,7 @@ public:
         char* limitStr = strtok(NULL, " ");
         int32 limit = limitStr ? atoi(limitStr) : -1;
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_LIST_BY_EMAIL);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_LIST_BY_EMAIL);
         stmt->setString(0, email);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
 
@@ -1410,7 +1410,7 @@ public:
             uint32 accountId        = fields[0].GetUInt32();
             std::string accountName = fields[1].GetString();
 
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_NAME_BY_ACC);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_NAME_BY_ACC);
             stmt->setUInt32(0, accountId);
             PreparedQueryResult result2 = CharacterDatabase.Query(stmt);
 
@@ -1465,26 +1465,24 @@ public:
         if (!str)
             return false;
 
-        std::string fix = str;
-        if (fix.find('\'') != std::string::npos) {
+        std::string requestName = str;
+        if (requestName.find('\'') != std::string::npos) {
             handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
         else {
-            std::stringstream ss;
-            ss << "'%" << str << "%'";
-            std::string namePart = ss.str();
+            auto query = DB2Manager::GetMapSkyboxs();
+            if (query.size() != 0) {
+                for(const auto& skyboxData : query) {
+                    std::string skyboxName = skyboxData.second;
 
-            QueryResult query = WorldDatabase.PQuery("SELECT m_ID, name FROM skybox WHERE name LIKE %s", namePart.c_str());
+                    std::transform(skyboxName.begin(), skyboxName.end(), skyboxName.begin(),
+                        [](unsigned char c) { return std::tolower(c); });
 
-            if (query) {
-                do {
-                    Field* result = query->Fetch();
-                    uint32 id = result[0].GetUInt32();
-                    std::string name = result[1].GetString();
-                    handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, id, name.c_str());
-                } while (query->NextRow());
+                    if(skyboxName.find(requestName) != std::string::npos)
+                        handler->PSendSysMessage(LANG_LOOKUP_SKYBOX, skyboxData.first, skyboxName.c_str());
+                }
             }
             else {
 
@@ -1521,27 +1519,18 @@ public:
             return false;
         }
 
-        QueryResult query = WorldDatabase.PQuery("SELECT m_ID, LightParamsID_1, LightParamsID_2, LightParamsID_3, LightParamsID_4 FROM light l WHERE MapID = %u AND NOT EXISTS"
-            " (SELECT * from skybox s WHERE l.m_ID = s.m_ID)", map_id);
+        auto query = DB2Manager::GetMapLights(map_id);
 
-        if (query) {
+
+        if (query.size() > 0) {
 
             std::stringstream s1;
             s1 << map_id;
             handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ARE, s1.str().c_str());
-            do {
 
-                Field* result = query->Fetch();
-
-                uint32 no1 = result[0].GetUInt32();
-                uint16 no2 = result[1].GetUInt16();
-                uint16 no3 = result[2].GetUInt16();
-                uint16 no4 = result[3].GetUInt16();
-                uint16 no5 = result[4].GetUInt16();
-
-                handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE, no1, no2, no3, no4, no5);
-
-            } while (query->NextRow());
+            for (const auto& mapLight : query) {
+                handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE, mapLight->ID, mapLight->LightParamsID[0], mapLight->LightParamsID[1], mapLight->LightParamsID[2], mapLight->LightParamsID[3]);
+            }          
         }
         else {
             handler->PSendSysMessage(LANG_LOOKUP_AMBIANCE_ERROR);
@@ -1562,30 +1551,26 @@ public:
         if (!name)
             return false;
 
-        std::string fix = name;
-        if (fix.find('\'') != std::string::npos) {
+        std::string requestName = name;
+        if (requestName.find('\'') != std::string::npos) {
             handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
             handler->SetSentErrorMessage(true);
             return false;
         }
         else {
-            std::stringstream ss;
-            ss << "'%" << name << "%'";
-            std::string namePart = ss.str();
+    
+            auto soundKitsNames = DB2Manager::GetSoundKitsNames();
+            if (soundKitsNames.size() > 0) {
 
-            QueryResult query = WorldDatabase.PQuery("SELECT m_id, field4 from soundkitname where field4 like %s", namePart);
-            if (query) {
+                for (const auto& soundKitsName : soundKitsNames) {
+                    std::string soundKitNameStr = soundKitsName.second;
 
-                do {
+                    std::transform(soundKitNameStr.begin(), soundKitNameStr.end(), soundKitNameStr.begin(),
+                        [](unsigned char c) { return std::tolower(c); });
 
-                    Field* result = query->Fetch();
-
-                    uint32 id = result[0].GetUInt32();
-                    std::string soundName = result[1].GetString();
-
-                    handler->PSendSysMessage(LANG_LOOKUP_SOUND, id, soundName.c_str());
-
-                } while (query->NextRow());
+                    if (soundKitNameStr.find(requestName) != std::string::npos)
+                        handler->PSendSysMessage(LANG_LOOKUP_SOUND, soundKitsName.first, soundKitNameStr);
+                }
             }
             else {
                 handler->PSendSysMessage(LANG_LOOKUP_SOUND_ERROR);
@@ -1614,13 +1599,13 @@ public:
         uint32 counter = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
 
-        // search in Map.dbc
+        // search in Map.db2
         for (uint32 id = 0; id < sMapStore.GetNumRows(); ++id)
         {
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
             {
                 int32 locale = handler->GetSessionDbcLocale();
-                std::string name = mapInfo->MapName->Str[locale];
+                std::string name = mapInfo->MapName.Str[locale];
                 if (name.empty())
                     continue;
 
@@ -1632,7 +1617,7 @@ public:
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = mapInfo->MapName->Str[locale];
+                        name = mapInfo->MapName.Str[locale];
                         if (name.empty())
                             continue;
 
@@ -1853,7 +1838,7 @@ public:
             ItemSparseEntry const* entryId = sItemSparseStore.LookupEntry(id);
             if (entryId) {
                 int32 locale = handler->GetSessionDbcLocale();
-                std::string name = entryId->Display->Str[locale];
+                std::string name = entryId->Display.Str[locale];
                 itemEntryId = entryId->ID;
                 if (name.empty())
                     continue;

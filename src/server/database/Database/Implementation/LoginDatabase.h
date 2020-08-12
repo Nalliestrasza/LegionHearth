@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -85,7 +85,7 @@ enum LoginDatabaseStatements : uint32
     LOGIN_SEL_PINFO_BANS,
     LOGIN_SEL_GM_ACCOUNTS,
     LOGIN_SEL_ACCOUNT_INFO,
-    LOGIN_SEL_ACCOUNT_ACCESS_GMLEVEL_TEST,
+    LOGIN_SEL_ACCOUNT_ACCESS_SECLEVEL_TEST,
     LOGIN_SEL_ACCOUNT_ACCESS,
     LOGIN_SEL_ACCOUNT_WHOIS,
     LOGIN_SEL_REALMLIST_SECURITY_LEVEL,
@@ -167,6 +167,24 @@ enum LoginDatabaseStatements : uint32
     // CUSTOM
     LOGIN_INS_DENIED_PERMISSION,
     LOGIN_REMOVE_PERMISSION,
+
+    LOGIN_INS_PHASE_PERMISSION,
+    LOGIN_UPD_PHASE_PERMISSION,
+    LOGIN_SEL_PHASE_PERMISSION,
+
+    LOGIN_INS_PHASE_RANK,
+    LOGIN_UPD_PHASE_RANK,
+    LOGIN_SEL_PHASE_RANK,
+    LOGIN_SEL_PHASE_ALL_RANKS,
+    LOGIN_DEL_PHASE_RANK,
+
+    LOGIN_SEL_HWID_INFO_ACC,
+    LOGIN_UPD_HWID_INFO_IP,
+    LOGIN_SEL_HWID_BAN,
+    LOGIN_UPD_HWID_BAN_ACC,
+    LOGIN_UPD_HWID_BAN_ID,
+    LOGIN_INS_HWID_BAN,
+
 
     MAX_LOGINDATABASE_STATEMENTS
 };

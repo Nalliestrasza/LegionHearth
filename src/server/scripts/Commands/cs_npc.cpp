@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -219,49 +219,49 @@ public:
     {
         static std::vector<ChatCommand> npcAddCommandTable =
         {
-            { "formation", rbac::RBAC_PERM_COMMAND_NPC_ADD_FORMATION, false, &HandleNpcAddFormationCommand,      "" },
-            { "item",      rbac::RBAC_PERM_COMMAND_NPC_ADD_ITEM,      false, &HandleNpcAddVendorItemCommand,     "" },
-            { "move",      rbac::RBAC_PERM_COMMAND_NPC_ADD_MOVE,      false, &HandleNpcAddMoveCommand,           "" },
-            { "temp",      rbac::RBAC_PERM_COMMAND_NPC_ADD_TEMP,      false, &HandleNpcAddTempSpawnCommand,      "" },
+            { "formation", rbac::RBAC_PERM_COMMAND_NPC_ADD_FORMATION, false, &HandleNpcAddFormationCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "item",      rbac::RBAC_PERM_COMMAND_NPC_ADD_ITEM,      false, &HandleNpcAddVendorItemCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "move",      rbac::RBAC_PERM_COMMAND_NPC_ADD_MOVE,      false, &HandleNpcAddMoveCommand,           "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "temp",      rbac::RBAC_PERM_COMMAND_NPC_ADD_TEMP,      false, &HandleNpcAddTempSpawnCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Create} },
             //{ "weapon",    rbac::RBAC_PERM_COMMAND_NPC_ADD_WEAPON,    false, &HandleNpcAddWeaponCommand,         "" },
-            { "",          rbac::RBAC_PERM_COMMAND_NPC_ADD,           false, &HandleNpcAddCommand,               "" },
+            { "",          rbac::RBAC_PERM_COMMAND_NPC_ADD,           false, &HandleNpcAddCommand,               "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Create} },
         };
         static std::vector<ChatCommand> npcDeleteCommandTable =
         {
-            { "item", rbac::RBAC_PERM_COMMAND_NPC_DELETE_ITEM, false, &HandleNpcDeleteVendorItemCommand,  "" },
-            { "",     rbac::RBAC_PERM_COMMAND_NPC_DELETE,      false, &HandleNpcDeleteCommand,            "" },
+            { "item", rbac::RBAC_PERM_COMMAND_NPC_DELETE_ITEM, false, &HandleNpcDeleteVendorItemCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "",     rbac::RBAC_PERM_COMMAND_NPC_DELETE,      false, &HandleNpcDeleteCommand,            "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Delete}  },
         };
         static std::vector<ChatCommand> npcFollowCommandTable =
         {
-            { "stop", rbac::RBAC_PERM_COMMAND_NPC_FOLLOW_STOP, false, &HandleNpcUnFollowCommand,          "" },
-            { "",     rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,      false, &HandleNpcFollowCommand,            "" },
+            { "stop", rbac::RBAC_PERM_COMMAND_NPC_FOLLOW_STOP, false, &HandleNpcUnFollowCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "",     rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,      false, &HandleNpcFollowCommand,            "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
         };
         static std::vector<ChatCommand> npcSetCommandTable =
         {
-            { "allowmove",  rbac::RBAC_PERM_COMMAND_NPC_SET_ALLOWMOVE, false, &HandleNpcSetAllowMovementCommand, "" },
-            { "entry",      rbac::RBAC_PERM_COMMAND_NPC_SET_ENTRY,     false, &HandleNpcSetEntryCommand,         "" },
-            { "factionid",  rbac::RBAC_PERM_COMMAND_NPC_SET_FACTIONID, false, &HandleNpcSetFactionIdCommand,     "" },
-            { "flag",       rbac::RBAC_PERM_COMMAND_NPC_SET_FLAG,      false, &HandleNpcSetFlagCommand,          "" },
-            { "level",      rbac::RBAC_PERM_COMMAND_NPC_SET_LEVEL,     false, &HandleNpcSetLevelCommand,         "" },
-            { "link",       rbac::RBAC_PERM_COMMAND_NPC_SET_LINK,      false, &HandleNpcSetLinkCommand,          "" },
-            { "model",      rbac::RBAC_PERM_COMMAND_NPC_SET_MODEL,     false, &HandleNpcSetModelCommand,         "" },
-            { "movetype",   rbac::RBAC_PERM_COMMAND_NPC_SET_MOVETYPE,  false, &HandleNpcSetMoveTypeCommand,      "" },
-            { "phase",      rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseCommand,         "" },
-            { "phasegroup", rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseGroup,           "" },
-            { "scale",      rbac::RBAC_PERM_COMMAND_NPC_SET_SCALE,     false, &HandleNpcSetScaleCommand,         "" },
-            { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "" },
-            { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "" },
-            { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "" },
-			{ "anim",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimCommand,          "" },
-			{ "aura",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAuraCommand,          "" },
-			{ "mount",      rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetMountCommand,         "" },
-            { "animkit",    rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimKitCommand,       "" },
+            { "allowmove",  rbac::RBAC_PERM_COMMAND_NPC_SET_ALLOWMOVE, false, &HandleNpcSetAllowMovementCommand, "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "entry",      rbac::RBAC_PERM_COMMAND_NPC_SET_ENTRY,     false, &HandleNpcSetEntryCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "factionid",  rbac::RBAC_PERM_COMMAND_NPC_SET_FACTIONID, false, &HandleNpcSetFactionIdCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "flag",       rbac::RBAC_PERM_COMMAND_NPC_SET_FLAG,      false, &HandleNpcSetFlagCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "level",      rbac::RBAC_PERM_COMMAND_NPC_SET_LEVEL,     false, &HandleNpcSetLevelCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "link",       rbac::RBAC_PERM_COMMAND_NPC_SET_LINK,      false, &HandleNpcSetLinkCommand,          "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}},
+            { "model",      rbac::RBAC_PERM_COMMAND_NPC_SET_MODEL,     false, &HandleNpcSetModelCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "movetype",   rbac::RBAC_PERM_COMMAND_NPC_SET_MOVETYPE,  false, &HandleNpcSetMoveTypeCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "phase",      rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "phasegroup", rbac::RBAC_PERM_COMMAND_NPC_SET_PHASE,     false, &HandleNpcSetPhaseGroup,           "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "scale",      rbac::RBAC_PERM_COMMAND_NPC_SET_SCALE,     false, &HandleNpcSetScaleCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}  },
+            { "spawndist",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNDIST, false, &HandleNpcSetSpawnDistCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME, false, &HandleNpcSetSpawnTimeCommand,     "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,      false, &HandleNpcSetDataCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "anim",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "aura",       rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAuraCommand,          "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+			{ "mount",      rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetMountCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
+            { "animkit",    rbac::RBAC_PERM_COMMAND_NPC_SET_ANIM,      false, &HandleNpcSetAnimKitCommand,       "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update} },
         };
         static std::vector<ChatCommand> npcCommandTable =
         {
             { "info",      rbac::RBAC_PERM_COMMAND_NPC_INFO,      false, &HandleNpcInfoCommand,              ""       },
             { "near",      rbac::RBAC_PERM_COMMAND_NPC_NEAR,      false, &HandleNpcNearCommand,              ""       },
-            { "move",      rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcMoveCommand,              ""       },
+            { "move",      rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcMoveCommand,              "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Creature_Update}        },
             { "playemote", rbac::RBAC_PERM_COMMAND_NPC_PLAYEMOTE, false, &HandleNpcPlayEmoteCommand,         ""       },
             { "say",       rbac::RBAC_PERM_COMMAND_NPC_SAY,       false, &HandleNpcSayCommand,               ""       },
             { "textemote", rbac::RBAC_PERM_COMMAND_NPC_TEXTEMOTE, false, &HandleNpcTextEmoteCommand,         ""       },
@@ -273,9 +273,11 @@ public:
             { "follow",    rbac::RBAC_PERM_COMMAND_NPC_FOLLOW,    false, nullptr,           "", npcFollowCommandTable },
             { "set",       rbac::RBAC_PERM_COMMAND_NPC_SET,       false, nullptr,              "", npcSetCommandTable },
             { "evade",     rbac::RBAC_PERM_COMMAND_NPC_EVADE,     false, &HandleNpcEvadeCommand,             ""       },
+            { "showloot",  rbac::RBAC_PERM_COMMAND_NPC_SHOWLOOT,  false, &HandleNpcShowLootCommand,          ""       },
             { "position",  rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcAddPosCommand,            ""       },
             { "raz",       rbac::RBAC_PERM_COMMAND_NPC_ADD,       false, &HandleNpcRazCommand,               ""       },
             { "go",        rbac::RBAC_PERM_COMMAND_NPC_MOVE,      false, &HandleNpcGoCommand,                ""       },
+            { "showloot",  rbac::RBAC_PERM_COMMAND_NPC_SHOWLOOT,  false, &HandleNpcShowLootCommand,          ""       },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -289,13 +291,6 @@ public:
     {
         if (!*args)
             return false;
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         char* charID = handler->extractKeyFromLink((char*)args, "Hcreature_entry");
         if (!charID)
@@ -428,7 +423,7 @@ public:
                 handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
             }
 
-            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
             npcInfo->setUInt64(0, guid);
             npcInfo->setUInt32(1, spawnerAccountId);
             npcInfo->setUInt64(2, spawnerGuid);
@@ -464,7 +459,7 @@ public:
             handler->PSendSysMessage(LANG_NPC_SPAWN_DIST, x, y, z, map->GetId());
         }
 
-        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
         npcInfo->setUInt64(0, db_guid);
         npcInfo->setUInt32(1, spawnerAccountId);
         npcInfo->setUInt64(2, spawnerGuid);
@@ -575,7 +570,7 @@ public:
             wait = 0;
 
         // Update movement type
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_MOVEMENT_TYPE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_MOVEMENT_TYPE);
 
         stmt->setUInt8(0, uint8(WAYPOINT_MOTION_TYPE));
         stmt->setUInt64(1, lowGuid);
@@ -658,13 +653,6 @@ public:
 
     static bool HandleNpcDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         Creature* unit = nullptr;
 
         if (*args)
@@ -761,7 +749,7 @@ public:
             return false;
         }
 
-        creature->setFaction(factionId);
+        creature->SetFaction(factionId);
 
         // Faction is set in creature_template - not inside creature
 
@@ -770,7 +758,7 @@ public:
             const_cast<CreatureTemplate*>(cinfo)->faction = factionId;
 
         // ..and DB
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_FACTION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_FACTION);
 
         stmt->setUInt16(0, uint16(factionId));
         stmt->setUInt32(1, creature->GetEntry());
@@ -797,9 +785,12 @@ public:
             return false;
         }
 
-        creature->SetUInt64Value(UNIT_NPC_FLAGS, npcFlags);
+        uint32 raw[2];
+        memcpy(raw, &npcFlags, sizeof(raw));
+        creature->SetNpcFlags(NPCFlags(raw[0]));
+        creature->SetNpcFlags2(NPCFlags2(raw[1]));
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_NPCFLAG);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_NPCFLAG);
 
         stmt->setUInt64(0, npcFlags);
         stmt->setUInt32(1, creature->GetEntry());
@@ -889,8 +880,9 @@ public:
 
         CreatureTemplate const* cInfo = target->GetCreatureTemplate();
 
-        uint32 faction = target->getFaction();
-        uint64 npcflags = target->GetUInt64Value(UNIT_NPC_FLAGS);
+        uint32 faction = target->GetFaction();
+        uint64 npcflags;
+        memcpy(&npcflags, target->m_unitData->NpcFlags.begin(), sizeof(npcflags));
         uint32 mechanicImmuneMask = cInfo->MechanicImmuneMask;
         uint32 displayid = target->GetDisplayId();
         uint32 nativeid = target->GetNativeDisplayId();
@@ -908,22 +900,22 @@ public:
         handler->PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), std::to_string(target->GetMaxHealth()).c_str(), std::to_string(target->GetHealth()).c_str());
         handler->PSendSysMessage(LANG_NPCINFO_INHABIT_TYPE, cInfo->InhabitType);
 
-        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS));
+        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS, *target->m_unitData->Flags);
         for (uint8 i = 0; i < MAX_UNIT_FLAGS; ++i)
-            if (target->GetUInt32Value(UNIT_FIELD_FLAGS) & unitFlags[i].Value)
+            if (target->HasUnitFlag(unitFlags[i].Value))
                 handler->PSendSysMessage("%s (0x%X)", unitFlags[i].Name, unitFlags[i].Value);
 
-        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS_2, target->GetUInt32Value(UNIT_FIELD_FLAGS_2));
+        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS_2, *target->m_unitData->Flags2);
         for (uint8 i = 0; i < MAX_UNIT_FLAGS_2; ++i)
-            if (target->GetUInt32Value(UNIT_FIELD_FLAGS_2) & unitFlags2[i].Value)
+            if (target->HasUnitFlag2(unitFlags2[i].Value))
                 handler->PSendSysMessage("%s (0x%X)", unitFlags2[i].Name, unitFlags2[i].Value);
 
-        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS_3, target->GetUInt32Value(UNIT_FIELD_FLAGS_3));
+        handler->PSendSysMessage(LANG_NPCINFO_UNIT_FIELD_FLAGS_3, *target->m_unitData->Flags3);
         for (uint8 i = 0; i < MAX_UNIT_FLAGS_3; ++i)
-            if (target->GetUInt32Value(UNIT_FIELD_FLAGS_3) & unitFlags3[i].Value)
+            if (target->HasUnitFlag3(unitFlags3[i].Value))
                 handler->PSendSysMessage("%s (0x%X)", unitFlags3[i].Name, unitFlags3[i].Value);
 
-        handler->PSendSysMessage(LANG_NPCINFO_DYNAMIC_FLAGS, target->GetUInt32Value(OBJECT_DYNAMIC_FLAGS));
+        handler->PSendSysMessage(LANG_NPCINFO_DYNAMIC_FLAGS, target->GetDynamicFlags());
         handler->PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
         handler->PSendSysMessage(LANG_NPCINFO_LOOT,  cInfo->lootid, cInfo->pickpocketLootId, cInfo->SkinLootId);
         handler->PSendSysMessage(LANG_NPCINFO_DUNGEON_ID, target->GetInstanceId());
@@ -962,7 +954,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_NEAREST);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_NEAREST);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
@@ -1004,12 +996,6 @@ public:
     //move selected creature
     static bool HandleNpcMoveCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         ObjectGuid::LowType lowguid = UI64LIT(0);
 
@@ -1061,7 +1047,7 @@ public:
                 const_cast<CreatureData*>(data)->posZ = z;
                 const_cast<CreatureData*>(data)->orientation = o;
             }
-            creature->SetPosition(x, y, z, o);
+            creature->UpdatePosition(x, y, z, o);
             creature->GetMotionMaster()->Initialize();
             creature->AI()->EnterEvadeMode(); // LegionHearth
             if (creature->IsAlive())                            // dead creature will reset movement generator at respawn
@@ -1072,7 +1058,7 @@ public:
             }
         }
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
 
         stmt->setFloat(0, x);
         stmt->setFloat(1, y);
@@ -1099,7 +1085,7 @@ public:
             return false;
         }
 
-        target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
+        target->SetEmoteState(Emote(emote));
 
         return true;
     }
@@ -1336,13 +1322,6 @@ public:
         if (!*args)
             return false;
 
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         Creature* creature = handler->getSelectedCreature();
         if (!creature)
         {
@@ -1412,7 +1391,7 @@ public:
             creature->Respawn();
         }
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_DISTANCE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_DISTANCE);
 
         stmt->setFloat(0, option);
         stmt->setUInt8(1, uint8(mtype));
@@ -1443,7 +1422,7 @@ public:
 
         ObjectGuid::LowType guidLow = creature->GetSpawnId();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_TIME_SECS);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_TIME_SECS);
         stmt->setUInt32(0, spawnTime);
         stmt->setUInt64(1, guidLow);
 
@@ -1678,23 +1657,23 @@ public:
 
         // place pet before player
         float x, y, z;
-        player->GetClosePoint (x, y, z, creatureTarget->GetObjectSize(), CONTACT_DISTANCE);
+        player->GetClosePoint (x, y, z, creatureTarget->GetCombatReach(), CONTACT_DISTANCE);
         pet->Relocate(x, y, z, float(M_PI) - player->GetOrientation());
 
         // set pet to defensive mode by default (some classes can't control controlled pets in fact).
         pet->SetReactState(REACT_DEFENSIVE);
 
         // calculate proper level
-        uint8 level = (creatureTarget->getLevel() < (player->getLevel() - 5)) ? (player->getLevel() - 5) : creatureTarget->getLevel();
+        uint8 level = std::max<uint8>(player->getLevel()-5, creatureTarget->getLevel());
 
         // prepare visual effect for levelup
-        pet->SetUInt32Value(UNIT_FIELD_LEVEL, level - 1);
+        pet->SetLevel(level - 1);
 
         // add to world
         pet->GetMap()->AddToMap(pet->ToCreature());
 
         // visual effect for levelup
-        pet->SetUInt32Value(UNIT_FIELD_LEVEL, level);
+        pet->SetLevel(level);
 
         // caster have pet now
         player->SetMinion(pet, true);
@@ -1750,6 +1729,96 @@ public:
         return true;
     }
 
+    static void _ShowLootEntry(ChatHandler* handler, uint32 itemId, uint8 itemCount, bool alternateString = false)
+    {
+        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
+        char const* name = nullptr;
+        if (!itemTemplate)
+            name = itemTemplate->GetName(handler->GetSessionDbcLocale());
+        if (!name)
+            name = "Unknown item";
+        handler->PSendSysMessage(alternateString ? LANG_COMMAND_NPC_SHOWLOOT_ENTRY_2 : LANG_COMMAND_NPC_SHOWLOOT_ENTRY,
+            itemCount, ItemQualityColors[itemTemplate ? static_cast<ItemQualities>(itemTemplate->GetQuality()) : ITEM_QUALITY_POOR], itemId, name, itemId);
+    }
+    static void _IterateNotNormalLootMap(ChatHandler* handler, NotNormalLootItemMap const& map, std::vector<LootItem> const& items)
+    {
+        for (NotNormalLootItemMap::value_type const& pair : map)
+        {
+            if (!pair.second)
+                continue;
+            Player const* player = ObjectAccessor::FindConnectedPlayer(pair.first);
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_SUBLABEL, player ? player->GetName() : Trinity::StringFormat("Offline player (GUID %s)", pair.first.ToString()).c_str(), pair.second->size());
+
+            for (auto it = pair.second->cbegin(); it != pair.second->cend(); ++it)
+            {
+                LootItem const& item = items[it->index];
+                if (!(it->is_looted) && !item.is_looted)
+                    _ShowLootEntry(handler, item.itemid, item.count, true);
+            }
+        }
+    }
+    static bool HandleNpcShowLootCommand(ChatHandler* handler, char const* args)
+    {
+        Creature* creatureTarget = handler->getSelectedCreature();
+        if (!creatureTarget || creatureTarget->IsPet())
+        {
+            handler->PSendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Loot const& loot = creatureTarget->loot;
+        if (!creatureTarget->isDead() || loot.empty())
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NOT_DEAD_OR_NO_LOOT, creatureTarget->GetName());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_HEADER, creatureTarget->GetName(), creatureTarget->GetEntry());
+        handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_MONEY, loot.gold / GOLD, (loot.gold%GOLD) / SILVER, loot.gold%SILVER);
+
+        if (strcmp(args, "all")) // nonzero from strcmp <-> not equal
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot.items.size());
+            for (LootItem const& item : loot.items)
+                if (!item.is_looted)
+                    _ShowLootEntry(handler, item.itemid, item.count);
+
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Quest items", loot.quest_items.size());
+            for (LootItem const& item : loot.quest_items)
+                if (!item.is_looted)
+                    _ShowLootEntry(handler, item.itemid, item.count);
+        }
+        else
+        {
+            handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL, "Standard items", loot.items.size());
+            for (LootItem const& item : loot.items)
+                if (!item.is_looted && !item.freeforall && item.conditions.empty())
+                    _ShowLootEntry(handler, item.itemid, item.count);
+
+            if (!loot.GetPlayerQuestItems().empty())
+            {
+                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, "Per-player quest items");
+                _IterateNotNormalLootMap(handler, loot.GetPlayerQuestItems(), loot.quest_items);
+            }
+            
+            if (!loot.GetPlayerFFAItems().empty())
+            {
+                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, "FFA items per allowed player");
+                _IterateNotNormalLootMap(handler, loot.GetPlayerFFAItems(), loot.items);
+            }
+            
+            if (!loot.GetPlayerNonQuestNonFFAConditionalItems().empty())
+            {
+                handler->PSendSysMessage(LANG_COMMAND_NPC_SHOWLOOT_LABEL_2, "Per-player conditional items");
+                _IterateNotNormalLootMap(handler, loot.GetPlayerNonQuestNonFFAConditionalItems(), loot.items);
+            }
+        }
+
+        return true;
+    }
+
     static bool HandleNpcAddFormationCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
@@ -1787,7 +1856,7 @@ public:
         sFormationMgr->CreatureGroupMap[lowguid] = group_member;
         creature->SearchFormation();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_FORMATION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_FORMATION);
 
         stmt->setUInt64(0, leaderGUID);
         stmt->setUInt64(1, lowguid);
@@ -1924,21 +1993,21 @@ public:
 			handler->SetSentErrorMessage(true);
 			return false;
 		}
-		target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
+        target->SetEmoteState(Emote(emote));
 
 		//Coté SQL
 		guidLow = target->GetSpawnId();
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIM);
+			WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIM);
 			stmt->setUInt64(0, guidLow);
 			stmt->setUInt32(1, emote);
 			WorldDatabase.Execute(stmt);
 		}
 		else
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIM);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIM);
 			stmt->setUInt32(0, emote);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -1972,14 +2041,14 @@ public:
         QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
         if (!guidSql)
         {
-            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_ANIMKIT);
             stmt->setUInt64(0, guidLow);
             stmt->setUInt16(1, animkit);
             WorldDatabase.Execute(stmt);
         }
         else
         {
-            PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_ANIMKIT);
             stmt->setUInt16(0, animkit);
             stmt->setUInt64(1, guidLow);
             WorldDatabase.Execute(stmt);
@@ -2021,10 +2090,10 @@ public:
 		}
 
 
-		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
+		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, target->GetMap()->GetDifficultyID()))
 		{
 			ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, target->GetMapId(), spellId, target->GetMap()->GenerateLowGuid<HighGuid::Cast>());
-			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target);
+			Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, target, target, target->GetMap()->GetDifficultyID());
 		}
 
 		//.ToString().c_str()
@@ -2035,7 +2104,7 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT auras FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql && spellId != 0)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_AURA);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_AURA);
 			stmt->setUInt64(0, guidLow);
 			stmt->setString(1, auraString);
 			WorldDatabase.Execute(stmt);
@@ -2050,7 +2119,7 @@ public:
 				auras = fsheat[0].GetString() + ' ' + auraString;
 			}
 
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_AURA);
 			stmt->setString(0, auras);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -2086,14 +2155,14 @@ public:
 		QueryResult guidSql = WorldDatabase.PQuery("SELECT guid FROM creature_addon WHERE guid = %u", guidLow);
 		if (!guidSql)
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_MOUNT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_SET_MOUNT);
 			stmt->setUInt64(0, guidLow);
 			stmt->setUInt32(1, mount);
 			WorldDatabase.Execute(stmt);
 		}
 		else
 		{
-			PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_MOUNT);
+            WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_SET_MOUNT);
 			stmt->setUInt32(0, mount);
 			stmt->setUInt64(1, guidLow);
 			WorldDatabase.Execute(stmt);
@@ -2168,7 +2237,7 @@ public:
             creature->SaveToDB(trans->GetGOInfo()->moTransport.SpawnMap, { map->GetDifficultyID() });
 
             sObjectMgr->AddCreatureToGrid(guid, &data);
-            PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+            WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
             npcInfo->setUInt64(0, guid);
             npcInfo->setUInt32(1, spawnerAccountId);
             npcInfo->setUInt64(2, spawnerGuid);
@@ -2196,7 +2265,7 @@ public:
             return false;
 
         sObjectMgr->AddCreatureToGrid(db_guid, sObjectMgr->GetCreatureData(db_guid));
-        PreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
+        WorldDatabasePreparedStatement* npcInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_LOG);
         npcInfo->setUInt64(0, db_guid);
         npcInfo->setUInt32(1, spawnerAccountId);
         npcInfo->setUInt64(2, spawnerGuid);
@@ -2226,7 +2295,7 @@ public:
                 object->DeleteFromDB();
                 object->AddObjectToRemoveList();
 
-                PreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_CREATURE_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 

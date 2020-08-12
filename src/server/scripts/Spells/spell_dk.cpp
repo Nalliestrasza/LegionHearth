@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -330,7 +330,7 @@ class spell_dk_dancing_rune_weapon : public SpellScriptLoader
                     return;
 
                 int32 amount = static_cast<int32>(damageInfo->GetDamage()) / 2;
-                SpellNonMeleeDamage log(drw, drw->GetVictim(), spellInfo->Id, spellInfo->GetSpellXSpellVisualId(drw), spellInfo->GetSchoolMask());
+                SpellNonMeleeDamage log(drw, drw->GetVictim(), spellInfo, spellInfo->GetSpellXSpellVisualId(drw), spellInfo->GetSchoolMask());
                 log.damage = amount;
                 drw->DealDamage(drw->GetVictim(), amount, nullptr, SPELL_DIRECT_DAMAGE, spellInfo->GetSchoolMask(), spellInfo, true);
                 drw->SendSpellNonMeleeDamageLog(&log);

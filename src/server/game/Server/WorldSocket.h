@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,10 +19,10 @@
 #define __WORLDSOCKET_H__
 
 #include "Common.h"
+#include "AsyncCallbackProcessor.h"
 #include "BigNumber.h"
 #include "DatabaseEnvFwd.h"
 #include "MessageBuffer.h"
-#include "QueryCallbackProcessor.h"
 #include "Socket.h"
 #include "WorldPacketCrypt.h"
 #include "MPSCQueue.h"
@@ -55,10 +54,9 @@ namespace WorldPackets
 struct PacketHeader
 {
     uint32 Size;
-    uint16 Command;
+    uint8 Tag[12];
 
-    bool IsValidSize() { return Size < 0x10000; }
-    bool IsValidOpcode();
+    bool IsValidSize() { return Size < std::numeric_limits<uint32>::max(); }
 };
 
 #pragma pack(pop)
@@ -72,6 +70,7 @@ class TC_GAME_API WorldSocket : public Socket<WorldSocket>
     static uint8 const AuthCheckSeed[16];
     static uint8 const SessionKeySeed[16];
     static uint8 const ContinuedSessionSeed[16];
+    static uint8 const EncryptionKeySeed[16];
 
     typedef Socket<WorldSocket> BaseSocket;
 
@@ -133,9 +132,8 @@ private:
 
     BigNumber _serverChallenge;
     WorldPacketCrypt _authCrypt;
-    BigNumber _encryptSeed;
-    BigNumber _decryptSeed;
     BigNumber _sessionKey;
+    uint8 _encryptKey[16];
 
     std::chrono::steady_clock::time_point _LastPingTime;
     uint32 _OverSpeedPings;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,6 +19,7 @@
 void AddSC_instance_endless_halls();
 void AddSC_endless_halls();
 void AddSC_legionhearth();
+void AddSC_phase();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -27,4 +28,5 @@ void AddCustomScripts()
 	AddSC_instance_endless_halls();
 	AddSC_endless_halls();
 	AddSC_legionhearth();
+	AddSC_phase();
 }

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -53,8 +52,7 @@ enum RangerLilatha
     GO_CAGE                             = 181152,
     NPC_CAPTAIN_HELIOS                  = 16220,
     NPC_MUMMIFIED_HEADHUNTER            = 16342,
-    NPC_SHADOWPINE_ORACLE               = 16343,
-    FACTION_QUEST_ESCAPE                = 113
+    NPC_SHADOWPINE_ORACLE               = 16343
 };
 
 class npc_ranger_lilatha : public CreatureScript
@@ -75,7 +73,7 @@ public:
             switch (waypointId)
             {
                 case 0:
-                    me->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+                    me->SetStandState(UNIT_STAND_STATE_STAND);
                     if (GameObject* Cage = me->FindNearestGameObject(GO_CAGE, 20))
                         Cage->SetGoState(GO_STATE_ACTIVE);
                     Talk(SAY_START, player);
@@ -128,19 +126,16 @@ public:
             if (GameObject* Cage = me->FindNearestGameObject(GO_CAGE, 20))
                 Cage->SetGoState(GO_STATE_READY);
         }
-    };
 
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest) override
-    {
-        if (quest->GetQuestId() == QUEST_ESCAPE_FROM_THE_CATACOMBS)
+        void QuestAccept(Player* player, Quest const* quest) override
         {
-            creature->setFaction(FACTION_QUEST_ESCAPE);
-
-            if (npc_escortAI* pEscortAI = CAST_AI(npc_ranger_lilatha::npc_ranger_lilathaAI, creature->AI()))
-                pEscortAI->Start(true, false, player->GetGUID());
+            if (quest->GetQuestId() == QUEST_ESCAPE_FROM_THE_CATACOMBS)
+            {
+                me->SetFaction(FACTION_ESCORTEE_N_NEUTRAL_PASSIVE);
+                Start(true, false, player->GetGUID());
+            }
         }
-        return true;
-    }
+    };
 
     CreatureAI* GetAI(Creature* creature) const override
     {

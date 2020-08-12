@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -27,6 +27,7 @@
 #include "Player.h"
 #include "ScriptedGossip.h"
 #include "ScriptedCreature.h"
+#include "GameObjectAI.h"
 #include "SpellAuraEffects.h"
 #include "SpellInfo.h"
 #include "SpellScript.h"
@@ -210,7 +211,7 @@ public:
             {
                 if (Group* group = players.begin()->GetSource()->GetGroup())
                     if (group->isLFGGroup())
-                        sLFGMgr->FinishDungeon(group->GetGUID(), 286);
+                        sLFGMgr->FinishDungeon(group->GetGUID(), 286, me->GetMap());
             }
 
             _JustDied();
@@ -268,7 +269,7 @@ public:
             me->RemoveAurasDueToSpell(SPELL_STAY_SUBMERGED);
             DoCast(me, SPELL_STAND);
             DoCast(me, SPELL_RESURFACE, true);
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
             events.ScheduleEvent(EVENT_SYNCH_HEALTH, Seconds(3));
         }
 
@@ -277,7 +278,7 @@ public:
             if (Creature* frozenCore = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_FROZEN_CORE)))
                 frozenCore->AI()->DoAction(ACTION_AHUNE_RETREAT);
             me->RemoveAurasDueToSpell(SPELL_AHUNES_SHIELD);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_31);
+            me->AddUnitFlag(UNIT_FLAG_UNK_31);
             DoCast(me, SPELL_SUBMERGED, true);
             DoCast(me, SPELL_AHUNE_SELF_STUN, true);
             DoCast(me, SPELL_STAY_SUBMERGED, true);
@@ -326,7 +327,7 @@ public:
         {
             if (action == ACTION_AHUNE_RETREAT)
             {
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
                 me->RemoveAurasDueToSpell(SPELL_ICE_SPEAR_AURA);
                 _events.ScheduleEvent(EVENT_SYNCH_HEALTH, Seconds(3), 0, PHASE_TWO);
             }
@@ -334,7 +335,7 @@ public:
             {
                 _events.Reset();
                 DoCast(me, SPELL_ICE_SPEAR_AURA);
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                me->AddUnitFlag(UnitFlags(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC));
             }
         }
 
@@ -655,25 +656,32 @@ class go_ahune_ice_stone : public GameObjectScript
 public:
     go_ahune_ice_stone() : GameObjectScript("go_ahune_ice_stone") { }
 
-    bool OnGossipSelect(Player* player, GameObject* go, uint32 /*sender*/, uint32 /*action*/)
+    struct go_ahune_ice_stoneAI : public GameObjectAI
     {
-        InstanceScript* instance = go->GetInstanceScript();
-        if (!instance)
-            return false;
+        go_ahune_ice_stoneAI(GameObject* go) : GameObjectAI(go), instance(go->GetInstanceScript()) { }
 
-        ClearGossipMenuFor(player);
+        InstanceScript* instance;
 
-        if (Creature* ahuneBunny = ObjectAccessor::GetCreature(*go, instance->GetGuidData(DATA_AHUNE_BUNNY)))
+        bool GossipSelect(Player* player, uint32 /*menuId*/, uint32 /*gossipListId*/) override
         {
-            ahuneBunny->AI()->DoAction(ACTION_START_EVENT);
-            ahuneBunny->SetInCombatWithZone();
-        }
-        if (Creature* luma = ObjectAccessor::GetCreature(*go, instance->GetGuidData(DATA_LUMA_SKYMOTHER)))
-            luma->CastSpell(player, SPELL_SUMMONING_RHYME_AURA, true);
-        CloseGossipMenuFor(player);
-        go->Delete();
+            ClearGossipMenuFor(player);
 
-        return true;
+            if (Creature* ahuneBunny = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_AHUNE_BUNNY)))
+            {
+                ahuneBunny->AI()->DoAction(ACTION_START_EVENT);
+                ahuneBunny->SetInCombatWithZone();
+            }
+            if (Creature* luma = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_LUMA_SKYMOTHER)))
+                luma->CastSpell(player, SPELL_SUMMONING_RHYME_AURA, true);
+            CloseGossipMenuFor(player);
+            me->Delete();
+            return true;
+        }
+    };
+
+    GameObjectAI* GetAI(GameObject* go) const override
+    {
+        return GetSlavePensAI<go_ahune_ice_stoneAI>(go);
     }
 };
 

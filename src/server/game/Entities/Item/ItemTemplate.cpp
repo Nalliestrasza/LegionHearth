@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -46,10 +45,10 @@ int32 const SocketColorToGemTypeMask[19] =
 
 char const* ItemTemplate::GetName(LocaleConstant locale) const
 {
-    if (!strlen(ExtendedData->Display->Str[locale]))
+    if (!strlen(ExtendedData->Display[locale]))
         return GetDefaultLocaleName();
 
-    return ExtendedData->Display->Str[locale];
+    return ExtendedData->Display[locale];
 }
 
 
@@ -113,7 +112,7 @@ uint32 ItemTemplate::GetSkill() const
 
 char const* ItemTemplate::GetDefaultLocaleName() const
 {
-    return ExtendedData->Display->Str[sWorld->GetDefaultDbcLocale()];
+    return ExtendedData->Display[sWorld->GetDefaultDbcLocale()];
 }
 
 uint32 ItemTemplate::GetArmor(uint32 itemLevel) const
@@ -241,9 +240,9 @@ bool ItemTemplate::IsUsableByLootSpecialization(Player const* player, bool alway
     if (GetFlags() & ITEM_FLAG_IS_BOUND_TO_ACCOUNT && alwaysAllowBoundToAccount)
         return true;
 
-    uint32 spec = player->GetUInt32Value(ACTIVE_PLAYER_FIELD_LOOT_SPEC_ID);
+    uint32 spec = player->GetLootSpecId();
     if (!spec)
-        spec = player->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID);
+        spec = player->GetPrimarySpecialization();
     if (!spec)
         spec = player->GetDefaultSpecId();
 

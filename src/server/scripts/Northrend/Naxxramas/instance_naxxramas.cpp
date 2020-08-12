@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -43,7 +43,7 @@ BossBoundaryData const boundaries =
     /* Military Quarter */
     { BOSS_RAZUVIOUS, new ZRangeBoundary(260.0f, 287.0f) }, // will not chase onto the upper floor
     { BOSS_GOTHIK, new RectangleBoundary(2627.0f, 2764.0f, -3440.0f, -3275.0f) },
-    { BOSS_HORSEMEN, new ParallelogramBoundary(AreaBoundary::DoublePosition(2646.0, -2959.0), AreaBoundary::DoublePosition(2529.0, -3075.0), AreaBoundary::DoublePosition(2506.0, -2854.0)) },
+    { BOSS_HORSEMEN, new ParallelogramBoundary(Position(2646.0f, -2959.0f), Position(2529.0f, -3075.0f), Position(2506.0f, -2854.0f)) },
 
     /* Construct Quarter */
     { BOSS_PATCHWERK, new CircleBoundary(Position(3204.0f, -3241.4f), 240.0f) },
@@ -51,9 +51,9 @@ BossBoundaryData const boundaries =
     { BOSS_GROBBULUS, new CircleBoundary(Position(3204.0f, -3241.4f), 240.0f) },
     { BOSS_GROBBULUS, new RectangleBoundary(3295.0f, 3340.0f, -3254.2f, -3230.18f, true) }, // entrance door blocker
     { BOSS_GLUTH, new CircleBoundary(Position(3293.0f, -3142.0f), 80.0) },
-    { BOSS_GLUTH, new ParallelogramBoundary(AreaBoundary::DoublePosition(3401.0, -3149.0), AreaBoundary::DoublePosition(3261.0, -3028.0), AreaBoundary::DoublePosition(3320.0, -3267.0)) },
+    { BOSS_GLUTH, new ParallelogramBoundary(Position(3401.0f, -3149.0f), Position(3261.0f, -3028.0f), Position(3320.0f, -3267.0f)) },
     { BOSS_GLUTH, new ZRangeBoundary(285.0f, 310.0f) },
-    { BOSS_THADDIUS, new ParallelogramBoundary(AreaBoundary::DoublePosition(3478.3, -3070.0), AreaBoundary::DoublePosition(3370.0, -2961.5), AreaBoundary::DoublePosition(3580.0, -2961.5)) },
+    { BOSS_THADDIUS, new ParallelogramBoundary(Position(3478.3f, -3070.0f), Position(3370.0f, -2961.5f), Position(3580.0f, -2961.5f)) },
 
     /* Frostwyrm Lair */
     { BOSS_SAPPHIRON, new CircleBoundary(Position(3517.627f, -5255.5f), 110.0) },
@@ -223,23 +223,23 @@ class instance_naxxramas : public InstanceMapScript
                         break;
                     case GO_NAXX_PORTAL_ARACHNID:
                         if (GetBossState(BOSS_MAEXXNA) == DONE)
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_NAXX_PORTAL_CONSTRUCT:
                         if (GetBossState(BOSS_THADDIUS) == DONE)
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_NAXX_PORTAL_PLAGUE:
                         if (GetBossState(BOSS_LOATHEB) == DONE)
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_NAXX_PORTAL_MILITARY:
                         if (GetBossState(BOSS_HORSEMEN) == DONE)
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_KELTHUZAD_THRONE:
                         if (GetBossState(BOSS_KELTHUZAD) == DONE)
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_BIRTH:
                         if (hadSapphironBirth || GetBossState(BOSS_SAPPHIRON) == DONE)
@@ -379,7 +379,7 @@ class instance_naxxramas : public InstanceMapScript
                         if (state == DONE)
                         {
                             if (GameObject* teleporter = GetGameObject(DATA_NAXX_PORTAL_ARACHNID))
-                                teleporter->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                teleporter->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
 
                             events.ScheduleEvent(EVENT_KELTHUZAD_WING_TAUNT, Seconds(6));
                         }
@@ -388,7 +388,7 @@ class instance_naxxramas : public InstanceMapScript
                         if (state == DONE)
                         {
                             if (GameObject* teleporter = GetGameObject(DATA_NAXX_PORTAL_PLAGUE))
-                                teleporter->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                teleporter->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
 
                             events.ScheduleEvent(EVENT_KELTHUZAD_WING_TAUNT, Seconds(6));
                         }
@@ -397,7 +397,7 @@ class instance_naxxramas : public InstanceMapScript
                         if (state == DONE)
                         {
                             if (GameObject* teleporter = GetGameObject(DATA_NAXX_PORTAL_CONSTRUCT))
-                                teleporter->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                teleporter->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
 
                             events.ScheduleEvent(EVENT_KELTHUZAD_WING_TAUNT, Seconds(6));
                         }
@@ -412,11 +412,11 @@ class instance_naxxramas : public InstanceMapScript
                             if (GameObject* horsemenChest = instance->GetGameObject(HorsemenChestGUID))
                             {
                                 horsemenChest->SetRespawnTime(horsemenChest->GetRespawnDelay());
-                                horsemenChest->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                horsemenChest->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                             }
 
                             if (GameObject* teleporter = GetGameObject(DATA_NAXX_PORTAL_MILITARY))
-                                teleporter->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                teleporter->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
 
                             events.ScheduleEvent(EVENT_KELTHUZAD_WING_TAUNT, Seconds(6));
                         }
@@ -429,7 +429,7 @@ class instance_naxxramas : public InstanceMapScript
                     case BOSS_KELTHUZAD:
                         if (state == DONE)
                             if (GameObject* throne = GetGameObject(DATA_KELTHUZAD_THRONE))
-                                throne->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                                throne->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     default:
                         break;

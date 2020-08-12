@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -35,6 +35,7 @@ EndScriptData */
 #include "SupportMgr.h"
 #include "Transport.h"
 #include "WorldSession.h"
+#include <sstream>
 
 class go_commandscript : public CommandScript
 {
@@ -181,7 +182,7 @@ public:
         if (!graveyardId)
             return false;
 
-        WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry(graveyardId);
+        WorldSafeLocsEntry const* gy = sObjectMgr->GetWorldSafeLoc(graveyardId);
         if (!gy)
         {
             handler->PSendSysMessage(LANG_COMMAND_GRAVEYARDNOEXIST, graveyardId);
@@ -189,9 +190,9 @@ public:
             return false;
         }
 
-        if (!MapManager::IsValidMapCoord(gy->MapID, gy->Loc.X, gy->Loc.Y, gy->Loc.Z))
+        if (!MapManager::IsValidMapCoord(gy->Loc))
         {
-            handler->PSendSysMessage(LANG_INVALID_TARGET_COORD, gy->Loc.X, gy->Loc.Y, gy->MapID);
+            handler->PSendSysMessage(LANG_INVALID_TARGET_COORD, gy->Loc.GetPositionX(), gy->Loc.GetPositionY(), gy->Loc.GetMapId());
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -206,7 +207,7 @@ public:
         else
             player->SaveRecallPosition();
 
-        player->TeleportTo(gy->MapID, gy->Loc.X, gy->Loc.Y, gy->Loc.Z, (gy->Facing * M_PI) / 180); // Orientation is initially in degrees
+        player->TeleportTo(gy->Loc);
         return true;
     }
 
@@ -248,7 +249,7 @@ public:
         else
             player->SaveRecallPosition();
 
-        Map const* map = sMapMgr->CreateBaseMap(mapId);
+        Map* map = sMapMgr->CreateBaseMap(mapId);
         float z = std::max(map->GetStaticHeight(PhasingHandler::GetEmptyPhaseShift(), x, y, MAX_HEIGHT), map->GetWaterLevel(PhasingHandler::GetEmptyPhaseShift(), x, y));
 
         player->TeleportTo(mapId, x, y, z, player->GetOrientation());
@@ -337,14 +338,14 @@ public:
         float x, y, z;
         uint32 mapId;
 
-        if (QuestPOIVector const* poiData = sObjectMgr->GetQuestPOIVector(questID))
+        if (QuestPOIData const* poiData = sObjectMgr->GetQuestPOIData(questID))
         {
-            auto data = poiData->front();
+            auto data = poiData->QuestPOIBlobDataStats.front();
 
             mapId = data.MapID;
 
-            x = data.points.front().X;
-            y = data.points.front().Y;
+            x = data.QuestPOIBlobPointStats.front().X;
+            y = data.QuestPOIBlobPointStats.front().Y;
         }
         else
         {
@@ -370,7 +371,7 @@ public:
         else
             player->SaveRecallPosition();
 
-        Map const* map = sMapMgr->CreateBaseMap(mapId);
+        Map* map = sMapMgr->CreateBaseMap(mapId);
         z = std::max(map->GetStaticHeight(PhasingHandler::GetEmptyPhaseShift(), x, y, MAX_HEIGHT), map->GetWaterLevel(PhasingHandler::GetEmptyPhaseShift(), x, y));
 
         player->TeleportTo(mapId, x, y, z, 0.0f);
@@ -506,11 +507,11 @@ public:
         AreaTableEntry const* zoneEntry = areaEntry->ParentAreaID ? sAreaTableStore.LookupEntry(areaEntry->ParentAreaID) : areaEntry;
         ASSERT(zoneEntry);
 
-        Map const* map = sMapMgr->CreateBaseMap(zoneEntry->ContinentID);
+        Map* map = sMapMgr->CreateBaseMap(zoneEntry->ContinentID);
 
         if (map->Instanceable())
         {
-            handler->PSendSysMessage(LANG_INVALID_ZONE_MAP, areaId, areaEntry->AreaName->Str[handler->GetSessionDbcLocale()], map->GetId(), map->GetMapName());
+            handler->PSendSysMessage(LANG_INVALID_ZONE_MAP, areaId, areaEntry->AreaName[handler->GetSessionDbcLocale()], map->GetId(), map->GetMapName());
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -581,7 +582,7 @@ public:
                 handler->SetSentErrorMessage(true);
                 return false;
             }
-            Map const* map = sMapMgr->CreateBaseMap(mapId);
+            Map* map = sMapMgr->CreateBaseMap(mapId);
             z = std::max(map->GetStaticHeight(PhasingHandler::GetEmptyPhaseShift(), x, y, MAX_HEIGHT), map->GetWaterLevel(PhasingHandler::GetEmptyPhaseShift(), x, y));
         }
 

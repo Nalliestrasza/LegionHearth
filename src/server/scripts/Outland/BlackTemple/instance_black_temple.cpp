@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -53,7 +53,7 @@ BossBoundaryData const boundaries =
     { DATA_RELIQUARY_OF_SOULS,    new ZRangeBoundary(81.8f, 148.0f)                          },
     { DATA_MOTHER_SHAHRAZ,        new RectangleBoundary(903.4f, 982.1f, 92.4f, 313.2f)       },
     { DATA_ILLIDARI_COUNCIL,      new EllipseBoundary(Position(696.6f, 305.0f), 70.0 , 85.0) },
-    { DATA_ILLIDAN_STORMRAGE,     new EllipseBoundary(Position(694.8f, 309.0f), 70.0 , 85.0) }
+    { DATA_ILLIDAN_STORMRAGE,     new EllipseBoundary(Position(694.8f, 309.0f), 80.0 , 95.0) }
 };
 
 ObjectData const creatureData[] =
@@ -75,14 +75,16 @@ ObjectData const creatureData[] =
     { NPC_VERAS_DARKSHADOW,             DATA_VERAS_DARKSHADOW           },
     { NPC_BLOOD_ELF_COUNCIL_VOICE,      DATA_BLOOD_ELF_COUNCIL_VOICE    },
     { NPC_BLACK_TEMPLE_TRIGGER,         DATA_BLACK_TEMPLE_TRIGGER       },
+    { NPC_MAIEV_SHADOWSONG,             DATA_MAIEV                      },
     { 0,                                0                               } // END
 };
 
 ObjectData const gameObjectData[] =
 {
-    { GO_ILLIDAN_GATE,          DATA_GO_ILLIDAN_GATE       },
-    { GO_DEN_OF_MORTAL_DOOR,    DATA_GO_DEN_OF_MORTAL_DOOR },
-    { 0,                        0                          } //END
+    { GO_ILLIDAN_GATE,                DATA_GO_ILLIDAN_GATE          },
+    { GO_DEN_OF_MORTAL_DOOR,          DATA_GO_DEN_OF_MORTAL_DOOR    },
+    { GO_ILLIDAN_MUSIC_CONTROLLER,    DATA_ILLIDAN_MUSIC_CONTROLLER },
+    { 0,                              0                             } //END
 };
 
 class instance_black_temple : public InstanceMapScript
@@ -99,6 +101,7 @@ class instance_black_temple : public InstanceMapScript
                 LoadDoorData(doorData);
                 LoadObjectData(creatureData, gameObjectData);
                 LoadBossBoundaries(boundaries);
+                akamaState = AKAMA_INTRO;
             }
 
             void OnGameObjectCreate(GameObject* go) override
@@ -125,10 +128,34 @@ class instance_black_temple : public InstanceMapScript
                     case NPC_STORM_FURY:
                         AshtongueGUIDs.emplace_back(creature->GetGUID());
                         if (GetBossState(DATA_SHADE_OF_AKAMA) == DONE)
-                            creature->setFaction(ASHTONGUE_FACTION_FRIEND);
+                            creature->SetFaction(FACTION_ASHTONGUE_DEATHSWORN);
                         break;
                     default:
                         break;
+                }
+            }
+
+            uint32 GetData(uint32 data) const override
+            {
+                if (data == DATA_AKAMA)
+                    return akamaState;
+
+                return 0;
+            }
+
+            void SetData(uint32 data, uint32 value) override
+            {
+                switch (data)
+                {
+                case DATA_AKAMA:
+                    akamaState = value;
+                    break;
+                case ACTION_OPEN_DOOR:
+                    if (GameObject* illidanGate = GetGameObject(DATA_GO_ILLIDAN_GATE))
+                        HandleGameObject(ObjectGuid::Empty, true, illidanGate);
+                    break;
+                default:
+                    break;
                 }
             }
 
@@ -148,7 +175,7 @@ class instance_black_temple : public InstanceMapScript
                         if (state == DONE)
                             for (ObjectGuid ashtongueGuid : AshtongueGUIDs)
                                 if (Creature* ashtongue = instance->GetCreature(ashtongueGuid))
-                                    ashtongue->setFaction(ASHTONGUE_FACTION_FRIEND);
+                                    ashtongue->SetFaction(FACTION_ASHTONGUE_DEATHSWORN);
                         // no break
                     case DATA_TERON_GOREFIEND:
                     case DATA_GURTOGG_BLOODBOIL:
@@ -161,6 +188,11 @@ class instance_black_temple : public InstanceMapScript
                             if (GameObject* door = GetGameObject(DATA_GO_DEN_OF_MORTAL_DOOR))
                                 HandleGameObject(ObjectGuid::Empty, true, door);
                         }
+                        break;
+                    case DATA_ILLIDARI_COUNCIL:
+                        if (state == DONE)
+                            if (Creature* akama = GetCreature(DATA_AKAMA))
+                                akama->AI()->DoAction(ACTION_ACTIVE_AKAMA_INTRO);
                         break;
                     default:
                         break;
@@ -176,8 +208,10 @@ class instance_black_temple : public InstanceMapScript
                         return false;
                 return true;
             }
+
         protected:
             GuidVector AshtongueGUIDs;
+            uint8 akamaState;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const override

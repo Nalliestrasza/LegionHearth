@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -424,6 +424,21 @@ namespace WorldPackets
             uint32 Cooldown = 0;
         };
 
+        class EnchantmentLog final : public ServerPacket
+        {
+        public:
+            EnchantmentLog() : ServerPacket(SMSG_ENCHANTMENT_LOG, 0) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid Owner;
+            ObjectGuid Caster;
+            ObjectGuid ItemGUID;
+            int32 ItemID = 0;
+            int32 Enchantment = 0;
+            int32 EnchantSlot = 0;
+        };
+
         class ItemEnchantTimeUpdate final : public ServerPacket
         {
         public:
@@ -445,30 +460,6 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid ItemGuid;
-        };
-
-        class UpgradeItem final : public ClientPacket
-        {
-        public:
-            UpgradeItem(WorldPacket&& packet) : ClientPacket(CMSG_UPGRADE_ITEM, std::move(packet)) { }
-
-            void Read() override;
-
-            ObjectGuid ItemMaster;
-            ObjectGuid ItemGUID;
-            int32 ContainerSlot = 0;
-            int32 UpgradeID = 0;
-            int32 Slot = 0;
-        };
-
-        class ItemUpgradeResult final : public ServerPacket
-        {
-        public:
-            ItemUpgradeResult() : ServerPacket(SMSG_ITEM_UPGRADE_RESULT, 1) { }
-
-            WorldPacket const* Write() override;
-
-            bool Success = false;
         };
 
         class SocketGems final : public ClientPacket

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -488,7 +487,7 @@ class boss_toc_champion_controller : public CreatureScript
                     {
                         _summons.Summon(champion);
                         champion->SetReactState(REACT_PASSIVE);
-                        champion->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                        champion->AddUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC));
                         if (playerTeam == ALLIANCE)
                         {
                             champion->SetHomePosition(vChampionJumpTarget[pos].GetPositionX(), vChampionJumpTarget[pos].GetPositionY(), vChampionJumpTarget[pos].GetPositionZ(), 0);
@@ -519,7 +518,7 @@ class boss_toc_champion_controller : public CreatureScript
                             if (Creature* summon = ObjectAccessor::GetCreature(*me, *i))
                             {
                                 summon->SetReactState(REACT_AGGRESSIVE);
-                                summon->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                                summon->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC));
                             }
                         }
                         break;
@@ -923,7 +922,7 @@ class npc_toc_shaman : public CreatureScript
                             events.ScheduleEvent(EVENT_SPIRIT_CLEANSE, urand(15*IN_MILLISECONDS, 35*IN_MILLISECONDS));
                             return;
                         case EVENT_HEAL_BLOODLUST_HEROISM:
-                            if (me->getFaction()) // alliance = 1
+                            if (me->GetFaction()) // alliance = 1
                             {
                                 if (!me->HasAura(AURA_EXHAUSTION))
                                     DoCastAOE(SPELL_HEROISM);
@@ -2031,7 +2030,7 @@ class npc_toc_enh_shaman : public CreatureScript
                             events.ScheduleEvent(EVENT_STORMSTRIKE, urand(8*IN_MILLISECONDS, 10*IN_MILLISECONDS));
                             return;
                         case EVENT_DPS_BLOODLUST_HEROISM:
-                            if (me->getFaction()) //Am i alliance?
+                            if (me->GetFaction()) //Am i alliance?
                             {
                                 if (!me->HasAura(AURA_EXHAUSTION))
                                     DoCastAOE(SPELL_HEROISM);

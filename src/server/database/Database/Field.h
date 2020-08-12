@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -34,6 +34,17 @@ enum class DatabaseFieldTypes : uint8
     Decimal,
     Date,
     Binary
+};
+
+struct QueryResultFieldMetadata
+{
+    char const* TableName = nullptr;
+    char const* TableAlias = nullptr;
+    char const* Name = nullptr;
+    char const* Alias = nullptr;
+    char const* TypeName = nullptr;
+    uint32 Index = 0;
+    DatabaseFieldTypes Type = DatabaseFieldTypes::Null;
 };
 
 /**
@@ -96,51 +107,28 @@ class TC_DATABASE_API Field
 
         bool IsNull() const
         {
-            return data.value == NULL;
+            return data.value == nullptr;
         }
-
-        struct Metadata
-        {
-            char const* TableName;
-            char const* TableAlias;
-            char const* Name;
-            char const* Alias;
-            char const* Type;
-            uint32 Index;
-        };
 
     protected:
-        #pragma pack(push, 1)
         struct
         {
-            uint32 length;          // Length (prepared strings only)
-            void* value;            // Actual data in memory
-            DatabaseFieldTypes type;  // Field type
-            bool raw;               // Raw bytes? (Prepared statement or ad hoc)
+            char const* value;          // Actual data in memory
+            uint32 length;              // Length
+            bool raw;                   // Raw bytes? (Prepared statement or ad hoc)
          } data;
-        #pragma pack(pop)
 
-        void SetByteValue(void* newValue, DatabaseFieldTypes newType, uint32 length);
-        void SetStructuredValue(char* newValue, DatabaseFieldTypes newType, uint32 length);
-
-        void CleanUp()
-        {
-            // Field does not own the data if fetched with prepared statement
-            if (!data.raw)
-                delete[] ((char*)data.value);
-            data.value = NULL;
-        }
+        void SetByteValue(char const* newValue, uint32 length);
+        void SetStructuredValue(char const* newValue, uint32 length);
 
         bool IsType(DatabaseFieldTypes type) const;
 
         bool IsNumeric() const;
 
     private:
-        #ifdef TRINITY_DEBUG
-        void LogWrongType(char* getter) const;
-        void SetMetadata(MYSQL_FIELD* field, uint32 fieldIndex);
-        Metadata meta;
-        #endif
+        QueryResultFieldMetadata const* meta;
+        void LogWrongType(char const* getter) const;
+        void SetMetadata(QueryResultFieldMetadata const* fieldMeta);
 };
 
 #endif

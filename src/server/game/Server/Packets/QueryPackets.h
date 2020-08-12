@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -30,6 +30,7 @@
 #include <array>
 
 class Player;
+struct QuestPOIData;
 
 namespace WorldPackets
 {
@@ -82,6 +83,9 @@ namespace WorldPackets
             uint32 RequiredExpansion = 0;
             uint32 VignetteID = 0;
             int32 Class = 0;
+            float FadeRegionRadius = 0.0f;
+            int32 WidgetSetID = 0;
+            int32 WidgetSetUnitConditionID = 0;
             std::array<uint32, 2> Flags;
             std::array<uint32, 2> ProxyCreatureID;
             std::array<std::string, 4> Name;
@@ -235,6 +239,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 GameObjectID = 0;
+            ObjectGuid Guid;
             bool Allow = false;
             GameObjectStats Stats;
         };
@@ -313,36 +318,7 @@ namespace WorldPackets
             void Read() override;
 
             int32 MissingQuestCount = 0;
-            std::array<int32, 100> MissingQuestPOIs;
-        };
-
-        struct QuestPOIBlobPoint
-        {
-            int32 X = 0;
-            int32 Y = 0;
-        };
-
-        struct QuestPOIBlobData
-        {
-            int32 BlobIndex = 0;
-            int32 ObjectiveIndex = 0;
-            int32 QuestObjectiveID = 0;
-            int32 QuestObjectID = 0;
-            int32 MapID = 0;
-            int32 UiMapID = 0;
-            int32 Priority = 0;
-            int32 Flags = 0;
-            int32 WorldEffectID = 0;
-            int32 PlayerConditionID = 0;
-            int32 SpawnTrackingID = 0;
-            std::vector<QuestPOIBlobPoint> QuestPOIBlobPointStats;
-            bool AlwaysAllowMergingBlobs = false;
-        };
-
-        struct QuestPOIData
-        {
-            int32 QuestID = 0;
-            std::vector<QuestPOIBlobData> QuestPOIBlobDataStats;
+            std::array<int32, 125> MissingQuestPOIs;
         };
 
         class QuestPOIQueryResponse final : public ServerPacket
@@ -352,7 +328,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            std::vector<QuestPOIData> QuestPOIDataStats;
+            std::vector<QuestPOIData const*> QuestPOIDataStats;
         };
 
         class QueryQuestCompletionNPCs final : public ClientPacket
@@ -460,5 +436,6 @@ namespace WorldPackets
 
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Query::PlayerGuidLookupHint const& lookupHint);
 ByteBuffer& operator<<(ByteBuffer& data, WorldPackets::Query::PlayerGuidLookupData const& lookupData);
+ByteBuffer& operator<<(ByteBuffer& data, QuestPOIData const& questPOIData);
 
 #endif // QueryPackets_h__

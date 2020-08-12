@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -71,6 +70,7 @@ struct WMODoodadData
 {
     std::vector<WMO::MODS> Sets;
     std::unique_ptr<char[]> Paths;
+    std::unique_ptr<uint32[]> FileDataIds;
     std::vector<WMO::MODD> Spawns;
     std::unordered_set<uint16> References;
 };
@@ -86,6 +86,7 @@ public:
     float bbcorn2[3];
     uint16 flags, numLod;
 
+    std::vector<char> GroupNames;
     WMODoodadData DoodadData;
     std::unordered_set<uint32> ValidDoodadNames;
     std::vector<uint32> groupFileDataIDs;
@@ -156,6 +157,7 @@ public:
     bool open(WMORoot* rootWMO);
     int ConvertToVMAPGroupWmo(FILE* output, bool preciseVectorData);
     uint32 GetLiquidTypeId(uint32 liquidTypeId);
+    bool ShouldSkip(WMORoot const* root) const;
 };
 
 namespace MapObject

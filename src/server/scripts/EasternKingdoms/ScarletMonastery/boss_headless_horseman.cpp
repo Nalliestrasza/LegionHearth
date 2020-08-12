@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -24,6 +23,7 @@ SDCategory: Scarlet Monastery
 EndScriptData */
 
 #include "ScriptMgr.h"
+#include "GameObjectAI.h"
 #include "GameObject.h"
 #include "Group.h"
 #include "InstanceScript.h"
@@ -293,7 +293,7 @@ public:
                         withbody = true;
                         wait = 300;
                         damage = me->GetHealth() - me->CountPctFromMaxHealth(1);
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        me->AddUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                         me->StopMoving();
                         //me->GetMotionMaster()->MoveIdle();
                         DoCast(me, SPELL_HEAD_IS_DEAD);
@@ -318,7 +318,7 @@ public:
                 if (!bodyGUID)
                     bodyGUID = caster->GetGUID();
                 me->RemoveAllAuras();
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                 DoCast(me, SPELL_HEAD_LANDS, true);
                 DoCast(me, SPELL_HEAD, false);
                 SaySound(SAY_LOST_HEAD);
@@ -446,14 +446,14 @@ public:
                 headGUID.Clear();
             }
 
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
+            me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             //instance->SetBossState(DATA_HORSEMAN_EVENT, NOT_STARTED);
         }
 
         void FlyMode()
         {
             me->SetVisible(false);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->AddUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
             me->SetDisableGravity(true);
             me->SetSpeedRate(MOVE_WALK, 5.0f);
             wp_reached = false;
@@ -493,7 +493,7 @@ public:
                     Phase = 1;
                     IsFlying = false;
                     wp_reached = false;
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                     SaySound(SAY_ENTRANCE);
                     if (Unit* player = ObjectAccessor::GetUnit(*me, PlayerGUID))
                         DoStartMovement(player);
@@ -581,7 +581,7 @@ public:
             {
                 if (Group* group = players.begin()->GetSource()->GetGroup())
                     if (group->isLFGGroup())
-                        sLFGMgr->FinishDungeon(group->GetGUID(), 285);
+                        sLFGMgr->FinishDungeon(group->GetGUID(), 285, me->GetMap());
             }
         }
 
@@ -631,7 +631,7 @@ public:
                 Unit* Head = ObjectAccessor::GetUnit(*me, headGUID);
                 if (Head && Head->IsAlive())
                 {
-                    Head->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    Head->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                     //Head->CastSpell(Head, SPELL_HEAD_INVIS, false);
                     me->InterruptNonMeleeSpells(false);
                     DoCast(me, SPELL_IMMUNE, true);
@@ -805,7 +805,7 @@ public:
         {
             float x, y, z;
             me->GetPosition(x, y, z);   //this visual aura some under ground
-            me->SetPosition(x, y, z + 0.35f, 0.0f);
+            me->UpdatePosition(x, y, z + 0.35f, 0.0f);
             debuffGUID.Clear();
             Despawn();
             Creature* debuff = DoSpawnCreature(HELPER, 0, 0, 0, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 14500);
@@ -819,7 +819,7 @@ public:
             sprouted = false;
             DoCast(me, SPELL_PUMPKIN_AURA, true);
             DoCast(me, SPELL_SPROUTING);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+            me->AddUnitFlag(UNIT_FLAG_STUNNED);
         }
 
         void EnterCombat(Unit* /*who*/) override { }
@@ -830,7 +830,7 @@ public:
             {
                 sprouted = true;
                 me->RemoveAllAuras();
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                me->RemoveUnitFlag(UNIT_FLAG_STUNNED);
                 DoCast(me, SPELL_SPROUT_BODY, true);
                 me->UpdateEntry(PUMPKIN_FIEND);
                 DoStartMovement(me->GetVictim());
@@ -881,32 +881,41 @@ enum LooselyTurnedSoil
 
 class go_loosely_turned_soil : public GameObjectScript
 {
-public:
-    go_loosely_turned_soil() : GameObjectScript("go_loosely_turned_soil") { }
+    public:
+        go_loosely_turned_soil() : GameObjectScript("go_loosely_turned_soil") { }
 
-    bool OnGossipHello(Player* player, GameObject* /*go*/) override
-    {
-        if (InstanceScript* instance = player->GetInstanceScript())
-            if (instance->GetBossState(DATA_HORSEMAN_EVENT) == IN_PROGRESS || player->GetQuestStatus(QUEST_CALL_THE_HEADLESS_HORSEMAN) != QUEST_STATUS_COMPLETE)
-                return true;
-
-        return false;
-    }
-
-    bool OnQuestReward(Player* player, GameObject* go, Quest const* /*quest*/, uint32 /*opt*/) override
-    {
-        if (InstanceScript* instance = go->GetInstanceScript())
-            if (instance->GetBossState(DATA_HORSEMAN_EVENT) == IN_PROGRESS)
-                return false;
-
-        player->AreaExploredOrEventHappens(11405);
-        if (Creature* horseman = go->SummonCreature(HH_MOUNTED, FlightPoint[20], TEMPSUMMON_MANUAL_DESPAWN, 0))
+        struct go_loosely_turned_soilAI : public GameObjectAI
         {
-            ENSURE_AI(boss_headless_horseman::boss_headless_horsemanAI, horseman->AI())->PlayerGUID = player->GetGUID();
-            ENSURE_AI(boss_headless_horseman::boss_headless_horsemanAI, horseman->AI())->FlyMode();
+            go_loosely_turned_soilAI(GameObject* go) : GameObjectAI(go), instance(go->GetInstanceScript()) { }
+
+            InstanceScript* instance;
+
+            bool GossipHello(Player* player) override
+            {
+                if (instance->GetBossState(DATA_HORSEMAN_EVENT) == IN_PROGRESS || player->GetQuestStatus(QUEST_CALL_THE_HEADLESS_HORSEMAN) != QUEST_STATUS_COMPLETE)
+                    return true;
+
+                return false;
+            }
+
+            void QuestReward(Player* player, Quest const* /*quest*/, uint32 /*opt*/) override
+            {
+                if (instance->GetBossState(DATA_HORSEMAN_EVENT) == IN_PROGRESS)
+                    return;
+
+                player->AreaExploredOrEventHappens(11405);
+                if (Creature* horseman = me->SummonCreature(HH_MOUNTED, FlightPoint[20], TEMPSUMMON_MANUAL_DESPAWN, 0))
+                {
+                    ENSURE_AI(boss_headless_horseman::boss_headless_horsemanAI, horseman->AI())->PlayerGUID = player->GetGUID();
+                    ENSURE_AI(boss_headless_horseman::boss_headless_horsemanAI, horseman->AI())->FlyMode();
+                }
+            }
+        };
+
+        GameObjectAI* GetAI(GameObject* go) const override
+        {
+            return GetScarletMonasteryAI<go_loosely_turned_soilAI>(go);
         }
-        return true;
-    }
 };
 
 void npc_head::npc_headAI::Disappear()
@@ -924,8 +933,8 @@ void npc_head::npc_headAI::Disappear()
             body->RemoveAurasDueToSpell(SPELL_IMMUNE);//hack, SpellHit doesn't calls if body has immune aura
             DoCast(body, SPELL_FLYING_HEAD);
             me->SetFullHealth();
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            me->AddUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+            me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
             me->GetMotionMaster()->MoveIdle();
             ENSURE_AI(boss_headless_horseman::boss_headless_horsemanAI, body->AI())->returned = true;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -313,6 +313,18 @@ WorldPacket const* WorldPackets::Item::ItemCooldown::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* WorldPackets::Item::EnchantmentLog::Write()
+{
+    _worldPacket << Owner;
+    _worldPacket << Caster;
+    _worldPacket << ItemGUID;
+    _worldPacket << int32(ItemID);
+    _worldPacket << int32(Enchantment);
+    _worldPacket << int32(EnchantSlot);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* WorldPackets::Item::ItemEnchantTimeUpdate::Write()
 {
     _worldPacket << ItemGuid;
@@ -328,15 +340,6 @@ void WorldPackets::Item::UseCritterItem::Read()
     _worldPacket >> ItemGuid;
 }
 
-void WorldPackets::Item::UpgradeItem::Read()
-{
-    _worldPacket >> ItemMaster;
-    _worldPacket >> ItemGUID;
-    _worldPacket >> UpgradeID;
-    _worldPacket >> ContainerSlot;
-    _worldPacket >> Slot;
-}
-
 void WorldPackets::Item::SocketGems::Read()
 {
     _worldPacket >> ItemGuid;
@@ -347,14 +350,6 @@ void WorldPackets::Item::SocketGems::Read()
 WorldPacket const* WorldPackets::Item::SocketGemsResult::Write()
 {
     _worldPacket << Item;
-
-    return &_worldPacket;
-}
-
-WorldPacket const* WorldPackets::Item::ItemUpgradeResult::Write()
-{
-    _worldPacket.WriteBit(Success);
-    _worldPacket.FlushBits();
 
     return &_worldPacket;
 }

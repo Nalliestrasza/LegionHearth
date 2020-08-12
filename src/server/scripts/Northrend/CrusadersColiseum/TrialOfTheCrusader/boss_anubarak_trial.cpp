@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -194,7 +193,7 @@ class boss_anubarak_trial : public CreatureScript
                     events.ScheduleEvent(EVENT_SUMMON_FROST_SPHERE, 20*IN_MILLISECONDS);
 
                 Initialize();
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
                 // clean up spawned Frost Spheres
                 std::list<Creature*> FrostSphereList;
                 me->GetCreatureListWithEntryInGrid(FrostSphereList, NPC_FROST_SPHERE, 150.0f);
@@ -227,7 +226,7 @@ class boss_anubarak_trial : public CreatureScript
                 for (int i = 0; i < 10; i++)
                     if (Creature* scarab = me->SummonCreature(NPC_SCARAB, AnubarakLoc[1].GetPositionX()+urand(0, 50)-25, AnubarakLoc[1].GetPositionY()+urand(0, 50)-25, AnubarakLoc[1].GetPositionZ()))
                     {
-                        scarab->setFaction(31);
+                        scarab->SetFaction(FACTION_PREY);
                         scarab->GetMotionMaster()->MoveRandom(10);
                     }
             }
@@ -274,7 +273,7 @@ class boss_anubarak_trial : public CreatureScript
             {
                 _EnterCombat();
                 Talk(SAY_AGGRO);
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
 
                 // Despawn Scarab Swarms neutral
                 EntryCheckPredicate pred(NPC_SCARAB);
@@ -329,7 +328,7 @@ class boss_anubarak_trial : public CreatureScript
                             {
                                 DoCast(me, SPELL_SUBMERGE_ANUBARAK);
                                 DoCast(me, SPELL_CLEAR_ALL_DEBUFFS);
-                                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                                me->AddUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
                                 Talk(EMOTE_BURROWER);
                                 events.SetPhase(PHASE_SUBMERGED);
                                 events.ScheduleEvent(EVENT_PURSUING_SPIKE, 2*IN_MILLISECONDS, 0, PHASE_SUBMERGED);
@@ -366,7 +365,7 @@ class boss_anubarak_trial : public CreatureScript
                             DoCast(SPELL_SPIKE_TELE);
                             summons.DespawnEntry(NPC_SPIKE);
                             me->RemoveAurasDueToSpell(SPELL_SUBMERGE_ANUBARAK);
-                            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                            me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
                             DoCast(me, SPELL_EMERGE_ANUBARAK);
                             Talk(EMOTE_EMERGE);
                             events.SetPhase(PHASE_MELEE);
@@ -576,14 +575,14 @@ class npc_nerubian_burrower : public CreatureScript
                         me->RemoveAurasDueToSpell(SPELL_SUBMERGE_EFFECT);
                         DoCast(me, SPELL_EMERGE_EFFECT);
                         DoCast(me, SPELL_AWAKENED);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                     }
                     else
                     {
                         if (!me->HasAura(SPELL_PERMAFROST_HELPER))
                         {
                             DoCast(me, SPELL_SUBMERGE_EFFECT);
-                            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                            me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                             DoCast(me, SPELL_PERSISTENT_DIRT, true);
                         }
                     }
@@ -635,7 +634,7 @@ class npc_frost_sphere : public CreatureScript
                     {
                         // we are close to the ground
                         me->GetMotionMaster()->MoveIdle();
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                         me->RemoveAurasDueToSpell(SPELL_FROST_SPHERE);
                         DoCast(SPELL_PERMAFROST_MODEL);
                         DoCast(SPELL_PERMAFROST);
@@ -645,7 +644,7 @@ class npc_frost_sphere : public CreatureScript
                     {
                         // we are in air
                         me->GetMotionMaster()->MoveIdle();
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                         //At hit the ground
                         me->HandleEmoteCommand(EMOTE_ONESHOT_FLYDEATH);
                         me->GetMotionMaster()->MoveFall(POINT_FALL_GROUND);

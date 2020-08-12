@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -78,7 +78,7 @@ public:
         npc_sylvanas_fosAI(Creature* creature) : ScriptedAI(creature)
         {
             Initialize();
-            me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            me->AddNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         }
 
         void Initialize()
@@ -95,16 +95,17 @@ public:
             Initialize();
         }
 
-        void sGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+        bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
         {
             if (menuId == MENU_ID_SYLVANAS && gossipListId == GOSSIP_OPTION_ID)
             {
                 CloseGossipMenuFor(player);
                 phase = PHASE_INTRO;
-                me->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                 events.Reset();
                 events.ScheduleEvent(EVENT_INTRO_1, 1000);
             }
+            return false;
         }
 
         void UpdateAI(uint32 diff) override
@@ -172,7 +173,7 @@ public:
         npc_jaina_fosAI(Creature* creature) : ScriptedAI(creature)
         {
             Initialize();
-            me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            me->AddNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         }
 
         void Initialize()
@@ -189,16 +190,17 @@ public:
             Initialize();
         }
 
-        void sGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+        bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
         {
             if (menuId == MENU_ID_JAINA && gossipListId == GOSSIP_OPTION_ID)
             {
                 CloseGossipMenuFor(player);
                 phase = PHASE_INTRO;
-                me->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                 events.Reset();
                 events.ScheduleEvent(EVENT_INTRO_1, 1000);
             }
+            return false;
         }
 
         void UpdateAI(uint32 diff) override

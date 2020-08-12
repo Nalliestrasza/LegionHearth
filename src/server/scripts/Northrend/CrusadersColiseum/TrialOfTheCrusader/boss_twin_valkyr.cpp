@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -169,7 +168,7 @@ struct boss_twin_baseAI : public BossAI
 
     void Reset() override
     {
-        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        me->AddUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
         me->SetReactState(REACT_PASSIVE);
         me->ModifyAuraState(AuraState, true);
         /* Uncomment this once that they are floating above the ground
@@ -195,7 +194,7 @@ struct boss_twin_baseAI : public BossAI
         switch (uiId)
         {
             case 1:
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE);
+                me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE));
                 me->SetReactState(REACT_AGGRESSIVE);
                 break;
             default:
@@ -237,13 +236,13 @@ struct boss_twin_baseAI : public BossAI
         {
             if (!pSister->IsAlive())
             {
-                me->SetFlag(OBJECT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
-                pSister->SetFlag(OBJECT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                me->AddDynamicFlag(UNIT_DYNFLAG_LOOTABLE);
+                pSister->AddDynamicFlag(UNIT_DYNFLAG_LOOTABLE);
                 _JustDied();
             }
             else
             {
-                me->RemoveFlag(OBJECT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                me->RemoveDynamicFlag(UNIT_DYNFLAG_LOOTABLE);
                 instance->SetBossState(BOSS_VALKIRIES, SPECIAL);
             }
         }
@@ -508,20 +507,20 @@ class npc_essence_of_twin : public CreatureScript
 
                 return spellReturned;
             }
+
+            bool GossipHello(Player* player) override
+            {
+                player->RemoveAurasDueToSpell(GetData(ESSENCE_REMOVE));
+                player->CastSpell(player, GetData(ESSENCE_APPLY), true);
+                CloseGossipMenuFor(player);
+                return true;
+            }
         };
 
         CreatureAI* GetAI(Creature* creature) const override
         {
             return GetTrialOfTheCrusaderAI<npc_essence_of_twinAI>(creature);
         };
-
-        bool OnGossipHello(Player* player, Creature* creature) override
-        {
-            player->RemoveAurasDueToSpell(creature->GetAI()->GetData(ESSENCE_REMOVE));
-            player->CastSpell(player, creature->GetAI()->GetData(ESSENCE_APPLY), true);
-            CloseGossipMenuFor(player);
-            return true;
-        }
 };
 
 struct npc_unleashed_ballAI : public ScriptedAI
@@ -552,7 +551,7 @@ struct npc_unleashed_ballAI : public ScriptedAI
 
     void Reset() override
     {
-        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        me->AddUnitFlag(UnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE));
         me->SetReactState(REACT_PASSIVE);
         me->SetDisableGravity(true);
         me->SetCanFly(true);
@@ -760,17 +759,16 @@ class spell_valkyr_essences : public SpellScriptLoader
                         {
                             if (dmgInfo.GetSpellInfo()->Id == SPELL_DARK_VORTEX_DAMAGE || dmgInfo.GetSpellInfo()->Id == SPELL_LIGHT_VORTEX_DAMAGE)
                             {
-                                Aura* pAura = owner->GetAura(SPELL_POWERING_UP);
-                                if (pAura)
+                                if (Aura* aura = owner->GetAura(SPELL_POWERING_UP))
                                 {
-                                    pAura->ModStackAmount(stacksCount);
+                                    aura->ModStackAmount(stacksCount);
                                     owner->CastSpell(owner, SPELL_POWERING_UP, true);
                                 }
                                 else
                                 {
                                     owner->CastSpell(owner, SPELL_POWERING_UP, true);
-                                    if (Aura* pTemp = owner->GetAura(SPELL_POWERING_UP))
-                                        pTemp->ModStackAmount(stacksCount);
+                                    if (Aura* newAura = owner->GetAura(SPELL_POWERING_UP))
+                                        newAura->ModStackAmount(stacksCount);
                                 }
                             }
                         }
@@ -779,18 +777,17 @@ class spell_valkyr_essences : public SpellScriptLoader
                         if (dmgInfo.GetSpellInfo()->Id == SPELL_UNLEASHED_DARK || dmgInfo.GetSpellInfo()->Id == SPELL_UNLEASHED_LIGHT)
                         {
                             // need to do the things in this order, else players might have 100 charges of Powering Up without anything happening
-                            Aura* pAura = owner->GetAura(SPELL_POWERING_UP);
-                            if (pAura)
+                            if (Aura* aura = owner->GetAura(SPELL_POWERING_UP))
                             {
                                 // 2 lines together add the correct amount of buff stacks
-                                pAura->ModStackAmount(stacksCount);
+                                aura->ModStackAmount(stacksCount);
                                 owner->CastSpell(owner, SPELL_POWERING_UP, true);
                             }
                             else
                             {
                                 owner->CastSpell(owner, SPELL_POWERING_UP, true);
-                                if (Aura* pTemp = owner->GetAura(SPELL_POWERING_UP))
-                                    pTemp->ModStackAmount(stacksCount);
+                                if (Aura* newAura = owner->GetAura(SPELL_POWERING_UP))
+                                    newAura->ModStackAmount(stacksCount);
                             }
                         }
                     }

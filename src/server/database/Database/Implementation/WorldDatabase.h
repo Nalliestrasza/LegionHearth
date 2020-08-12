@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -163,6 +163,11 @@ enum WorldDatabaseStatements : uint32
     // private & public
     WORLD_UPD_PHASE_SET_TYPE,
 
+    // area name
+    WORLD_INS_PHASE_AREA_NAME,
+    WORLD_UPD_PHASE_AREA_NAME,
+    WORLD_SEL_PHASE_AREA_NAME,
+    WORLD_DEL_PHASE_AREA_NAME,
 
 	// perma
 	WORLD_INS_PERMAMORPH,
@@ -203,8 +208,6 @@ enum WorldDatabaseStatements : uint32
     //Dupplication gameobject_log
     WORLD_SEL_GAMEOBJECT_LOG,
     WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID,
-
-
 
     MAX_WORLDDATABASE_STATEMENTS
 };

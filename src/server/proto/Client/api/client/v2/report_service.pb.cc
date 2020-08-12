@@ -105,17 +105,18 @@ void protobuf_AddDesc_api_2fclient_2fv2_2freport_5fservice_2eproto() {
     "\n\"api/client/v2/report_service.proto\022\026bg"
     "s.protocol.report.v2\032\023account_types.prot"
     "o\032 api/client/v2/report_types.proto\032\017rpc"
-    "_types.proto\"\370\001\n\023SubmitReportRequest\0224\n\010"
+    "_types.proto\"\200\002\n\023SubmitReportRequest\0224\n\010"
     "agent_id\030\001 \001(\0132\".bgs.protocol.account.v1"
     ".AccountId\022\030\n\020user_description\030\002 \001(\t\022\017\n\007"
     "program\030\003 \001(\r\022;\n\014user_options\030\n \001(\0132#.bg"
     "s.protocol.report.v2.UserOptionsH\000\022;\n\014cl"
     "ub_options\030\013 \001(\0132#.bgs.protocol.report.v"
-    "2.ClubOptionsH\000B\006\n\004type2\245\001\n\rReportServic"
-    "e\022Y\n\014SubmitReport\022+.bgs.protocol.report."
-    "v2.SubmitReportRequest\032\024.bgs.protocol.No"
-    "Data\"\006\202\371+\002\010\001\0329\202\371+/\n%bnet.protocol.report"
-    ".v2.ReportService*\006report\212\371+\002\020\001B\005H\001\200\001\000", 558);
+    "2.ClubOptionsH\000:\006\202\371+\002\020\001B\006\n\004type2\245\001\n\rRepo"
+    "rtService\022Y\n\014SubmitReport\022+.bgs.protocol"
+    ".report.v2.SubmitReportRequest\032\024.bgs.pro"
+    "tocol.NoData\"\006\202\371+\002\010\001\0329\202\371+/\n%bnet.protoco"
+    "l.report.v2.ReportService*\006report\212\371+\002\020\001B"
+    "\005H\001\200\001\000", 566);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "api/client/v2/report_service.proto", &protobuf_RegisterTypes);
   SubmitReportRequest::default_instance_ = new SubmitReportRequest();
@@ -591,38 +592,27 @@ google::protobuf::ServiceDescriptor const* ReportService::descriptor() {
   return ReportService_descriptor_;
 }
 
-void ReportService::SubmitReport(::bgs::protocol::report::v2::SubmitReportRequest const* request, std::function<void(::bgs::protocol::NoData const*)> responseCallback) {
-  TC_LOG_DEBUG("service.protobuf", "%s Server called client method ReportService.SubmitReport(bgs.protocol.report.v2.SubmitReportRequest{ %s })",
-    GetCallerInfo().c_str(), request->ShortDebugString().c_str());
-  std::function<void(MessageBuffer)> callback = [responseCallback](MessageBuffer buffer) -> void {
-    ::bgs::protocol::NoData response;
-    if (response.ParseFromArray(buffer.GetReadPointer(), buffer.GetActiveSize()))
-      responseCallback(&response);
-  };
-  SendRequest(service_hash_, 1, request, std::move(callback));
-}
-
 void ReportService::CallServerMethod(uint32 token, uint32 methodId, MessageBuffer buffer) {
-  switch(methodId) {
+  switch(methodId & 0x3FFFFFFF) {
     case 1: {
       ::bgs::protocol::report::v2::SubmitReportRequest request;
       if (!request.ParseFromArray(buffer.GetReadPointer(), buffer.GetActiveSize())) {
         TC_LOG_DEBUG("service.protobuf", "%s Failed to parse request for ReportService.SubmitReport server method call.", GetCallerInfo().c_str());
-        SendResponse(service_hash_, 1, token, ERROR_RPC_MALFORMED_REQUEST);
+        SendResponse(service_hash_, methodId, token, ERROR_RPC_MALFORMED_REQUEST);
         return;
       }
       TC_LOG_DEBUG("service.protobuf", "%s Client called server method ReportService.SubmitReport(bgs.protocol.report.v2.SubmitReportRequest{ %s }).",
         GetCallerInfo().c_str(), request.ShortDebugString().c_str());
-      std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)> continuation = [token](ServiceBase* service, uint32 status, ::google::protobuf::Message const* response)
+      std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)> continuation = [token, methodId](ServiceBase* service, uint32 status, ::google::protobuf::Message const* response)
       {
         ASSERT(response->GetDescriptor() == ::bgs::protocol::NoData::descriptor());
         ReportService* self = static_cast<ReportService*>(service);
         TC_LOG_DEBUG("service.protobuf", "%s Client called server method ReportService.SubmitReport() returned bgs.protocol.NoData{ %s } status %u.",
           self->GetCallerInfo().c_str(), response->ShortDebugString().c_str(), status);
         if (!status)
-          self->SendResponse(self->service_hash_, 1, token, response);
+          self->SendResponse(self->service_hash_, methodId, token, response);
         else
-          self->SendResponse(self->service_hash_, 1, token, status);
+          self->SendResponse(self->service_hash_, methodId, token, status);
       };
       ::bgs::protocol::NoData response;
       uint32 status = HandleSubmitReport(&request, &response, continuation);

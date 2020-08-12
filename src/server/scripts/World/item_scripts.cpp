@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -33,6 +32,7 @@ EndContentData */
 #include "ScriptMgr.h"
 #include "GameObject.h"
 #include "Item.h"
+#include "Map.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Spell.h"
@@ -70,7 +70,7 @@ public:
                     disabled = true;
                 break;
             case 34475:
-                if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SPELL_ARCANE_CHARGES))
+                if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SPELL_ARCANE_CHARGES, player->GetMap()->GetDifficultyID()))
                     Spell::SendCastResult(player, spellInfo, 0, castId, SPELL_FAILED_NOT_ON_GROUND);
                 break;
         }
@@ -163,7 +163,7 @@ public:
         ItemPosCountVec dest;
         uint8 msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, 39883, 1); // Cracked Egg
         if (msg == EQUIP_ERR_OK)
-            player->StoreNewItem(dest, 39883, true, GenerateItemRandomPropertyId(39883));
+            player->StoreNewItem(dest, 39883, true, GenerateItemRandomBonusListId(39883));
 
         return true;
     }
@@ -183,7 +183,7 @@ public:
         ItemPosCountVec dest;
         uint8 msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, 44718, 1); // Ripe Disgusting Jar
         if (msg == EQUIP_ERR_OK)
-            player->StoreNewItem(dest, 44718, true, GenerateItemRandomPropertyId(44718));
+            player->StoreNewItem(dest, 44718, true, GenerateItemRandomBonusListId(44718));
 
         return true;
     }
@@ -244,13 +244,13 @@ public:
             return true;
 
         float x, y, z;
-        go->GetClosePoint(x, y, z, go->GetObjectSize() / 3, 7.0f);
+        go->GetClosePoint(x, y, z, go->GetCombatReach() / 3, 7.0f);
         go->SummonGameObject(GO_HIGH_QUALITY_FUR, *go, QuaternionData::fromEulerAnglesZYX(go->GetOrientation(), 0.0f, 0.0f), 1);
         if (TempSummon* summon = player->SummonCreature(NPC_NESINGWARY_TRAPPER, x, y, z, go->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 1000))
         {
             summon->SetVisible(false);
             summon->SetReactState(REACT_PASSIVE);
-            summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
+            summon->AddUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
         }
         return false;
     }
@@ -279,7 +279,7 @@ public:
 
         if (!player->GetTransport() || player->GetAreaId() != AREA_ID_SHATTERED_STRAITS)
         {
-            if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SPELL_PETROV_BOMB))
+            if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(SPELL_PETROV_BOMB, DIFFICULTY_NONE))
                 Spell::SendCastResult(player, spellInfo, 0, castId, SPELL_FAILED_NOT_HERE);
 
             return true;
@@ -414,6 +414,30 @@ public:
     }
 };
 
+// Only used currently for
+// 19169: Nightfall
+class item_generic_limit_chance_above_60 : public ItemScript
+{
+    public:
+        item_generic_limit_chance_above_60() : ItemScript("item_generic_limit_chance_above_60") { }
+
+        bool OnCastItemCombatSpell(Player* player, Unit* victim, SpellInfo const* /*spellInfo*/, Item* /*item*/) override
+        {
+            // spell proc chance gets severely reduced on victims > 60 (formula unknown)
+            if (victim->getLevel() > 60)
+            {
+                // gives ~0.1% proc chance at lvl 70
+                float const lvlPenaltyFactor = 9.93f;
+                float const failureChance = (victim->GetLevelForTarget(player) - 60) * lvlPenaltyFactor;
+
+                // base ppm chance was already rolled, only roll success chance
+                return !roll_chance_f(failureChance);
+            }
+
+            return true;
+        }
+};
+
 void AddSC_item_scripts()
 {
     new item_only_for_flight();
@@ -427,4 +451,5 @@ void AddSC_item_scripts()
     new item_dehta_trap_smasher();
     new item_trident_of_nazjan();
     new item_captured_frog();
+    new item_generic_limit_chance_above_60();
 }

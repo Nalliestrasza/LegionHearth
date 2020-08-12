@@ -467,26 +467,26 @@ public:
                         }
                     break;
                 case GO_RUNE_BLEU:
-                    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                    go->AddFlag(GO_FLAG_NOT_SELECTABLE);
                     if (BlueRuneState == GO_STATE_READY)
                         switchPhase(go, PHASE_INVISIBLE, PHASE_GAME);
                     break;
                 case GO_RUNE_ROUGE:
-                    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                    go->AddFlag(GO_FLAG_NOT_SELECTABLE);
                     if (RedRuneState == GO_STATE_READY)
                         switchPhase(go, PHASE_INVISIBLE, PHASE_GAME);
                 case GO_RUNE_VERT:
-                    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                    go->AddFlag(GO_FLAG_NOT_SELECTABLE);
                     if (GreenRuneState == GO_STATE_READY)
                         switchPhase(go, PHASE_INVISIBLE, PHASE_GAME);
                     break;
                 case GO_RUNE_JAUNE:
-                    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                    go->AddFlag(GO_FLAG_NOT_SELECTABLE);
                     if (YellowRuneState == GO_STATE_READY)
                         switchPhase(go, PHASE_INVISIBLE, PHASE_GAME);
                     break;
                 case GO_RUNE_VIOLET:
-                    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                    go->AddFlag(GO_FLAG_NOT_SELECTABLE);
                     if (VioletRuneState == GO_STATE_READY)
                         switchPhase(go, PHASE_INVISIBLE, PHASE_GAME);
                     break;
@@ -517,33 +517,33 @@ public:
 
                 // please refactor this properly.
                 // Set all the runes, not targetable.
-                if (GameObject* go = GetGameObject(DATA_RUNE_BLEU)) go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-                if (GameObject* go = GetGameObject(DATA_RUNE_ROUGE)) go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-                if (GameObject* go = GetGameObject(DATA_RUNE_VERT)) go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-                if (GameObject* go = GetGameObject(DATA_RUNE_JAUNE)) go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-                if (GameObject* go = GetGameObject(DATA_RUNE_VIOLET)) go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                if (GameObject* go = GetGameObject(DATA_RUNE_BLEU)) go->AddFlag(GO_FLAG_NOT_SELECTABLE);
+                if (GameObject* go = GetGameObject(DATA_RUNE_ROUGE)) go->AddFlag(GO_FLAG_NOT_SELECTABLE);
+                if (GameObject* go = GetGameObject(DATA_RUNE_VERT)) go->AddFlag(GO_FLAG_NOT_SELECTABLE);
+                if (GameObject* go = GetGameObject(DATA_RUNE_JAUNE)) go->AddFlag(GO_FLAG_NOT_SELECTABLE);
+                if (GameObject* go = GetGameObject(DATA_RUNE_VIOLET)) go->AddFlag(GO_FLAG_NOT_SELECTABLE);
 
                 switch (data)
                 {
                     case GO_ORBE_BLEU:
                         if (GameObject* go = GetGameObject(DATA_RUNE_BLEU))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_ORBE_ROUGE:
                         if (GameObject* go = GetGameObject(DATA_RUNE_ROUGE))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_ORBE_VERT:
                         if (GameObject* go = GetGameObject(DATA_RUNE_VERT))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_ORBE_JAUNE:
                         if (GameObject* go = GetGameObject(DATA_RUNE_JAUNE))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                     case GO_ORBE_VIOLET:
                         if (GameObject* go = GetGameObject(DATA_RUNE_VIOLET))
-                            go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                            go->RemoveFlag(GO_FLAG_NOT_SELECTABLE);
                         break;
                 }
             }

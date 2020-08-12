@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -53,7 +53,7 @@ void Battlenet::Session::AccountInfo::LoadResult(PreparedQueryResult result)
 
 void Battlenet::Session::GameAccountInfo::LoadResult(Field* fields)
 {
-    // a.id, a.username, ab.unbandate, ab.unbandate = ab.bandate, aa.gmlevel
+    // a.id, a.username, ab.unbandate, ab.unbandate = ab.bandate, aa.SecurityLevel
     Id = fields[0].GetUInt32();
     Name = fields[1].GetString();
     UnbanDate = fields[2].GetUInt32();
@@ -91,10 +91,10 @@ void Battlenet::Session::Start()
     // Verify that this IP is not in the ip_banned table
     LoginDatabase.Execute(LoginDatabase.GetPreparedStatement(LOGIN_DEL_EXPIRED_IP_BANS));
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_IP_INFO);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_IP_INFO);
     stmt->setString(0, ip_address);
 
-    _queryProcessor.AddQuery(LoginDatabase.AsyncQuery(stmt).WithPreparedCallback(std::bind(&Battlenet::Session::CheckIpCallback, this, std::placeholders::_1)));
+    _queryProcessor.AddCallback(LoginDatabase.AsyncQuery(stmt).WithPreparedCallback(std::bind(&Battlenet::Session::CheckIpCallback, this, std::placeholders::_1)));
 }
 
 void Battlenet::Session::CheckIpCallback(PreparedQueryResult result)
@@ -126,7 +126,7 @@ bool Battlenet::Session::Update()
     if (!BattlenetSocket::Update())
         return false;
 
-    _queryProcessor.ProcessReadyQueries();
+    _queryProcessor.ProcessReadyCallbacks();
 
     return true;
 }
@@ -149,14 +149,14 @@ void Battlenet::Session::SendResponse(uint32 token, pb::Message const* response)
     uint16 headerSize = header.ByteSize();
     EndianConvertReverse(headerSize);
 
-    MessageBuffer packet;
+    MessageBuffer packet(sizeof(headerSize) + header.GetCachedSize() + response->GetCachedSize());
     packet.Write(&headerSize, sizeof(headerSize));
     uint8* ptr = packet.GetWritePointer();
-    packet.WriteCompleted(header.ByteSize());
-    header.SerializeToArray(ptr, header.ByteSize());
+    packet.WriteCompleted(header.GetCachedSize());
+    header.SerializePartialToArray(ptr, header.GetCachedSize());
     ptr = packet.GetWritePointer();
-    packet.WriteCompleted(response->ByteSize());
-    response->SerializeToArray(ptr, response->ByteSize());
+    packet.WriteCompleted(response->GetCachedSize());
+    response->SerializeToArray(ptr, response->GetCachedSize());
 
     AsyncWrite(&packet);
 }
@@ -171,11 +171,11 @@ void Battlenet::Session::SendResponse(uint32 token, uint32 status)
     uint16 headerSize = header.ByteSize();
     EndianConvertReverse(headerSize);
 
-    MessageBuffer packet;
+    MessageBuffer packet(sizeof(headerSize) + header.GetCachedSize());
     packet.Write(&headerSize, sizeof(headerSize));
     uint8* ptr = packet.GetWritePointer();
-    packet.WriteCompleted(header.ByteSize());
-    header.SerializeToArray(ptr, header.ByteSize());
+    packet.WriteCompleted(header.GetCachedSize());
+    header.SerializeToArray(ptr, header.GetCachedSize());
 
     AsyncWrite(&packet);
 }
@@ -192,14 +192,14 @@ void Battlenet::Session::SendRequest(uint32 serviceHash, uint32 methodId, pb::Me
     uint16 headerSize = header.ByteSize();
     EndianConvertReverse(headerSize);
 
-    MessageBuffer packet;
+    MessageBuffer packet(sizeof(headerSize) + header.GetCachedSize() + request->GetCachedSize());
     packet.Write(&headerSize, sizeof(headerSize));
     uint8* ptr = packet.GetWritePointer();
-    packet.WriteCompleted(header.ByteSize());
-    header.SerializeToArray(ptr, header.ByteSize());
+    packet.WriteCompleted(header.GetCachedSize());
+    header.SerializeToArray(ptr, header.GetCachedSize());
     ptr = packet.GetWritePointer();
-    packet.WriteCompleted(request->ByteSize());
-    request->SerializeToArray(ptr, request->ByteSize());
+    packet.WriteCompleted(request->GetCachedSize());
+    request->SerializeToArray(ptr, request->GetCachedSize());
 
     AsyncWrite(&packet);
 }
@@ -218,7 +218,7 @@ uint32 Battlenet::Session::HandleLogon(authentication::v1::LogonRequest const* l
         return ERROR_BAD_PLATFORM;
     }
 
-    if (GetLocaleByName(logonRequest->locale()) == LOCALE_enUS && logonRequest->locale() != "enUS")
+    if (!IsValidLocale(GetLocaleByName(logonRequest->locale())))
     {
         TC_LOG_DEBUG("session", "[Battlenet::LogonRequest] %s attempted to log in with unsupported locale (using %s)!", GetClientInfo().c_str(), logonRequest->locale().c_str());
         return ERROR_BAD_LOCALE;
@@ -253,12 +253,12 @@ uint32 Battlenet::Session::VerifyWebCredentials(std::string const& webCredential
     if (webCredentials.empty())
         return ERROR_DENIED;
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_ACCOUNT_INFO);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_ACCOUNT_INFO);
     stmt->setString(0, webCredentials);
 
     std::function<void(ServiceBase*, uint32, ::google::protobuf::Message const*)> asyncContinuation = std::move(continuation);
     std::shared_ptr<AccountInfo> accountInfo = std::make_shared<AccountInfo>();
-    _queryProcessor.AddQuery(LoginDatabase.AsyncQuery(stmt).WithChainingPreparedCallback([this, accountInfo, asyncContinuation](QueryCallback& callback, PreparedQueryResult result)
+    _queryProcessor.AddCallback(LoginDatabase.AsyncQuery(stmt).WithChainingPreparedCallback([this, accountInfo, asyncContinuation](QueryCallback& callback, PreparedQueryResult result)
     {
         Battlenet::Services::Authentication asyncContinuationService(this);
         NoData response;
@@ -276,7 +276,7 @@ uint32 Battlenet::Session::VerifyWebCredentials(std::string const& webCredential
             return;
         }
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_CHARACTER_COUNTS_BY_BNET_ID);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_CHARACTER_COUNTS_BY_BNET_ID);
         stmt->setUInt32(0, accountInfo->Id);
         callback.SetNextQuery(LoginDatabase.AsyncQuery(stmt));
     })
@@ -293,7 +293,7 @@ uint32 Battlenet::Session::VerifyWebCredentials(std::string const& webCredential
             } while (characterCountsResult->NextRow());
         }
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_LAST_PLAYER_CHARACTERS);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_LAST_PLAYER_CHARACTERS);
         stmt->setUInt32(0, accountInfo->Id);
         callback.SetNextQuery(LoginDatabase.AsyncQuery(stmt));
     })
@@ -536,7 +536,7 @@ uint32 Battlenet::Session::GetRealmListTicket(std::unordered_map<std::string, Va
     if (!clientInfoOk)
         return ERROR_WOW_SERVICES_DENIED_REALM_LIST_TICKET;
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_LAST_LOGIN_INFO);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_BNET_LAST_LOGIN_INFO);
     stmt->setString(0, GetRemoteIpAddress().to_string());
     stmt->setUInt8(1, GetLocaleByName(_locale));
     stmt->setString(2, _os);

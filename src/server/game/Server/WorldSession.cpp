@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -30,6 +29,7 @@
 #include "CharacterPackets.h"
 #include "ChatPackets.h"
 #include "DatabaseEnv.h"
+#include "GameTime.h"
 #include "Group.h"
 #include "Guild.h"
 #include "GuildMgr.h"
@@ -50,6 +50,8 @@
 #include "WardenWin.h"
 #include "World.h"
 #include "WorldSocket.h"
+#include "Aurora/OS/AuroraWin.h"
+
 
 namespace {
 
@@ -117,6 +119,7 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
     _os(os),
     _battlenetRequestToken(0),
     _warden(NULL),
+    _aurora(NULL),
     _logoutTime(0),
     m_inQueue(false),
     m_playerLogout(false),
@@ -126,7 +129,7 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
     m_sessionDbLocaleIndex(locale),
     m_latency(0),
     m_clientTimeDelay(0),
-    _tutorialsChanged(false),
+    _tutorialsChanged(TUTORIALS_FLAG_NONE),
     _filterAddonMessages(false),
     recruiterId(recruiter),
     isRecruiter(isARecruiter),
@@ -134,15 +137,15 @@ WorldSession::WorldSession(uint32 id, std::string&& name, uint32 battlenetAccoun
     expireTime(60000), // 1 min after socket loss, session is deleted
     forceExit(false),
     m_currentBankerGUID(),
-    _battlePetMgr(Trinity::make_unique<BattlePetMgr>(this)),
-    _collectionMgr(Trinity::make_unique<CollectionMgr>(this))
+    _battlePetMgr(std::make_unique<BattlePetMgr>(this)),
+    _collectionMgr(std::make_unique<CollectionMgr>(this))
 {
     memset(_tutorials, 0, sizeof(_tutorials));
 
     if (sock)
     {
         m_Address = sock->GetRemoteIpAddress().to_string();
-        ResetTimeOutTime();
+        ResetTimeOutTime(false);
         LoginDatabase.PExecute("UPDATE account SET online = 1 WHERE id = %u;", GetAccountId());     // One-time query
     }
 
@@ -167,6 +170,7 @@ WorldSession::~WorldSession()
         }
     }
 
+    delete _aurora;
     delete _warden;
     delete _RBACData;
 
@@ -234,7 +238,7 @@ void WorldSession::SendPacket(WorldPacket const* packet, bool forced /*= false*/
     {
         if (packet->GetConnection() != CONNECTION_TYPE_INSTANCE && IsInstanceOnlyOpcode(packet->GetOpcode()))
         {
-            TC_LOG_ERROR("network.opcode", "Prevented sending of instance only opcode %u with connection type %u to %s", packet->GetOpcode(), packet->GetConnection(), GetPlayerInfo().c_str());
+            TC_LOG_ERROR("network.opcode", "Prevented sending of instance only opcode %u with connection type %u to %s", packet->GetOpcode(), uint32(packet->GetConnection()), GetPlayerInfo().c_str());
             return;
         }
 
@@ -243,7 +247,7 @@ void WorldSession::SendPacket(WorldPacket const* packet, bool forced /*= false*/
 
     if (!m_Socket[conIdx])
     {
-        TC_LOG_ERROR("network.opcode", "Prevented sending of %s to non existent socket %u to %s", GetOpcodeNameForLogging(static_cast<OpcodeServer>(packet->GetOpcode())).c_str(), conIdx, GetPlayerInfo().c_str());
+        TC_LOG_ERROR("network.opcode", "Prevented sending of %s to non existent socket %u to %s", GetOpcodeNameForLogging(static_cast<OpcodeServer>(packet->GetOpcode())).c_str(), uint32(conIdx), GetPlayerInfo().c_str());
         return;
     }
 
@@ -327,7 +331,8 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
     UpdateTimeOutTime(diff);
 
     ///- Before we process anything:
-    /// If necessary, kick the player from the character select screen
+    /// If necessary, kick the player because the client didn't send anything for too long
+    /// (or they've been idling in character select)
     if (IsConnectionIdle())
         m_Socket[CONNECTION_TYPE_REALM]->CloseSocket();
 
@@ -449,8 +454,16 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 
     _recvQueue.readd(requeuePackets.begin(), requeuePackets.end());
 
+
+
+
     if (m_Socket[CONNECTION_TYPE_REALM] && m_Socket[CONNECTION_TYPE_REALM]->IsOpen() && _warden)
         _warden->Update();
+
+    if (m_Socket[CONNECTION_TYPE_REALM] && m_Socket[CONNECTION_TYPE_REALM]->IsOpen() && _aurora) {
+        _aurora->Update();
+    }
+
 
     ProcessQueryCallbacks();
 
@@ -465,6 +478,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 
         if (m_Socket[CONNECTION_TYPE_REALM] && GetPlayer() && _warden)
             _warden->Update();
+
+        if (m_Socket[CONNECTION_TYPE_REALM] && GetPlayer() && _aurora) {
+            _aurora->Update();
+        }
 
         ///- Cleanup socket pointer if need
         if ((m_Socket[CONNECTION_TYPE_REALM] && !m_Socket[CONNECTION_TYPE_REALM]->IsOpen()) ||
@@ -541,7 +558,8 @@ void WorldSession::LogoutPlayer(bool save)
 
         for (int i=0; i < PLAYER_MAX_BATTLEGROUND_QUEUES; ++i)
         {
-            if (BattlegroundQueueTypeId bgQueueTypeId = _player->GetBattlegroundQueueTypeId(i))
+            BattlegroundQueueTypeId bgQueueTypeId = _player->GetBattlegroundQueueTypeId(i);
+            if (bgQueueTypeId != BATTLEGROUND_QUEUE_NONE)
             {
                 _player->RemoveBattlegroundQueueId(bgQueueTypeId);
                 BattlegroundQueue& queue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
@@ -572,9 +590,9 @@ void WorldSession::LogoutPlayer(bool save)
             for (int j = BUYBACK_SLOT_START; j < BUYBACK_SLOT_END; ++j)
             {
                 eslot = j - BUYBACK_SLOT_START;
-                _player->SetGuidValue(ACTIVE_PLAYER_FIELD_INV_SLOT_HEAD + (j * 4), ObjectGuid::Empty);
-                _player->SetUInt32Value(ACTIVE_PLAYER_FIELD_BUYBACK_PRICE + eslot, 0);
-                _player->SetUInt32Value(ACTIVE_PLAYER_FIELD_BUYBACK_TIMESTAMP + eslot, 0);
+                _player->SetInvSlot(j, ObjectGuid::Empty);
+                _player->SetBuybackPrice(eslot, 0);
+                _player->SetBuybackTimestamp(eslot, 0);
             }
             _player->SaveToDB();
         }
@@ -625,7 +643,7 @@ void WorldSession::LogoutPlayer(bool save)
         TC_LOG_DEBUG("network", "SESSION: Sent SMSG_LOGOUT_COMPLETE Message");
 
         //! Since each account can only have one online character at any given time, ensure all characters for active account are marked as offline
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ACCOUNT_ONLINE);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ACCOUNT_ONLINE);
         stmt->setUInt32(0, GetAccountId());
         CharacterDatabase.Execute(stmt);
     }
@@ -686,14 +704,22 @@ void WorldSession::SendNotification(uint32 stringId, ...)
     }
 }
 
+bool WorldSession::CanSpeak() const
+{
+    return m_muteTime <= GameTime::GetGameTime();
+}
+
 char const* WorldSession::GetTrinityString(uint32 entry) const
 {
     return sObjectMgr->GetTrinityString(entry, GetSessionDbLocaleIndex());
 }
 
-void WorldSession::ResetTimeOutTime()
+void WorldSession::ResetTimeOutTime(bool onlyActive)
 {
-    m_timeOutTime = int32(sWorld->getIntConfig(CONFIG_SOCKET_TIMEOUTTIME));
+    if (GetPlayer())
+        m_timeOutTime = int32(sWorld->getIntConfig(CONFIG_SOCKET_TIMEOUTTIME_ACTIVE));
+    else if (!onlyActive)
+        m_timeOutTime = int32(sWorld->getIntConfig(CONFIG_SOCKET_TIMEOUTTIME));
 }
 
 void WorldSession::Handle_NULL(WorldPackets::Null& null)
@@ -701,10 +727,10 @@ void WorldSession::Handle_NULL(WorldPackets::Null& null)
     TC_LOG_ERROR("network.opcode", "Received unhandled opcode %s from %s", GetOpcodeNameForLogging(null.GetOpcode()).c_str(), GetPlayerInfo().c_str());
 }
 
-void WorldSession::Handle_EarlyProccess(WorldPacket& recvPacket)
+void WorldSession::Handle_EarlyProccess(WorldPackets::Null& null)
 {
     TC_LOG_ERROR("network.opcode", "Received opcode %s that must be processed in WorldSocket::OnRead from %s"
-        , GetOpcodeNameForLogging(static_cast<OpcodeClient>(recvPacket.GetOpcode())).c_str(), GetPlayerInfo().c_str());
+        , GetOpcodeNameForLogging(null.GetOpcode()).c_str(), GetPlayerInfo().c_str());
 }
 
 void WorldSession::SendConnectToInstance(WorldPackets::Auth::ConnectToSerial serial)
@@ -722,13 +748,13 @@ void WorldSession::SendConnectToInstance(WorldPackets::Auth::ConnectToSerial ser
     connectTo.Payload.Port = sWorld->getIntConfig(CONFIG_PORT_INSTANCE);
     if (instanceAddress.is_v4())
     {
-        memcpy(connectTo.Payload.Where.data(), instanceAddress.to_v4().to_bytes().data(), 4);
-        connectTo.Payload.Type = WorldPackets::Auth::ConnectTo::IPv4;
+        memcpy(connectTo.Payload.Where.Address.V4.data(), instanceAddress.to_v4().to_bytes().data(), 4);
+        connectTo.Payload.Where.Type = WorldPackets::Auth::ConnectTo::IPv4;
     }
     else
     {
-        memcpy(connectTo.Payload.Where.data(), instanceAddress.to_v6().to_bytes().data(), 16);
-        connectTo.Payload.Type = WorldPackets::Auth::ConnectTo::IPv6;
+        memcpy(connectTo.Payload.Where.Address.V6.data(), instanceAddress.to_v6().to_bytes().data(), 16);
+        connectTo.Payload.Where.Type = WorldPackets::Auth::ConnectTo::IPv6;
     }
     connectTo.Con = CONNECTION_TYPE_INSTANCE;
 
@@ -772,7 +798,7 @@ void WorldSession::SetAccountData(AccountDataType type, uint32 time, std::string
 {
     if ((1 << type) & GLOBAL_CACHE_MASK)
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_DATA);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_DATA);
         stmt->setUInt32(0, GetAccountId());
         stmt->setUInt8(1, type);
         stmt->setUInt32(2, time);
@@ -785,7 +811,7 @@ void WorldSession::SetAccountData(AccountDataType type, uint32 time, std::string
         if (!m_GUIDLow)
             return;
 
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PLAYER_ACCOUNT_DATA);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PLAYER_ACCOUNT_DATA);
         stmt->setUInt64(0, m_GUIDLow);
         stmt->setUInt8(1, type);
         stmt->setUInt32(2, time);
@@ -802,10 +828,13 @@ void WorldSession::LoadTutorialsData(PreparedQueryResult result)
     memset(_tutorials, 0, sizeof(uint32) * MAX_ACCOUNT_TUTORIAL_VALUES);
 
     if (result)
+    {
         for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
             _tutorials[i] = (*result)[i].GetUInt32();
+        _tutorialsChanged |= TUTORIALS_FLAG_LOADED_FROM_DB;
+    }
 
-    _tutorialsChanged = false;
+    _tutorialsChanged &= ~TUTORIALS_FLAG_CHANGED;
 }
 
 void WorldSession::SendTutorialsData()
@@ -815,22 +844,23 @@ void WorldSession::SendTutorialsData()
     SendPacket(packet.Write());
 }
 
-void WorldSession::SaveTutorialsData(SQLTransaction& trans)
+void WorldSession::SaveTutorialsData(CharacterDatabaseTransaction& trans)
 {
-    if (!_tutorialsChanged)
+    if (!(_tutorialsChanged & TUTORIALS_FLAG_CHANGED))
         return;
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_HAS_TUTORIALS);
-    stmt->setUInt32(0, GetAccountId());
-    bool hasTutorials = bool(CharacterDatabase.Query(stmt));
-    // Modify data in DB
-    stmt = CharacterDatabase.GetPreparedStatement(hasTutorials ? CHAR_UPD_TUTORIALS : CHAR_INS_TUTORIALS);
+    bool const hasTutorialsInDB = (_tutorialsChanged & TUTORIALS_FLAG_LOADED_FROM_DB) != 0;
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(hasTutorialsInDB ? CHAR_UPD_TUTORIALS : CHAR_INS_TUTORIALS);
     for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
         stmt->setUInt32(i, _tutorials[i]);
     stmt->setUInt32(MAX_ACCOUNT_TUTORIAL_VALUES, GetAccountId());
     trans->Append(stmt);
 
-    _tutorialsChanged = false;
+    // now has, set flag so next save uses update query
+    if (!hasTutorialsInDB)
+        _tutorialsChanged |= TUTORIALS_FLAG_LOADED_FROM_DB;
+
+    _tutorialsChanged &= ~TUTORIALS_FLAG_CHANGED;
 }
 
 bool WorldSession::IsAddonRegistered(const std::string& prefix) const
@@ -874,15 +904,22 @@ void WorldSession::SetPlayer(Player* player)
 
 void WorldSession::ProcessQueryCallbacks()
 {
-    _queryProcessor.ProcessReadyQueries();
+    _queryProcessor.ProcessReadyCallbacks();
+    _transactionCallbacks.ProcessReadyCallbacks();
 
     if (_realmAccountLoginCallback.valid() && _realmAccountLoginCallback.wait_for(std::chrono::seconds(0)) == std::future_status::ready &&
         _accountLoginCallback.valid() && _accountLoginCallback.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-        InitializeSessionCallback(_realmAccountLoginCallback.get(), _accountLoginCallback.get());
+        InitializeSessionCallback(static_cast<LoginDatabaseQueryHolder*>(_realmAccountLoginCallback.get()),
+            static_cast<CharacterDatabaseQueryHolder*>(_accountLoginCallback.get()));
 
     //! HandlePlayerLoginOpcode
     if (_charLoginCallback.valid() && _charLoginCallback.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
         HandlePlayerLogin(reinterpret_cast<LoginQueryHolder*>(_charLoginCallback.get()));
+}
+
+TransactionCallback& WorldSession::AddTransactionCallback(TransactionCallback&& callback)
+{
+    return _transactionCallbacks.AddCallback(std::move(callback));
 }
 
 void WorldSession::InitWarden(BigNumber* k)
@@ -900,6 +937,14 @@ void WorldSession::InitWarden(BigNumber* k)
     {
         // Not implemented
     }
+}
+
+void WorldSession::InitAurora()
+{
+
+    TC_LOG_DEBUG("misc", "Installing server side HWID Check for world session [AccountId: %u] ", GetAccountId());
+    _aurora = new AuroraWin();
+    _aurora->Init(this);
 }
 
 void WorldSession::LoadPermissions()
@@ -926,7 +971,7 @@ QueryCallback WorldSession::LoadPermissionsAsync()
     return _RBACData->LoadFromDBAsync();
 }
 
-class AccountInfoQueryHolderPerRealm : public SQLQueryHolder
+class AccountInfoQueryHolderPerRealm : public CharacterDatabaseQueryHolder
 {
 public:
     enum
@@ -943,7 +988,7 @@ public:
     {
         bool ok = true;
 
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_DATA);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_DATA);
         stmt->setUInt32(0, accountId);
         ok = SetPreparedQuery(GLOBAL_ACCOUNT_DATA, stmt) && ok;
 
@@ -955,7 +1000,7 @@ public:
     }
 };
 
-class AccountInfoQueryHolder : public SQLQueryHolder
+class AccountInfoQueryHolder : public LoginDatabaseQueryHolder
 {
 public:
     enum
@@ -978,7 +1023,7 @@ public:
     {
         bool ok = true;
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_TOYS);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_TOYS);
         stmt->setUInt32(0, battlenetAccountId);
         ok = SetPreparedQuery(GLOBAL_ACCOUNT_TOYS, stmt) && ok;
 
@@ -1037,7 +1082,7 @@ void WorldSession::InitializeSession()
     _accountLoginCallback = LoginDatabase.DelayQueryHolder(holder);
 }
 
-void WorldSession::InitializeSessionCallback(SQLQueryHolder* realmHolder, SQLQueryHolder* holder)
+void WorldSession::InitializeSessionCallback(LoginDatabaseQueryHolder* realmHolder, CharacterDatabaseQueryHolder* holder)
 {
     LoadAccountData(realmHolder->GetPreparedResult(AccountInfoQueryHolderPerRealm::GLOBAL_ACCOUNT_DATA), GLOBAL_CACHE_MASK);
     LoadTutorialsData(realmHolder->GetPreparedResult(AccountInfoQueryHolderPerRealm::TUTORIALS));
@@ -1052,7 +1097,7 @@ void WorldSession::InitializeSessionCallback(SQLQueryHolder* realmHolder, SQLQue
         SendAuthWaitQue(0);
 
     SetInQueue(false);
-    ResetTimeOutTime();
+    ResetTimeOutTime(false);
 
     SendSetTimeZoneInformation();
     SendFeatureSystemStatusGlueScreen();
@@ -1104,6 +1149,155 @@ void WorldSession::InvalidateRBACData()
                    _RBACData->GetId(), _RBACData->GetName().c_str(), realm.Id.Realm);
     delete _RBACData;
     _RBACData = NULL;
+}
+
+bool WorldSession::GetPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions)
+{
+    bool permissionsExists = false;
+
+    LoginDatabasePreparedStatement* stmtPermissions = LoginDatabase.GetPreparedStatement(LOGIN_SEL_PHASE_PERMISSION);
+    stmtPermissions->setUInt32(0, this->GetAccountId());
+    stmtPermissions->setUInt32(1, phaseId);
+
+    PreparedQueryResult resultPermissions = LoginDatabase.Query(stmtPermissions);
+
+    if (resultPermissions) {
+        Field* field = resultPermissions->Fetch();
+        permissions = PhaseChat::GetPermissionsFromVector(field[0].GetBinary());
+        permissionsExists = true;
+    }
+
+    return permissionsExists;
+}
+
+void WorldSession::AddPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->AddPhasePermissions(phaseId, &permission, 1);
+}
+
+void WorldSession::AddPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+
+    LoginDatabasePreparedStatement* stmt;
+
+    if (!this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.set(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(dataPermissions));
+    }
+    else {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.set(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(dataPermissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+void WorldSession::AddPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions>& permissions)
+{
+    LoginDatabasePreparedStatement* stmt;
+    std::bitset<PhaseChat::PhaseMaxPermissions> playerPermissions;
+    if (!this->GetPhasePermissions(phaseId, playerPermissions)) {
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(permissions));
+    }
+    else {
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(permissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+void WorldSession::RemovePhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->RemovePhasePermissions(phaseId, &permission, 1);
+}
+
+
+void WorldSession::RemovePhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    if (permissions == nullptr)
+        return;
+
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+
+    LoginDatabasePreparedStatement* stmt;
+
+    if (!this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.reset(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_PHASE_PERMISSION);
+        stmt->setUInt32(0, this->GetAccountId());
+        stmt->setUInt32(1, phaseId);
+        stmt->setBinary(2, PhaseChat::GetPermissionsToVector(dataPermissions));
+    }
+    else {
+        for (uint32_t i = 0; i < size; i++)
+            dataPermissions.reset(PhaseChat::GetPermissionsAs<size_t>(permissions[i]));
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_PHASE_PERMISSION);
+        stmt->setBinary(0, PhaseChat::GetPermissionsToVector(dataPermissions));
+        stmt->setUInt32(1, this->GetAccountId());
+        stmt->setUInt32(2, phaseId);
+    }
+
+    LoginDatabase.Execute(stmt);
+}
+
+bool WorldSession::HasPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission)
+{
+    return this->HasPhasePermissions(phaseId, &permission, 1);
+}
+
+bool WorldSession::HasPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+    bool hasPerms = true;
+
+    if (this->GetPhasePermissions(phaseId, dataPermissions)) {
+        for (uint32_t i = 0; i < size; i++) {
+            if (!dataPermissions.test(PhaseChat::GetPermissionsAs<size_t>(permissions[i]))) {
+                hasPerms = false;
+                break;
+            }
+        }
+    }
+    else {
+        hasPerms = false;
+    }
+
+    return hasPerms;
+}
+
+bool WorldSession::HasPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions> permissions)
+{
+    std::bitset<PhaseChat::PhaseMaxPermissions> dataPermissions(0);
+    bool hasPerms = true;
+
+    if (this->GetPhasePermissions(phaseId, dataPermissions)) {
+        hasPerms = (permissions & ~dataPermissions).none();
+    }
+    else {
+        hasPerms = false;
+    }
+
+    return hasPerms;
 }
 
 bool WorldSession::DosProtection::EvaluateOpcode(WorldPacket& p, time_t time) const
@@ -1373,6 +1567,11 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
         case CMSG_GET_ITEM_PURCHASE_DATA:               // not profiled
         {
             maxPacketCounterAllowed = PLAYER_SLOTS_COUNT;
+            break;
+        }
+        case CMSG_HOTFIX_REQUEST:                       // not profiled
+        {
+            maxPacketCounterAllowed = 1;
             break;
         }
         default:

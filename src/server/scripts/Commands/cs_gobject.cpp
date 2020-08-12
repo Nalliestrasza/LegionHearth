@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -39,6 +39,8 @@ EndScriptData */
 #include "PoolMgr.h"
 #include "RBAC.h"
 #include "WorldSession.h"
+#include <sstream>
+#include "PhaseChat.h"
 
 class gobject_commandscript : public CommandScript
 {
@@ -49,37 +51,39 @@ public:
     {
         static std::vector<ChatCommand> gobjectAddCommandTable =
         {
-            { "temp", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD_TEMP, false, &HandleGameObjectAddTempCommand,   "" },
-            { "",     rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, &HandleGameObjectAddCommand,       "" },
+            { "temp", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD_TEMP, false, &HandleGameObjectAddTempCommand,   "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create} },
+            { "",     rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, &HandleGameObjectAddCommand,       "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create} },
         };
         static std::vector<ChatCommand> gobjectSetCommandTable =
         {
-            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand,  "" },
-            { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "" },
-            { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "" },
+            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
+            { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
+            { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}  },
         };
         static std::vector<ChatCommand> gobjectDuplicationCommandTable =
         {
             { "create", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationCreateCommand,   "" },
-            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationAddCommand,      "" },
+            { "add",    rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationAddCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Create}  },
             { "target", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_READ,     false, &HandleGameObjectDuplicationTargetCommand,   "" },
-            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationDeleteCommand,   "" },
+            { "delete", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_SPAWN,    false, &HandleGameObjectDuplicationDeleteCommand,   "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Delete}  },
             { "private",rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationPrivateCommand,  "" },
             { "remove", rbac::RBAC_PERM_COMMAND_GOB_DUPPLICATION_MANAGE ,  false, &HandleGameObjectDuplicationRemoveCommand,   "" },
         };
         static std::vector<ChatCommand> gobjectCommandTable =
         {
-            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  ""       },
-            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    ""       },
+            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand,  "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}        },
+            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameObjectDeleteCommand,    "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Delete}        },
             { "info",       rbac::RBAC_PERM_COMMAND_GOBJECT_INFO,     false, &HandleGameObjectInfoCommand,      ""       },
-            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      ""       },
+            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,     false, &HandleGameObjectMoveCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
             { "near",       rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
             { "target",     rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
-            { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      ""       },
+            { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
             { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",        rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
-            { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },  
+            { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },
+            { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
+
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -109,9 +113,11 @@ public:
             return false;
         }
 
+        uint32_t const autoCloseTime = object->GetGOInfo()->GetAutoCloseTime() ? 10000u : 0u;
+
         // Activate
         object->SetLootState(GO_READY);
-        object->UseDoorOrButton(10000, false, handler->GetSession()->GetPlayer());
+        object->UseDoorOrButton(autoCloseTime, false, handler->GetSession()->GetPlayer());
 
         handler->PSendSysMessage("Object activated!");
 
@@ -123,13 +129,6 @@ public:
     {
         if (!*args)
             return false;
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
@@ -196,7 +195,7 @@ public:
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
         uint64 spawnerGuid = player->GetSession()->GetPlayer()->GetGUID().GetCounter();
 
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);
@@ -399,12 +398,6 @@ public:
     //delete object by selection or guid
     static bool HandleGameObjectDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
 
         // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
@@ -442,7 +435,7 @@ public:
         object->DeleteFromDB();
 
         //Del from gameobject_raz
-        PreparedStatement* gobLog = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* gobLog = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
         gobLog->setUInt64(0, guidLow);
         WorldDatabase.Execute(gobLog);
 
@@ -627,7 +620,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
@@ -763,16 +756,31 @@ public:
 
         int32 objectState = atoi(state);
 
-        if (objectType < 4)
-            object->SetByteValue(GAMEOBJECT_BYTES_1, uint8(objectType), uint8(objectState));
-        else if (objectType == 4)
-            object->SendCustomAnim(objectState);
-        else if (objectType == 5)
+        switch (objectType)
         {
-            if (objectState < 0 || objectState > GO_DESTRUCTIBLE_REBUILDING)
-                return false;
+            case 0:
+                object->SetGoState(GOState(objectState));
+                break;
+            case 1:
+                object->SetGoType(GameobjectTypes(objectState));
+                break;
+            case 2:
+                object->SetGoArtKit(objectState);
+                break;
+            case 3:
+                object->SetGoAnimProgress(objectState);
+                break;
+            case 4:
+                object->SendCustomAnim(objectState);
+                break;
+            case 5:
+                if (objectState < 0 || objectState > GO_DESTRUCTIBLE_REBUILDING)
+                    return false;
 
-            object->SetDestructibleState(GameObjectDestructibleState(objectState));
+                object->SetDestructibleState(GameObjectDestructibleState(objectState));
+                break;
+            default:
+                break;
         }
 
         handler->PSendSysMessage("Set gobject type %d state %d", objectType, objectState);
@@ -780,14 +788,7 @@ public:
     }
 
     static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, char const* args)
-    {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-            
+    {         
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)
@@ -847,6 +848,67 @@ public:
 
     }
 
+    static bool HandleGameDoodadCommand(ChatHandler* handler, char const* args)
+    {
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
+        if (!id)
+            return false;
+
+        ObjectGuid::LowType guidLow = atoull(id);
+        if (!guidLow)
+            return false;
+
+        char const* boolArg = strtok(NULL, "");
+        if (!boolArg)
+            return false;
+
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        bool resultBool = true;
+
+        if (strncmp(boolArg, "on", 3) == 0)
+        {
+            resultBool = true;
+        }
+        else if (strncmp(boolArg, "off", 4) == 0) {
+            resultBool = false;
+        }
+        else
+        {
+            handler->SendSysMessage(LANG_USE_BOL);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        const_cast<GameObjectData*>(object->GetGOData())->hasDoodads = resultBool;
+
+        Map* map = object->GetMap();
+
+        object->SetDoodads(resultBool);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB();
+
+        // Generate a completely new spawn with new guid
+        // 3.3.5a client caches recently deleted objects and brings them back to life
+        // when CreateObject block for this guid is received again
+        // however it entirely skips parsing that block and only uses already known location
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+        if (!object)
+            return false;
+
+        handler->PSendSysMessage("Doodad for object %s %s \n", object->GetGUID().ToString().c_str(), object->HasDoodads() ? "ON" : "OFF");
+    }
+
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)
     {
         Player* player = handler->GetSession()->GetPlayer();
@@ -874,7 +936,7 @@ public:
                 object->Delete();
                 object->DeleteFromDB();
 
-                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
@@ -954,14 +1016,14 @@ public:
 
         //2 DOODADS
         // auto-increment
-        PreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
+        WorldDatabasePreparedStatement* stmtmax = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID);
         PreparedQueryResult resultmax = WorldDatabase.Query(stmtmax);
         uint32 tId = resultmax->Fetch()->GetUInt32();
         ++tId;
 
 
         // Doodads next to reference object
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST_ADVANCED);
         stmt->setFloat(0, object->GetPositionX());
         stmt->setFloat(1, object->GetPositionY());
         stmt->setFloat(2, object->GetPositionZ());
@@ -983,7 +1045,7 @@ public:
             }
 
             //test query
-            PreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* insertdup = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             insertdup->setUInt32(0, tId);
             insertdup->setString(1, dupName);
             insertdup->setUInt32(2, spawnerAccountId);
@@ -1013,7 +1075,7 @@ public:
                 // Don't add the reference object to doodad list
                 if (guidLow != guid)
                 {
-                    PreparedStatement* insertdood = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS);
+                    WorldDatabasePreparedStatement* insertdood = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS);
                     insertdood->setUInt32(0, tId);
                     insertdood->setUInt32(1, entry);
                     insertdood->setFloat(2, x - object->GetPositionX());
@@ -1039,14 +1101,6 @@ public:
 
     static bool HandleGameObjectDuplicationAddCommand(ChatHandler* handler, char const* args)
     {
-
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         // Player
         Player* player = handler->GetSession()->GetPlayer();
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
@@ -1059,7 +1113,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         uint32 dupId = atoi(pId);
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
         stmt->setUInt32(0, dupId);
         PreparedQueryResult duppTemplate = WorldDatabase.Query(stmt);
 
@@ -1120,7 +1174,7 @@ public:
         uint32 dupplicationGuid = result->Fetch()->GetUInt32();
 
         // Create point
-        PreparedStatement* duppGuid = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* duppGuid = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_GUID);
         duppGuid->setUInt32(0, dupplicationGuid + 1);
         duppGuid->setUInt32(1, dupId);
         duppGuid->setUInt64(2, spawnId);
@@ -1133,7 +1187,7 @@ public:
         WorldDatabase.Execute(duppGuid);
 
         // Log
-        PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
         gobInfo->setUInt64(0, spawnId);
         gobInfo->setUInt32(1, spawnerAccountId);
         gobInfo->setUInt64(2, spawnerGuid);
@@ -1141,7 +1195,7 @@ public:
         WorldDatabase.Execute(gobInfo);
 
 
-        PreparedStatement* stmt2 = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+        WorldDatabasePreparedStatement* stmt2 = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS);
         stmt2->setUInt32(0, dupId);
         PreparedQueryResult duppDoodads = WorldDatabase.Query(stmt2);
         if (duppDoodads)
@@ -1207,7 +1261,7 @@ public:
                 sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
 
                 // Log
-                PreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
+                WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
                 gobInfo->setUInt64(0, spawnId);
                 gobInfo->setUInt32(1, spawnerAccountId);
                 gobInfo->setUInt64(2, spawnerGuid);
@@ -1225,7 +1279,7 @@ public:
     {
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_GUID);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
@@ -1255,7 +1309,7 @@ public:
         if (!getGuid)
         {
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, duppGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1294,13 +1348,6 @@ public:
 
     static bool HandleGameObjectDuplicationDeleteCommand(ChatHandler* handler, char const* args)
     {
-        // Can't use in phase, if not owner.
-        if (!handler->GetSession()->GetPlayer()->IsPhaseOwner())
-        {
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
         // Player
         Player* player = handler->GetSession()->GetPlayer();
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
@@ -1315,7 +1362,7 @@ public:
 
 
         // Delete all objects
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_LOG);
         stmt->setUInt32(0, dupGuid);
         PreparedQueryResult getGuid = WorldDatabase.Query(stmt);
         if (getGuid)
@@ -1340,7 +1387,7 @@ public:
                 object->Delete();
                 object->DeleteFromDB();
 
-                PreparedStatement * del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
+                WorldDatabasePreparedStatement* del = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_LOG);
                 del->setUInt64(0, guidLow);
                 WorldDatabase.Execute(del);
 
@@ -1350,7 +1397,7 @@ public:
             } while (getGuid->NextRow());
 
             // Delete dupplication guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID);
             psDupGuid->setUInt32(0, dupGuid);
             WorldDatabase.Execute(psDupGuid);
 
@@ -1364,7 +1411,7 @@ public:
         }
 
         // Clean DB
-        PreparedStatement* cleanDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS);
+        WorldDatabasePreparedStatement* cleanDupGuid = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATIONS);
         WorldDatabase.Execute(cleanDupGuid);
 
         return true;
@@ -1383,7 +1430,7 @@ public:
             return false;
 
         
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
         stmt->setUInt32(0, dupEntry);
         stmt->setUInt32(1, handler->GetSession()->GetAccountId());
         PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
@@ -1412,7 +1459,7 @@ public:
                 return false;
             }
 
-            PreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* updSkybox = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             updSkybox->setUInt32(0, boolean);
             updSkybox->setUInt64(1, dupEntry);
             WorldDatabase.Execute(updSkybox);
@@ -1430,7 +1477,7 @@ public:
         char const* pId = strtok((char*)args, " ");
         uint32 dupEntry = atoi(pId);
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
         stmt->setUInt32(0, dupEntry);
         stmt->setUInt32(1, handler->GetSession()->GetAccountId());
         PreparedQueryResult duppAccount = WorldDatabase.Query(stmt);
@@ -1444,17 +1491,17 @@ public:
         else
         {
             // dupplication_template
-            PreparedStatement* psDupTemplate = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
+            WorldDatabasePreparedStatement* psDupTemplate = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_TEMPLATE);
             psDupTemplate->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupTemplate);
 
             // dupplication_doodads
-            PreparedStatement* psDupDoodads = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS);
+            WorldDatabasePreparedStatement* psDupDoodads = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS);
             psDupDoodads->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupDoodads);
 
             // dupplication_guid
-            PreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
+            WorldDatabasePreparedStatement* psDupGuid = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DUPPLICATION_GUID_ENTRY);
             psDupGuid->setUInt32(0, dupEntry);
             WorldDatabase.Execute(psDupGuid);
 

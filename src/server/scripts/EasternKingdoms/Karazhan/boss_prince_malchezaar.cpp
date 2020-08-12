@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -159,8 +158,8 @@ public:
         {
             if (spell->Id == SPELL_INFERNAL_RELAY)
             {
-                me->SetDisplayId(me->GetUInt32Value(UNIT_FIELD_NATIVEDISPLAYID));
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                me->SetDisplayId(me->GetNativeDisplayId());
+                me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                 HellfireTimer = 4000;
                 CleanupTimer = 170000;
             }
@@ -312,7 +311,7 @@ public:
 
         void EnfeebleHealthEffect()
         {
-            SpellInfo const* info = sSpellMgr->GetSpellInfo(SPELL_ENFEEBLE_EFFECT);
+            SpellInfo const* info = sSpellMgr->GetSpellInfo(SPELL_ENFEEBLE_EFFECT, GetDifficulty());
             if (!info)
                 return;
 
@@ -375,7 +374,7 @@ public:
             if (infernal)
             {
                 infernal->SetDisplayId(INFERNAL_MODEL_INVISIBLE);
-                infernal->setFaction(me->getFaction());
+                infernal->SetFaction(me->GetFaction());
                 if (point)
                     ENSURE_AI(netherspite_infernal::netherspite_infernalAI, infernal->AI())->point = point;
                 ENSURE_AI(netherspite_infernal::netherspite_infernalAI, infernal->AI())->malchezaar = me->GetGUID();
@@ -449,8 +448,8 @@ public:
                         Creature* axe = me->SummonCreature(MALCHEZARS_AXE, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
                         if (axe)
                         {
-                            axe->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                            axe->setFaction(me->getFaction());
+                            axe->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
+                            axe->SetFaction(me->GetFaction());
                             axes[i] = axe->GetGUID();
                             if (target)
                             {

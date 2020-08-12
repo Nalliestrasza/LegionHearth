@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,6 +19,7 @@
  * Comment: Find in the future best timers and the event is not implemented.
  */
 
+#include "Containers.h"
 #include "ScriptMgr.h"
 #include "azjol_nerub.h"
 #include "InstanceScript.h"
@@ -947,9 +948,7 @@ class spell_gatewatcher_subboss_trigger : public SpellScriptLoader
                 if (!targetList.empty())
                 {
                     // If there are, pick one of them at random
-                    std::list<WorldObject*>::iterator it = targetList.begin();
-                    std::advance(it, urand(0, targetList.size() - 1));
-                    target = *it;
+                    target = Trinity::Containers::SelectRandomContainerElement(targetList);
                 }
                 // And hit only that one
                 targetList.clear();

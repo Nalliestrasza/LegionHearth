@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,6 +18,7 @@
 #include "Chat.h"
 #include "AccountMgr.h"
 #include "CellImpl.h"
+#include "CharacterCache.h"
 #include "ChatLink.h"
 #include "ChatPackets.h"
 #include "Common.h"
@@ -37,8 +37,8 @@
 #include "World.h"
 #include "WorldSession.h"
 
-ChatCommand::ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands /*= std::vector<ChatCommand>()*/)
-    : Name(ASSERT_NOTNULL(name)), Permission(permission), AllowConsole(allowConsole), Handler(handler), Help(std::move(help)), ChildCommands(std::move(childCommands))
+ChatCommand::ChatCommand(char const* name, uint32 permission, bool allowConsole, pHandler handler, std::string help, std::vector<ChatCommand> childCommands /*= std::vector<ChatCommand>()*/, std::initializer_list<PhaseChat::Permissions> phasePermissions /* { PhaseChat::Permissions::None } */)
+    : Name(ASSERT_NOTNULL(name)), Permission(permission), AllowConsole(allowConsole), Handler(handler), Help(std::move(help)), ChildCommands(std::move(childCommands)), PhasePermissions(std::move(PhaseChat::GetPermissionsFromParameters(phasePermissions)))
 {
 }
 
@@ -56,7 +56,7 @@ std::vector<ChatCommand> const& ChatHandler::getCommandTable()
         // calls getCommandTable() recursively.
         commandTableCache = sScriptMgr->GetChatCommands();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_COMMANDS);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_COMMANDS);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
         if (result)
         {
@@ -86,7 +86,17 @@ char const* ChatHandler::GetTrinityString(uint32 entry) const
 
 bool ChatHandler::isAvailable(ChatCommand const& cmd) const
 {
-    return HasPermission(cmd.Permission);
+    bool hasGlobaPerm = HasPermission(cmd.Permission);
+    uint32_t mapId = m_session->GetPlayer()->m_mapId;
+
+    if (mapId >= MAP_CUSTOM_PHASE && cmd.PhasePermissions.to_ullong() != 0) {
+        hasGlobaPerm = hasGlobaPerm && m_session->HasPhasePermissions(mapId, cmd.PhasePermissions);
+    }
+
+
+    // to:do : make an error message specific for phase permissions
+
+    return hasGlobaPerm;
 }
 
 bool ChatHandler::HasPermission(uint32 permission) const
@@ -107,7 +117,7 @@ bool ChatHandler::HasLowerSecurity(Player* target, ObjectGuid guid, bool strong)
     if (target)
         target_session = target->GetSession();
     else if (!guid.IsEmpty())
-        target_account = ObjectMgr::GetPlayerAccountIdByGUID(guid);
+        target_account = sCharacterCache->GetCharacterAccountIdByGuid(guid);
 
     if (!target_session && !target_account)
     {
@@ -328,10 +338,10 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
                 std::string zoneName = "Unknown";
                 if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
                 {
-                    int32 locale = GetSessionDbcLocale();
-                    areaName = area->AreaName->Str[locale];
+                    LocaleConstant locale = GetSessionDbcLocale();
+                    areaName = area->AreaName[locale];
                     if (AreaTableEntry const* zone = sAreaTableStore.LookupEntry(area->ParentAreaID))
-                        zoneName = zone->AreaName->Str[locale];
+                        zoneName = zone->AreaName[locale];
                 }
 
 
@@ -898,7 +908,7 @@ GameTele const* ChatHandler::extractGameTeleFromLink(char* text)
         return nullptr;
 
     // id case (explicit or from shift link)
-    if (cId[0] >= '0' || cId[0] >= '9')
+    if (cId[0] >= '0' && cId[0] <= '9')
         if (uint32 id = atoi(cId))
             return sObjectMgr->GetGameTele(id);
 
@@ -943,7 +953,7 @@ ObjectGuid::LowType ChatHandler::extractLowGuidFromLink(char* text, HighGuid& gu
             if (Player* player = ObjectAccessor::FindPlayerByName(name))
                 return player->GetGUID().GetCounter();
 
-            ObjectGuid guid = ObjectMgr::GetPlayerGUIDByName(name);
+            ObjectGuid guid = sCharacterCache->GetCharacterGuidByName(name);
             if (guid.IsEmpty())
                 return 0;
 
@@ -1000,7 +1010,7 @@ bool ChatHandler::extractPlayerTarget(char* args, Player** player, ObjectGuid* p
             *player = pl;
 
         // if need guid value from DB (in name case for check player existence)
-        ObjectGuid guid = !pl && (player_guid || player_name) ? ObjectMgr::GetPlayerGUIDByName(name) : ObjectGuid::Empty;
+        ObjectGuid guid = !pl && (player_guid || player_name) ? sCharacterCache->GetCharacterGuidByName(name) : ObjectGuid::Empty;
 
         // if allowed player guid (if no then only online players allowed)
         if (player_guid)
@@ -1152,14 +1162,14 @@ bool ChatHandler::GetPlayerGroupAndGUIDByName(const char* cname, Player*& player
         {
             if (!normalizePlayerName(name))
             {
-                PSendSysMessage(LANG_PLAYER_NOT_FOUND);
+                SendSysMessage(LANG_PLAYER_NOT_FOUND);
                 SetSentErrorMessage(true);
                 return false;
             }
 
             player = ObjectAccessor::FindPlayerByName(name);
             if (offline)
-                guid = ObjectMgr::GetPlayerGUIDByName(name.c_str());
+                guid = sCharacterCache->GetCharacterGuidByName(name);
         }
     }
 

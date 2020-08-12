@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -54,6 +54,9 @@ WorldPacket const* WorldPackets::Misc::SetCurrency::Write()
     _worldPacket.WriteBit(TrackedQuantity.is_initialized());
     _worldPacket.WriteBit(MaxQuantity.is_initialized());
     _worldPacket.WriteBit(SuppressChatLog);
+    _worldPacket.WriteBit(QuantityChange.is_initialized());
+    _worldPacket.WriteBit(QuantityGainSource.is_initialized());
+    _worldPacket.WriteBit(QuantityLostSource.is_initialized());
     _worldPacket.FlushBits();
 
     if (WeeklyQuantity)
@@ -64,6 +67,15 @@ WorldPacket const* WorldPackets::Misc::SetCurrency::Write()
 
     if (MaxQuantity)
         _worldPacket << int32(*MaxQuantity);
+
+    if (QuantityChange)
+        _worldPacket << int32(*QuantityChange);
+
+    if (QuantityGainSource)
+        _worldPacket << int32(*QuantityGainSource);
+
+    if (QuantityLostSource)
+        _worldPacket << int32(*QuantityLostSource);
 
     return &_worldPacket;
 }
@@ -283,6 +295,15 @@ WorldPacket const* WorldPackets::Misc::StandStateUpdate::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* WorldPackets::Misc::SetAnimTier::Write()
+{
+    _worldPacket << Unit;
+    _worldPacket.WriteBits(Tier, 3);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
 WorldPacket const* WorldPackets::Misc::PlayerBound::Write()
 {
     _worldPacket << BinderID;
@@ -481,7 +502,7 @@ void WorldPackets::Misc::SaveCUFProfiles::Read()
     CUFProfiles.resize(_worldPacket.read<uint32>());
     for (std::unique_ptr<CUFProfile>& cufProfile : CUFProfiles)
     {
-        cufProfile = Trinity::make_unique<CUFProfile>();
+        cufProfile = std::make_unique<CUFProfile>();
 
         uint8 strLen = _worldPacket.ReadBits(7);
 
@@ -595,11 +616,11 @@ WorldPacket const* WorldPackets::Misc::AccountHeirloomUpdate::Write()
     _worldPacket << int32(Unk);
 
     // both lists have to have the same size
-    _worldPacket << int32(Heirlooms->size());
-    _worldPacket << int32(Heirlooms->size());
+    _worldPacket << uint32(Heirlooms->size());
+    _worldPacket << uint32(Heirlooms->size());
 
     for (auto const& item : *Heirlooms)
-        _worldPacket << uint32(item.first);
+        _worldPacket << int32(item.first);
 
     for (auto const& flags : *Heirlooms)
         _worldPacket << uint32(flags.second.flags);
@@ -682,4 +703,13 @@ void WorldPackets::Misc::CloseInteraction::Read()
 void WorldPackets::Misc::FactionSelect::Read()
 {
     _worldPacket >> FactionChoice;
+}
+
+WorldPacket const* WorldPackets::Misc::StartTimer::Write()
+{
+    _worldPacket << int32(TimeLeft);
+    _worldPacket << int32(TotalTime);
+    _worldPacket << int32(Type);
+
+    return &_worldPacket;
 }
