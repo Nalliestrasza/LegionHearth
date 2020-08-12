@@ -14784,7 +14784,7 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
             }
 
             menu->GetGossipMenu().AddMenuItem(itr->second.OptionIndex, itr->second.OptionIcon, strOptionText, 0, itr->second.OptionType, strBoxText, itr->second.BoxMoney, itr->second.BoxCoded);
-            menu->GetGossipMenu().AddGossipMenuItemData(itr->second.OptionIndex, itr->second.ActionMenuId, itr->second.ActionPoiId, itr->second.TrainerId);
+            menu->GetGossipMenu().AddGossipMenuItemData(itr->second.OptionIndex, itr->second.ActionMenuId, itr->second.ActionPoiId);
         }
     }
 }
@@ -14885,7 +14885,7 @@ void Player::OnGossipSelect(WorldObject* source, uint32 optionIndex, uint32 menu
         GetSession()->SendStablePet(guid);
         break;
     case GOSSIP_OPTION_TRAINER:
-        GetSession()->SendTrainerList(source->ToCreature(), menuItemData->TrainerId);
+        GetSession()->SendTrainerList(source->ToCreature(), sObjectMgr->GetCreatureTrainerForGossipOption(source->GetEntry(), menuId, optionIndex));
         break;
     case GOSSIP_OPTION_LEARNDUALSPEC:
         break;
@@ -23740,9 +23740,8 @@ void Player::UpdateVisibilityOf(WorldObject* target)
             target->DestroyForPlayer(this);
             m_clientGUIDs.erase(target->GetGUID());
 
-#ifdef TRINITY_DEBUG
-            TC_LOG_DEBUG("maps", "%s out of range for %s. Distance = %f", target->GetGUID().ToString().c_str(), GetGUID().ToString().c_str(), GetDistance(target));
-#endif
+
+            TC_LOG_ERROR("maps", "(2) %s out of range for %s. Distance = %f", target->GetGUID().ToString().c_str(), GetGUID().ToString().c_str(), GetDistance(target));
         }
     }
     else
@@ -23752,9 +23751,7 @@ void Player::UpdateVisibilityOf(WorldObject* target)
             target->SendUpdateToPlayer(this);
             m_clientGUIDs.insert(target->GetGUID());
 
-#ifdef TRINITY_DEBUG
-            TC_LOG_DEBUG("maps", "%s is visible now for %s. Distance = %f", target->GetGUID().ToString().c_str(), GetGUID().ToString().c_str(), GetDistance(target));
-#endif
+            TC_LOG_ERROR("maps", "(2) %s is visible now for %s. Distance = %f", target->GetGUID().ToString().c_str(), GetGUID().ToString().c_str(), GetDistance(target));
 
             // target aura duration for caster show only if target exist at caster client
             // send data at target visibility change (adding to client)
@@ -23827,9 +23824,8 @@ void Player::UpdateVisibilityOf(T* target, UpdateData& data, std::set<Unit*>& vi
             target->BuildOutOfRangeUpdateBlock(&data);
             m_clientGUIDs.erase(target->GetGUID());
 
-#ifdef TRINITY_DEBUG
-            TC_LOG_DEBUG("maps", "Object %s (%u) is out of range for %s. Distance = %f", target->GetGUID().ToString().c_str(), target->GetEntry(), GetGUID().ToString().c_str(), GetDistance(target));
-#endif
+            TC_LOG_ERROR("maps", "Object %s (%u) is out of range for %s. Distance = %f", target->GetGUID().ToString().c_str(), target->GetEntry(), GetGUID().ToString().c_str(), GetDistance(target));
+
         }
     }
     else //if (visibleNow.size() < 30 || target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->IsVehicle())
@@ -23839,9 +23835,7 @@ void Player::UpdateVisibilityOf(T* target, UpdateData& data, std::set<Unit*>& vi
             target->BuildCreateUpdateBlockForPlayer(&data, this);
             UpdateVisibilityOf_helper(m_clientGUIDs, target, visibleNow);
 
-#ifdef TRINITY_DEBUG
-            TC_LOG_DEBUG("maps", "Object %s (%u) is visible now for %s. Distance = %f", target->GetGUID().ToString().c_str(), target->GetEntry(), GetGUID().ToString().c_str(), GetDistance(target));
-#endif
+            TC_LOG_ERROR("maps", "Object %s (%u) is visible now for %s. Distance = %f", target->GetGUID().ToString().c_str(), target->GetEntry(), GetGUID().ToString().c_str(), GetDistance(target));
         }
     }
 }
@@ -23874,6 +23868,7 @@ void Player::UpdateVisibilityForPlayer()
     // updates visibility of all objects around point of view for current player
     Trinity::VisibleNotifier notifier(*this);
     Cell::VisitAllObjects(m_seer, notifier, GetSightRange());
+
     notifier.SendToSelf();   // send gathered data
 }
 
@@ -24267,11 +24262,12 @@ void Player::ApplyEquipCooldown(Item* pItem)
     std::chrono::steady_clock::time_point now = GameTime::GetGameTimeSteadyPoint();
     for (ItemEffectEntry const* effectData : pItem->GetEffects())
     {
+		//DEBUG
         if (effectData->SpellID == 0)
             return;
 
         TC_LOG_ERROR("misc", "ApplyEquipCooldown : %d \n", effectData->SpellID);
-
+		//DEBUG
 
         if (!sSpellMgr->GetSpellInfo(effectData->SpellID, DIFFICULTY_NONE))
             continue;

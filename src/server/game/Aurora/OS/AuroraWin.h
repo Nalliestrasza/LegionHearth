@@ -37,7 +37,7 @@ public:
     AuroraWin();
     ~AuroraWin();
 
-    void Init(WorldSession* session) override;
+    void Init(WorldSession* session, SessionKey const& K) override;
     void RequestData() override;
     void HandleData(WorldPackets::Aurora::AuroraHWID& packet) override;
 

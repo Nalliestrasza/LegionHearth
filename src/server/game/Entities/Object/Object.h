@@ -548,6 +548,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         void setActive(bool isActiveObject);
         bool IsVisibilityOverridden() const { return m_visibilityDistanceOverride.is_initialized(); }
         void SetVisibilityDistanceOverride(VisibilityDistanceType type);
+        void SetVisibilityDistanceOverride(float distance);
         void SetWorldObject(bool apply);
         bool IsPermanentWorldObject() const { return m_isWorldObject; }
         bool IsWorldObject() const;

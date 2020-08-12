@@ -2305,8 +2305,8 @@ void ObjectMgr::LoadGameobjects()
     QueryResult result = WorldDatabase.Query("SELECT gameobject.guid, id, map, position_x, position_y, position_z, orientation, "
     //   7          8          9          10         11             12            13     14                 15          16
         "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnDifficulties, eventEntry, pool_entry, "
-    //   17             18       19          20              21          22
-        "phaseUseFlags, phaseid, phasegroup, terrainSwapMap, ScriptName, size, hasDoodads  "
+    //   17             18       19          20              21          22    23          24
+        "phaseUseFlags, phaseid, phasegroup, terrainSwapMap, ScriptName, size, hasDoodads, visibility  "
         "FROM gameobject LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
         "LEFT OUTER JOIN pool_gameobject ON gameobject.guid = pool_gameobject.guid");
 
@@ -2431,6 +2431,7 @@ void ObjectMgr::LoadGameobjects()
         data.phaseGroup     = fields[19].GetUInt32();
         data.size = fields[22].GetFloat();
         data.hasDoodads = fields[23].GetBool();
+        data.visibility = fields[24].GetFloat();
 
         if (data.phaseUseFlags & ~PHASE_USE_FLAGS_ALL)
         {
@@ -8921,33 +8922,51 @@ void ObjectMgr::LoadTrainers()
     TC_LOG_INFO("server.loading", ">> Loaded " SZFMTD " Trainers in %u ms", _trainers.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
-void ObjectMgr::LoadCreatureDefaultTrainers()
+void ObjectMgr::LoadCreatureTrainers()
 {
     uint32 oldMSTime = getMSTime();
 
     _creatureDefaultTrainers.clear();
 
-    if (QueryResult result = WorldDatabase.Query("SELECT CreatureId, TrainerId FROM creature_default_trainer"))
+    if (QueryResult result = WorldDatabase.Query("SELECT CreatureId, TrainerId, MenuId, OptionIndex FROM creature_trainer"))
     {
         do
         {
             Field* fields = result->Fetch();
             uint32 creatureId = fields[0].GetUInt32();
             uint32 trainerId = fields[1].GetUInt32();
+            uint32 gossipMenuId = fields[2].GetUInt32();
+            uint32 gossipOptionIndex = fields[3].GetUInt32();
 
             if (!GetCreatureTemplate(creatureId))
             {
-                TC_LOG_ERROR("sql.sql", "Table `creature_default_trainer` references non-existing creature template (CreatureId: %u), ignoring", creatureId);
+                TC_LOG_ERROR("sql.sql", "Table `creature_trainer` references non-existing creature template (CreatureId: %u), ignoring", creatureId);
                 continue;
             }
 
             if (!GetTrainer(trainerId))
             {
-                TC_LOG_ERROR("sql.sql", "Table `creature_default_trainer` references non-existing trainer (TrainerId: %u) for CreatureId %u, ignoring", trainerId, creatureId);
+                TC_LOG_ERROR("sql.sql", "Table `creature_trainer` references non-existing trainer (TrainerId: %u) for CreatureId %u MenuId %u OptionIndex %u, ignoring",
+                    trainerId, creatureId, gossipMenuId, gossipOptionIndex);
                 continue;
             }
 
-            _creatureDefaultTrainers[creatureId] = trainerId;
+            if (gossipMenuId || gossipOptionIndex)
+            {
+                Trinity::IteratorPair<GossipMenuItemsContainer::const_iterator> gossipMenuItems = GetGossipMenuItemsMapBounds(gossipMenuId);
+                auto gossipOptionItr = std::find_if(gossipMenuItems.begin(), gossipMenuItems.end(), [gossipOptionIndex](std::pair<uint32 const, GossipMenuItems> const& entry)
+                {
+                    return entry.second.OptionIndex == gossipOptionIndex;
+                });
+                if (gossipOptionItr == gossipMenuItems.end())
+                {
+                    TC_LOG_ERROR("sql.sql", "Table `creature_trainer` references non-existing gossip menu option (MenuId %u OptionIndex %u) for CreatureId %u and TrainerId %u, ignoring",
+                        gossipMenuId, gossipOptionIndex, creatureId, trainerId);
+                    continue;
+                }
+            }
+
+            _creatureDefaultTrainers[std::make_tuple(creatureId, gossipMenuId, gossipOptionIndex)] = trainerId;
         } while (result->NextRow());
     }
 
@@ -9107,13 +9126,10 @@ void ObjectMgr::LoadGossipMenuItems()
     //   7                8
         "oa.ActionMenuId, oa.ActionPoiId, "
     //   9            10           11          12
-        "ob.BoxCoded, ob.BoxMoney, ob.BoxText, ob.BoxBroadcastTextId, "
-    //   13
-        "ot.TrainerId "
+        "ob.BoxCoded, ob.BoxMoney, ob.BoxText, ob.BoxBroadcastTextId "
         "FROM gossip_menu_option o "
         "LEFT JOIN gossip_menu_option_action oa ON o.MenuId = oa.MenuId AND o.OptionIndex = oa.OptionIndex "
         "LEFT JOIN gossip_menu_option_box ob ON o.MenuId = ob.MenuId AND o.OptionIndex = ob.OptionIndex "
-        "LEFT JOIN gossip_menu_option_trainer ot ON o.MenuId = ot.MenuId AND o.OptionIndex = ot.OptionIndex "
         "ORDER BY o.MenuId, o.OptionIndex");
 
     if (!result)
@@ -9141,7 +9157,6 @@ void ObjectMgr::LoadGossipMenuItems()
         gMenuItem.BoxMoney              = fields[10].GetUInt32();
         gMenuItem.BoxText               = fields[11].GetString();
         gMenuItem.BoxBroadcastTextId    = fields[12].GetUInt32();
-        gMenuItem.TrainerId             = fields[13].GetUInt32();
 
         if (gMenuItem.OptionIcon >= GOSSIP_ICON_MAX)
         {
@@ -9176,12 +9191,6 @@ void ObjectMgr::LoadGossipMenuItems()
             }
         }
 
-        if (gMenuItem.TrainerId && !GetTrainer(gMenuItem.TrainerId))
-        {
-            TC_LOG_ERROR("sql.sql", "Table `gossip_menu_option_trainer` for MenuId %u, OptionIndex %u use non-existing TrainerId %u, ignoring", gMenuItem.MenuId, gMenuItem.OptionIndex, gMenuItem.TrainerId);
-            gMenuItem.TrainerId = 0;
-        }
-
         _gossipMenuItemsStore.insert(GossipMenuItemsContainer::value_type(gMenuItem.MenuId, gMenuItem));
     } while (result->NextRow());
 
@@ -9193,9 +9202,9 @@ Trainer::Trainer const* ObjectMgr::GetTrainer(uint32 trainerId) const
     return Trinity::Containers::MapGetValuePtr(_trainers, trainerId);
 }
 
-uint32 ObjectMgr::GetCreatureDefaultTrainer(uint32 creatureId) const
+uint32 ObjectMgr::GetCreatureTrainerForGossipOption(uint32 creatureId, uint32 gossipMenuId, uint32 gossipOptionIndex) const
 {
-    auto itr = _creatureDefaultTrainers.find(creatureId);
+    auto itr = _creatureDefaultTrainers.find(std::make_tuple(creatureId, gossipMenuId, gossipOptionIndex));
     if (itr != _creatureDefaultTrainers.end())
         return itr->second;
 

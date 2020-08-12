@@ -72,7 +72,7 @@ enum LootModes
     LOOT_MODE_JUNK_FISH                = 0x8000
 };
 
-#define MAX_CHARACTERS_PER_REALM 16
+#define MAX_CHARACTERS_PER_REALM 50
 
 enum Expansions
 {
