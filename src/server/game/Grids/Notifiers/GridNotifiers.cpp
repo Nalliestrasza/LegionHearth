@@ -79,7 +79,9 @@ void VisibleNotifier::SendToSelf()
     {
         std::set<GameObject*> objects = map->GetInfiniteGameObjects();
         for (GameObject* obj : objects) {
-            if (i_player.CanSeeOrDetect(obj, false, true))
+            if (i_player.CanSeeOrDetect(obj, false, true)) {
+
+            }
         }
     }
 
