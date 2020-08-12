@@ -709,6 +709,7 @@ class TC_GAME_API SpellMgr
         // Use this only with 100% valid spellIds
         SpellInfo const* AssertSpellInfo(uint32 spellId, Difficulty difficulty) const
         {
+            printf("Crash SPELL Id : %d %d", spellId, difficulty);
             SpellInfo const* spellInfo = GetSpellInfo(spellId, difficulty);
             ASSERT(spellInfo);
             return spellInfo;

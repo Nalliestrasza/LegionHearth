@@ -1098,7 +1098,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
 
     for (MapDifficultyEntry const* entry : sMapDifficultyStore)
     {
-        if(sMapStore.LookupEntry(entry->MapID)->InstanceType == MAP_SCENARIO && _mapDifficulties[entry->MapID][0] == nullptr)
+        if (sMapStore.LookupEntry(entry->MapID)->InstanceType == MAP_SCENARIO && _mapDifficulties[entry->MapID][0] == nullptr)
             _mapDifficulties[entry->MapID][0] = entry;
 
         _mapDifficulties[entry->MapID][entry->DifficultyID] = entry;

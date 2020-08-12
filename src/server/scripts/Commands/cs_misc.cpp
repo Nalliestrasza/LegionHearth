@@ -684,6 +684,8 @@ public:
                         return false;
                     }
                 }
+
+                
             }
 
             handler->PSendSysMessage(LANG_SUMMONING, nameLink.c_str(), "");

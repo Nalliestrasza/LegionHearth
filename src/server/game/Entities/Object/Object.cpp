@@ -138,6 +138,7 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 	if (GetGUID().GetHigh() == HighGuid::GameObject) {
 		float yaw, pitch, roll;
         if (GameObject const* go = ToGameObject()) {
+			
             uint64_t low = GetGUID().GetRawValue(0);
             uint64_t high = GetGUID().GetRawValue(1);
 

@@ -194,16 +194,16 @@ namespace Trinity
     // Generic base class to insert elements into arbitrary containers using push_back
     template<typename Type>
     class ContainerInserter {
-        using InserterType = void(*)(void*, Type&&);
+        using InserterType = void(*)(void*, Type);
 
         void* ref;
         InserterType inserter;
 
         // MSVC workaround
         template<typename T>
-        static void InserterOf(void* ref, Type&& type)
+        static void InserterOf(void* ref, Type type)
         {
-            static_cast<T*>(ref)->push_back(std::move(type));
+            static_cast<T*>(ref)->push_back(type);
         }
 
     protected:
@@ -212,7 +212,7 @@ namespace Trinity
 
         void Insert(Type type)
         {
-            inserter(ref, std::move(type));
+            inserter(ref, type);
         }
     };
 

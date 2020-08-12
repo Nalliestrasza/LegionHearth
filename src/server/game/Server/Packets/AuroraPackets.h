@@ -135,6 +135,7 @@ namespace WorldPackets
         class AuroraCustomWorldModelObject final : public ServerPacket
         {
         public:
+		
             AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, (8 * 2) + (4 * 4) + 4) { }
 
             WorldPacket const* Write() override;

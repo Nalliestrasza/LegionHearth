@@ -562,10 +562,13 @@ void Trinity::CreatureLastSearcher<Check>::Visit(CreatureMapType &m)
 template<class Check>
 void Trinity::CreatureListSearcher<Check>::Visit(CreatureMapType &m)
 {
-    for (CreatureMapType::iterator itr=m.begin(); itr != m.end(); ++itr)
-        if (itr->GetSource()->IsInPhase(_searcher))
-            if (i_check(itr->GetSource()))
+    for (CreatureMapType::iterator itr = m.begin(); itr != m.end(); ++itr) {
+        if (itr->GetSource()->IsInPhase(_searcher)) {
+            if (i_check(itr->GetSource())) {
                 Insert(itr->GetSource());
+            }
+        }
+    }
 }
 
 template<class Check>
