@@ -182,7 +182,7 @@ public:
 
         // delete the old object and do a clean load from DB with a fresh new GameObject instance.
         // this is required to avoid weird behavior and memory leaks
-        delete object;
+        object->Delete();
 
         // this will generate a new guid if the object is in an instance
         object = GameObject::CreateGameObjectFromDB(spawnId, map);
@@ -940,15 +940,17 @@ public:
 
         if (distance > SIZE_OF_GRIDS) {
             object->GetMap()->AddInfiniteGameObject(object);
-            handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+            //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
         }
         else {
             auto infinites = object->GetMap()->GetInfiniteGameObjects();
             if (std::find(infinites.begin(), infinites.end(), object) != infinites.end())
                 object->GetMap()->RemoveInfiniteGameObject(object);
 
-            handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+            //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
         }
+
+        float oldVisibility = const_cast<GameObjectData*>(object->GetGOData())->visibility;
 
         const_cast<GameObjectData*>(object->GetGOData())->visibility = distance;
 
@@ -956,14 +958,19 @@ public:
         object->SetVisibilityDistanceOverride(distance);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SaveToDB();
-
         object->Delete();
 
         object = GameObject::CreateGameObjectFromDB(guidLow, map);
+
+        for (Map::PlayerList::const_iterator itr = map->GetPlayers().begin(); itr != map->GetPlayers().end(); ++itr)
+        {
+            itr->GetSource()->UpdateVisibilityOf(object);
+        }
+
         if (!object)
             return false;
 
-        handler->PSendSysMessage("Visibility set for object %s to %f (%f) \n", object->GetGUID().ToString().c_str(), distance, object->GetVisibilityRange());
+        handler->PSendSysMessage("Visibility set for object %s to %f\n", object->GetGUID().ToString().c_str(), distance);
     }
 
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)
@@ -1218,7 +1225,7 @@ public:
 
         // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
         // this is required to avoid weird behavior and memory leaks 
-        delete object;
+        object->Delete();
 
         object = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 
@@ -1311,7 +1318,7 @@ public:
 
                 // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
                 // this is required to avoid weird behavior and memory leaks 
-                delete object2;
+                object2->Delete();
 
                 object2 = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 

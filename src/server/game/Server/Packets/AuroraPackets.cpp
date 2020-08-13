@@ -21,7 +21,7 @@ void WorldPackets::Aurora::AuroraHWID::Read()
 {
     uint32 bufferFixIsVM;
 
-    _worldPacket >> Seed;
+    _worldPacket >> Version;
     _worldPacket >> PhysicalDriveId;
     _worldPacket >> VolumeInformation;
     _worldPacket >> CPUId;
@@ -117,11 +117,6 @@ WorldPacket const* WorldPackets::Aurora::AuroraZoneCustom::Write()
 
 WorldPacket const* WorldPackets::Aurora::AuroraTracker::Write()
 {
-    _worldPacket << Type;
-
-    if(AuroraKey.is_initialized())
-        _worldPacket.append(AuroraKey.get().data(), AuroraKey.get().size());
-
     _worldPacket << Seed;
 
     return &_worldPacket;

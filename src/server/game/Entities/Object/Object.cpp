@@ -1454,8 +1454,8 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth, boo
         const auto infinites = object->GetMap()->GetInfiniteGameObjects();
         if (std::find(infinites.begin(), infinites.end(), object) != infinites.end()) {
             float distance = GetDistance(obj);
-            TC_LOG_ERROR("misc", "[+) WorldObject::CanSeeOrDetect(Infinite) : %f ", distance);
-            return true && (distance <= 4000);
+            //TC_LOG_ERROR("misc", "[+) WorldObject::CanSeeOrDetect(Infinite) : %f ", distance);
+            return true && (distance <= object->GetVisibilityRange());
         }
     }
 

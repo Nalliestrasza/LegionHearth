@@ -150,6 +150,7 @@ GameObject::~GameObject()
     delete m_model;
     if (m_goInfo && m_goInfo->type == GAMEOBJECT_TYPE_TRANSPORT)
         delete m_goValue.Transport.StopFrames;
+
     //if (m_uint32Values)                                      // field array can be not exist if GameOBject not loaded
     //    CleanupsBeforeDelete();
 }
@@ -479,7 +480,6 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     SetVisibilityDistanceOverride(visibility);
 
     if (GetVisibilityRange() > SIZE_OF_GRIDS) {
-        TC_LOG_ERROR("misc", "GetVisibilityRange() > SIZE_OF_GRIDS");
         GetMap()->AddInfiniteGameObject(this);
     }
 
@@ -925,6 +925,9 @@ void GameObject::AddUniqueUse(Player* player)
 
 void GameObject::Delete()
 {
+    if ((GetMap()->GetInfiniteGameObjects()).find(this) != (GetMap()->GetInfiniteGameObjects()).end())
+        GetMap()->RemoveInfiniteGameObject(this);
+
     SetLootState(GO_NOT_READY);
     RemoveFromOwner();
 
@@ -940,9 +943,6 @@ void GameObject::Delete()
         sPoolMgr->UpdatePool<GameObject>(poolid, GetSpawnId());
     else
         AddObjectToRemoveList();
-
-    if ((GetMap()->GetInfiniteGameObjects()).find(this) != (GetMap()->GetInfiniteGameObjects()).end())
-        GetMap()->RemoveInfiniteGameObject(this);
 }
 
 void GameObject::SendGameObjectDespawn()

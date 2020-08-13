@@ -37,9 +37,6 @@ public:
     virtual void RequestData() = 0;
     virtual void HandleData(WorldPackets::Aurora::AuroraHWID& packet) = 0;
 
-    void DecryptData(uint8* buffer, uint32 length);
-    void EncryptData(uint8* buffer, uint32 length);
-
     void Update();
 private:
     WorldSession* _session;
@@ -49,10 +46,8 @@ private:
 
     uint32 _previousTimestamp;
     bool _initialized;
-    uint8 _inputKey[16];
-    uint32 _baseSeed;
-    bool _initialPacket;
-    Trinity::Crypto::ARC4 _keyCrypto;
+    uint32_t _seed = 0;
+    uint32_t _checkVersion = 0xEF56;
 };
 
 #endif

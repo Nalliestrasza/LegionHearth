@@ -69,16 +69,6 @@ void Aurora::RequestData()
   
 }
 
-void Aurora::DecryptData(uint8* buffer, uint32 length)
-{
-    _keyCrypto.UpdateData(buffer, length);
-}
-
-void Aurora::EncryptData(uint8* buffer, uint32 length)
-{
-    _keyCrypto.UpdateData(buffer, length);
-}
-
 void WorldSession::HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet)
 {
     if (_aurora) 

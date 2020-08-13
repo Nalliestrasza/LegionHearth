@@ -29,7 +29,7 @@ namespace WorldPackets
     namespace Aurora
     {
         /* CMSG */
-        using AuroraKey = std::array<uint8, 16>;
+        using AuroraKey = std::array<uint8, 4>;
 
         class AuroraHWID final : public ClientPacket
         {
@@ -38,7 +38,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 Seed = 0;
+            uint32 Version = 0;
             uint32 PhysicalDriveId = 0;
             uint32 CPUId = 0;
             uint32 VolumeInformation = 0;
@@ -122,13 +122,11 @@ namespace WorldPackets
         class AuroraTracker final : public ServerPacket
         {
         public:
-            AuroraTracker(uint8 type, uint32 seed, Optional<AuroraKey> auroraKey = boost::none) : ServerPacket(SMSG_AURORA_TRACKER, 1 + sizeof(AuroraKey) + 4),
-                Type(type), Seed(seed), AuroraKey(auroraKey) { }
+            AuroraTracker(uint32 seed) : ServerPacket(SMSG_AURORA_TRACKER, 4), Seed(seed)
+            { }
 
             WorldPacket const* Write() override;
 
-            uint8_t Type = 0;
-            Optional<AuroraKey> AuroraKey = boost::none;
             uint32_t Seed = 0;
         };
 
