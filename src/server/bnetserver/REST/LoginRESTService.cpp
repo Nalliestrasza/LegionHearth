@@ -31,6 +31,7 @@
 #include "httpget.h"
 #include "httppost.h"
 #include "soapH.h"
+#include "SRP6.h"
 
 int ns1__executeCommand(soap*, char*, char**) { return SOAP_OK; }
 
@@ -346,7 +347,7 @@ int32 LoginRESTService::HandlePostLogin(std::shared_ptr<AsyncRequest> request)
     std::string sentPasswordHash = CalculateShaPassHash(login, password);
 
     request->SetCallback(std::make_unique<QueryCallback>(LoginDatabase.AsyncQuery(stmt)
-        .WithChainingPreparedCallback([request, login, sentPasswordHash, this](QueryCallback& callback, PreparedQueryResult result)
+        .WithChainingPreparedCallback([request, login, password, sentPasswordHash, this](QueryCallback& callback, PreparedQueryResult result)
     {
         if (result)
         {
@@ -378,6 +379,22 @@ int32 LoginRESTService::HandlePostLogin(std::shared_ptr<AsyncRequest> request)
                     loginResult.set_login_ticket(loginTicket);
                     sLoginService.SendResponse(request->GetClient(), loginResult);
                 }).SetNextQuery(LoginDatabase.AsyncQuery(stmt));
+
+                QueryResult result = LoginDatabase.PQuery("SELECT *, IF((salt IS null) AND (verifier IS null), 0, 1) AS shouldWarn FROM account WHERE (s != DEFAULT(s) OR v != DEFAULT(v) OR salt IS NULL OR verifier IS NULL) AND id = %u", accountId);
+
+                TC_LOG_DEBUG("server.rest", "[Account %s, Id %u] Checking old auth structure ...", login.c_str(), accountId);
+
+                if (result) {
+                    TC_LOG_DEBUG("server.rest", "[Account %s, Id %u] Updating old data auth ...", login.c_str(), accountId);
+
+                    std::pair<Trinity::Crypto::SRP6::Salt, Trinity::Crypto::SRP6::Verifier> registrationData = Trinity::Crypto::SRP6::MakeRegistrationData(login, password);
+
+                    LoginDatabasePreparedStatement*  loginUpdate = LoginDatabase.GetPreparedStatement(LOGIN_UPD_LOGON);
+                    loginUpdate->setBinary(0, registrationData.first);
+                    loginUpdate->setBinary(1, registrationData.second);
+                    loginUpdate->setUInt32(2, accountId);
+                    LoginDatabase.AsyncQuery(loginUpdate);
+                }
                 return;
             }
             else if (!isBanned)
