@@ -15,12 +15,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ScriptData
-Name: reload_commandscript
-%Complete: 100
-Comment: All reload related commands
-Category: commandscripts
-EndScriptData */
+ /* ScriptData
+ Name: reload_commandscript
+ %Complete: 100
+ Comment: All reload related commands
+ Category: commandscripts
+ EndScriptData */
 
 #include "AccountMgr.h"
 #include "AchievementMgr.h"
@@ -52,7 +52,7 @@ EndScriptData */
 #include "WaypointManager.h"
 #include "World.h"
 
-// new include
+ // new include
 #include "DB2Store.h"
 #include "DB2Stores.h"
 #include "DB2LoadInfo.h"
@@ -193,11 +193,11 @@ public:
             { "waypoint_data",                 rbac::RBAC_PERM_COMMAND_RELOAD_WAYPOINT_DATA,                    true,  &HandleReloadWpCommand,                         "" },
             { "vehicle_accessory",             rbac::RBAC_PERM_COMMAND_RELOAD_VEHICLE_ACCESORY,                 true,  &HandleReloadVehicleAccessoryCommand,           "" },
             { "vehicle_template_accessory",    rbac::RBAC_PERM_COMMAND_RELOAD_VEHICLE_TEMPLATE_ACCESSORY,       true,  &HandleReloadVehicleTemplateAccessoryCommand,   "" },
-			{ "gameobject_template",		   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadGameObjectTemplateCommand,		   "" },
-			{ "creature_template_addons",      rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureTemplateAddCommand,		   "" },
-			{ "creature_addons",			   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureAddonsCommand,			   "" },
-			{ "creature_equip_template",	   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureEquipTemplateCommand,	   "" },
-			{ "hotfixes",	                   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadHotfixesCommand,				   "" },
+            { "gameobject_template",		   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadGameObjectTemplateCommand,		   "" },
+            { "creature_template_addons",      rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureTemplateAddCommand,		   "" },
+            { "creature_addons",			   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureAddonsCommand,			   "" },
+            { "creature_equip_template",	   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadCreatureEquipTemplateCommand,	   "" },
+            { "hotfixes",	                   rbac::RBAC_PERM_COMMAND_RELOAD_ALL,							    true,  &HandleReloadHotfixesCommand,				   "" },
 
 
 
@@ -281,7 +281,7 @@ public:
     static bool HandleReloadAllNpcCommand(ChatHandler* handler, const char* args)
     {
         if (*args != 'a')                                          // will be reloaded from all_gossips
-        HandleReloadTrainerCommand(handler, "a");
+            HandleReloadTrainerCommand(handler, "a");
         HandleReloadNpcVendorCommand(handler, "a");
         HandleReloadPointsOfInterestCommand(handler, "a");
         HandleReloadSpellClickSpellsCommand(handler, "a");
@@ -341,7 +341,7 @@ public:
         HandleReloadGossipMenuCommand(handler, "a");
         HandleReloadGossipMenuOptionCommand(handler, "a");
         if (*args != 'a')                                          // already reload from all_scripts
-        HandleReloadPointsOfInterestCommand(handler, "a");
+            HandleReloadPointsOfInterestCommand(handler, "a");
         return true;
     }
 
@@ -461,7 +461,7 @@ public:
         return true;
     }
 
-	/*
+    /*
     static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* args)
     {
         if (!*args)
@@ -502,30 +502,31 @@ public:
         handler->SendGlobalGMSysMessage("Creature template reloaded.");
         return true;
     }
-	*/
+    */
 
 
-	static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		TC_LOG_INFO("misc", "Reloading creature template...");
-		sObjectMgr->LoadCreatureTemplates();
-		handler->SendGlobalGMSysMessage("DB table `creature_template` reloaded.");
-		return true;
-	}
+    static bool HandleReloadCreatureTemplateCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Reloading creature template...");
+        sObjectMgr->LoadCreatureTemplates();
+        sObjectMgr->InitializeQueriesData(QUERY_DATA_CREATURES);
+        handler->SendGlobalGMSysMessage("DB table `creature_template` reloaded.");
+        return true;
+    }
 
     static bool HandleReloadCreatureTemplateOutfitsCommand(ChatHandler* handler, const char* /*args*/)
     {
         TC_LOG_INFO("misc", "Loading Creature Outfits... (`creature_template_outfits`)");
         sObjectMgr->LoadCreatureOutfits();
         sMapMgr->DoForAllMaps([](Map* map)
-        {
-            for (auto e : map->GetCreatureBySpawnIdStore())
             {
-                auto const & outfit = e.second->GetOutfit();
-                if (outfit && outfit->GetId())
-                    e.second->SetDisplayId(outfit->GetId());
-            }
-        });
+                for (auto e : map->GetCreatureBySpawnIdStore())
+                {
+                    auto const& outfit = e.second->GetOutfit();
+                    if (outfit && outfit->GetId())
+                        e.second->SetDisplayId(outfit->GetId());
+                }
+            });
 
         handler->SendGlobalGMSysMessage("DB table `creature_template_outfits` reloaded.");
         return true;
@@ -792,7 +793,7 @@ public:
 
     static bool HandleReloadQuestPOICommand(ChatHandler* handler, const char* /*args*/)
     {
-        TC_LOG_INFO("misc", "Re-Loading Quest POI ..." );
+        TC_LOG_INFO("misc", "Re-Loading Quest POI ...");
         sObjectMgr->LoadQuestPOI();
         sObjectMgr->InitializeQueriesData(QUERY_DATA_POIS);
         handler->SendGlobalGMSysMessage("DB Table `quest_poi` and `quest_poi_points` reloaded.");
@@ -817,7 +818,7 @@ public:
 
     static bool HandleReloadReputationRewardRateCommand(ChatHandler* handler, const char* /*args*/)
     {
-        TC_LOG_INFO("misc", "Re-Loading `reputation_reward_rate` Table!" );
+        TC_LOG_INFO("misc", "Re-Loading `reputation_reward_rate` Table!");
         sObjectMgr->LoadReputationRewardRate();
         handler->SendGlobalSysMessage("DB table `reputation_reward_rate` reloaded.");
         return true;
@@ -825,7 +826,7 @@ public:
 
     static bool HandleReloadReputationSpilloverTemplateCommand(ChatHandler* handler, const char* /*args*/)
     {
-        TC_LOG_INFO("misc", "Re-Loading `reputation_spillover_template` Table!" );
+        TC_LOG_INFO("misc", "Re-Loading `reputation_spillover_template` Table!");
         sObjectMgr->LoadReputationSpilloverTemplate();
         handler->SendGlobalSysMessage("DB table `reputation_spillover_template` reloaded.");
         return true;
@@ -1235,233 +1236,235 @@ public:
         return true;
     }
 
-	static bool HandleReloadGameObjectTemplateCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		TC_LOG_INFO("misc", "Reloading GameObject Templates tables...");
-		sObjectMgr->LoadGameObjectTemplate();
-		handler->SendGlobalGMSysMessage("GameObject Template reloaded.");
-		return true;
-	}
+    static bool HandleReloadGameObjectTemplateCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Reloading GameObject Templates tables...");
+        sObjectMgr->LoadGameObjectTemplate();
+        sObjectMgr->InitializeQueriesData(QUERY_DATA_GAMEOBJECTS);
+        sObjectMgr->InitializeQueriesData(QUERY_DATA_QUESTS);
+        handler->SendGlobalGMSysMessage("GameObject Template reloaded.");
+        return true;
+    }
 
-	static bool HandleReloadCreatureTemplateAddCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		TC_LOG_INFO("misc", "Reloading Creature Templates Addons tables...");
-		sObjectMgr->LoadCreatureTemplateAddons();
-		handler->SendGlobalGMSysMessage("Creature Template Addons reloaded.");
-		return true;
-	}
+    static bool HandleReloadCreatureTemplateAddCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Reloading Creature Templates Addons tables...");
+        sObjectMgr->LoadCreatureTemplateAddons();
+        handler->SendGlobalGMSysMessage("Creature Template Addons reloaded.");
+        return true;
+    }
 
-	static bool HandleReloadCreatureAddonsCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		TC_LOG_INFO("misc", "Reloading Creature Addons tables...");
-		sObjectMgr->LoadCreatureAddons();
-		handler->SendGlobalGMSysMessage("Creature Addons reloaded.");
-		return true;
-	}
+    static bool HandleReloadCreatureAddonsCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Reloading Creature Addons tables...");
+        sObjectMgr->LoadCreatureAddons();
+        handler->SendGlobalGMSysMessage("Creature Addons reloaded.");
+        return true;
+    }
 
-	static bool HandleReloadCreatureEquipTemplateCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		TC_LOG_INFO("misc", "Reloading Creature Equipment Templates tables...");
-		sObjectMgr->LoadEquipmentTemplates();
-		handler->SendGlobalGMSysMessage("Creature Equip Template reloaded.");
-		return true;
-	}
+    static bool HandleReloadCreatureEquipTemplateCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Reloading Creature Equipment Templates tables...");
+        sObjectMgr->LoadEquipmentTemplates();
+        handler->SendGlobalGMSysMessage("Creature Equip Template reloaded.");
+        return true;
+    }
 
-	static bool HandleReloadHotfixesCommand(ChatHandler* handler, const char* /*args*/)
-	{
-		// hotfix_data
-		TC_LOG_INFO("misc", "Reloading hotfix info...");
-		sDB2Manager.LoadHotfixData();
+    static bool HandleReloadHotfixesCommand(ChatHandler* handler, const char* /*args*/)
+    {
+        // hotfix_data
+        TC_LOG_INFO("misc", "Reloading hotfix info...");
+        sDB2Manager.LoadHotfixData();
 
-		// DB2
-		sAnimKitStore.LoadFromDB();
-		sAreaTableStore.LoadFromDB();
-		sAreaTriggerStore.LoadFromDB();
-		sArmorLocationStore.LoadFromDB();
-		sArtifactStore.LoadFromDB();
-		sArtifactAppearanceStore.LoadFromDB();
-		sArtifactAppearanceSetStore.LoadFromDB();
-		sArtifactCategoryStore.LoadFromDB();
-		sArtifactPowerStore.LoadFromDB();
-		sArtifactPowerPickerStore.LoadFromDB();
-		sAuctionHouseStore.LoadFromDB();
-		sBankBagSlotPricesStore.LoadFromDB();
-		sBarberShopStyleStore.LoadFromDB();
-		sBattlePetBreedQualityStore.LoadFromDB();
-		sBattlePetBreedStateStore.LoadFromDB();
-		sBattlePetSpeciesStore.LoadFromDB();
-		sBattlePetSpeciesStateStore.LoadFromDB();
-		sBattlemasterListStore.LoadFromDB();
-		sBroadcastTextStore.LoadFromDB();
+        // DB2
+        sAnimKitStore.LoadFromDB();
+        sAreaTableStore.LoadFromDB();
+        sAreaTriggerStore.LoadFromDB();
+        sArmorLocationStore.LoadFromDB();
+        sArtifactStore.LoadFromDB();
+        sArtifactAppearanceStore.LoadFromDB();
+        sArtifactAppearanceSetStore.LoadFromDB();
+        sArtifactCategoryStore.LoadFromDB();
+        sArtifactPowerStore.LoadFromDB();
+        sArtifactPowerPickerStore.LoadFromDB();
+        sAuctionHouseStore.LoadFromDB();
+        sBankBagSlotPricesStore.LoadFromDB();
+        sBarberShopStyleStore.LoadFromDB();
+        sBattlePetBreedQualityStore.LoadFromDB();
+        sBattlePetBreedStateStore.LoadFromDB();
+        sBattlePetSpeciesStore.LoadFromDB();
+        sBattlePetSpeciesStateStore.LoadFromDB();
+        sBattlemasterListStore.LoadFromDB();
+        sBroadcastTextStore.LoadFromDB();
         sCharHairGeosetsStore.LoadFromDB();
-		sCharStartOutfitStore.LoadFromDB();
-		sCharTitlesStore.LoadFromDB();
-		sChatChannelsStore.LoadFromDB();
-		sChrClassesStore.LoadFromDB();
-		sChrRacesStore.LoadFromDB();
-		sChrSpecializationStore.LoadFromDB();
-		sCinematicCameraStore.LoadFromDB();
-		sCinematicSequencesStore.LoadFromDB();
-		sConversationLineStore.LoadFromDB();
-		//sCreatureDisplayInfoStoreRaw.LoadFromDB();
-		//sCreatureDisplayInfoStore.LoadFromDB(); disabled because npcdress changes in db2store.cpp
-		sCreatureDisplayInfoExtraStore.LoadFromDB();
-		sCreatureFamilyStore.LoadFromDB();
-		sCreatureModelDataStore.LoadFromDB();
-		sCreatureTypeStore.LoadFromDB();
-		sCriteriaStore.LoadFromDB();
-		sCriteriaTreeStore.LoadFromDB();
-		sCurrencyTypesStore.LoadFromDB();
-		sCurveStore.LoadFromDB();
-		sDestructibleModelDataStore.LoadFromDB();
-		sDifficultyStore.LoadFromDB();
-		sDungeonEncounterStore.LoadFromDB();
-		sDurabilityCostsStore.LoadFromDB();
-		sDurabilityQualityStore.LoadFromDB();
-		sEmotesStore.LoadFromDB();
-		sEmotesTextStore.LoadFromDB();
-		sFactionStore.LoadFromDB();
-		sFactionTemplateStore.LoadFromDB();
-		sGameObjectsStore.LoadFromDB();
-		sGameObjectDisplayInfoStore.LoadFromDB();
-		sGarrAbilityStore.LoadFromDB();
-		sGarrBuildingStore.LoadFromDB();
-		sGarrBuildingPlotInstStore.LoadFromDB();
-		sGarrClassSpecStore.LoadFromDB();
-		sGarrFollowerStore.LoadFromDB();
-		sGarrFollowerXAbilityStore.LoadFromDB();
-		sGarrPlotBuildingStore.LoadFromDB();
-		sGarrPlotStore.LoadFromDB();
-		sGarrPlotInstanceStore.LoadFromDB();
-		sGarrSiteLevelStore.LoadFromDB();
-		sGarrSiteLevelPlotInstStore.LoadFromDB();
-		sGemPropertiesStore.LoadFromDB();
-		sGlyphPropertiesStore.LoadFromDB();
-		sGuildColorBackgroundStore.LoadFromDB();
-		sGuildColorBorderStore.LoadFromDB();
-		sGuildColorEmblemStore.LoadFromDB();
-		sGuildPerkSpellsStore.LoadFromDB();
-		sHolidaysStore.LoadFromDB();
-		sImportPriceArmorStore.LoadFromDB();
-		sImportPriceQualityStore.LoadFromDB();
-		sImportPriceShieldStore.LoadFromDB();
-		sImportPriceWeaponStore.LoadFromDB();
-		sItemAppearanceStore.LoadFromDB();
-		sItemArmorQualityStore.LoadFromDB();
-		sItemArmorShieldStore.LoadFromDB();
-		sItemArmorTotalStore.LoadFromDB();
-		sItemBagFamilyStore.LoadFromDB();
-		sItemDamageAmmoStore.LoadFromDB();
-		sItemDamageOneHandStore.LoadFromDB();
-		sItemDamageOneHandCasterStore.LoadFromDB();
-		sItemDamageTwoHandStore.LoadFromDB();
-		sItemDamageTwoHandCasterStore.LoadFromDB();
-		sItemDisenchantLootStore.LoadFromDB();
+        sCharStartOutfitStore.LoadFromDB();
+        sCharTitlesStore.LoadFromDB();
+        sChatChannelsStore.LoadFromDB();
+        sChrClassesStore.LoadFromDB();
+        sChrRacesStore.LoadFromDB();
+        sChrSpecializationStore.LoadFromDB();
+        sCinematicCameraStore.LoadFromDB();
+        sCinematicSequencesStore.LoadFromDB();
+        sConversationLineStore.LoadFromDB();
+        //sCreatureDisplayInfoStoreRaw.LoadFromDB();
+        //sCreatureDisplayInfoStore.LoadFromDB(); disabled because npcdress changes in db2store.cpp
+        sCreatureDisplayInfoExtraStore.LoadFromDB();
+        sCreatureFamilyStore.LoadFromDB();
+        sCreatureModelDataStore.LoadFromDB();
+        sCreatureTypeStore.LoadFromDB();
+        sCriteriaStore.LoadFromDB();
+        sCriteriaTreeStore.LoadFromDB();
+        sCurrencyTypesStore.LoadFromDB();
+        sCurveStore.LoadFromDB();
+        sDestructibleModelDataStore.LoadFromDB();
+        sDifficultyStore.LoadFromDB();
+        sDungeonEncounterStore.LoadFromDB();
+        sDurabilityCostsStore.LoadFromDB();
+        sDurabilityQualityStore.LoadFromDB();
+        sEmotesStore.LoadFromDB();
+        sEmotesTextStore.LoadFromDB();
+        sFactionStore.LoadFromDB();
+        sFactionTemplateStore.LoadFromDB();
+        sGameObjectsStore.LoadFromDB();
+        sGameObjectDisplayInfoStore.LoadFromDB();
+        sGarrAbilityStore.LoadFromDB();
+        sGarrBuildingStore.LoadFromDB();
+        sGarrBuildingPlotInstStore.LoadFromDB();
+        sGarrClassSpecStore.LoadFromDB();
+        sGarrFollowerStore.LoadFromDB();
+        sGarrFollowerXAbilityStore.LoadFromDB();
+        sGarrPlotBuildingStore.LoadFromDB();
+        sGarrPlotStore.LoadFromDB();
+        sGarrPlotInstanceStore.LoadFromDB();
+        sGarrSiteLevelStore.LoadFromDB();
+        sGarrSiteLevelPlotInstStore.LoadFromDB();
+        sGemPropertiesStore.LoadFromDB();
+        sGlyphPropertiesStore.LoadFromDB();
+        sGuildColorBackgroundStore.LoadFromDB();
+        sGuildColorBorderStore.LoadFromDB();
+        sGuildColorEmblemStore.LoadFromDB();
+        sGuildPerkSpellsStore.LoadFromDB();
+        sHolidaysStore.LoadFromDB();
+        sImportPriceArmorStore.LoadFromDB();
+        sImportPriceQualityStore.LoadFromDB();
+        sImportPriceShieldStore.LoadFromDB();
+        sImportPriceWeaponStore.LoadFromDB();
+        sItemAppearanceStore.LoadFromDB();
+        sItemArmorQualityStore.LoadFromDB();
+        sItemArmorShieldStore.LoadFromDB();
+        sItemArmorTotalStore.LoadFromDB();
+        sItemBagFamilyStore.LoadFromDB();
+        sItemDamageAmmoStore.LoadFromDB();
+        sItemDamageOneHandStore.LoadFromDB();
+        sItemDamageOneHandCasterStore.LoadFromDB();
+        sItemDamageTwoHandStore.LoadFromDB();
+        sItemDamageTwoHandCasterStore.LoadFromDB();
+        sItemDisenchantLootStore.LoadFromDB();
         sItemDisplayInfoStore.LoadFromDB();
-		sItemEffectStore.LoadFromDB();
-		sItemStore.LoadFromDB();
-		sItemExtendedCostStore.LoadFromDB();
-		sItemLimitCategoryStore.LoadFromDB();
-		sItemModifiedAppearanceStore.LoadFromDB();
-		sItemPriceBaseStore.LoadFromDB();
-		sItemSearchNameStore.LoadFromDB();
-		sItemSetStore.LoadFromDB();
-		sItemSetSpellStore.LoadFromDB();
-		sItemSparseStore.LoadFromDB();
-		sItemSparseStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR
-		sItemSpecStore.LoadFromDB();
-		sItemSpecOverrideStore.LoadFromDB();
-		sLFGDungeonsStore.LoadFromDB();
-		sLiquidTypeStore.LoadFromDB();
-		sLockStore.LoadFromDB();
-		sMailTemplateStore.LoadFromDB();
-		sMapStore.LoadFromDB();
+        sItemEffectStore.LoadFromDB();
+        sItemStore.LoadFromDB();
+        sItemExtendedCostStore.LoadFromDB();
+        sItemLimitCategoryStore.LoadFromDB();
+        sItemModifiedAppearanceStore.LoadFromDB();
+        sItemPriceBaseStore.LoadFromDB();
+        sItemSearchNameStore.LoadFromDB();
+        sItemSetStore.LoadFromDB();
+        sItemSetSpellStore.LoadFromDB();
+        sItemSparseStore.LoadFromDB();
+        sItemSparseStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR
+        sItemSpecStore.LoadFromDB();
+        sItemSpecOverrideStore.LoadFromDB();
+        sLFGDungeonsStore.LoadFromDB();
+        sLiquidTypeStore.LoadFromDB();
+        sLockStore.LoadFromDB();
+        sMailTemplateStore.LoadFromDB();
+        sMapStore.LoadFromDB();
         sModelFileDataStore.LoadFromDB();
-		sModifierTreeStore.LoadFromDB();
-		sMountCapabilityStore.LoadFromDB();
-		sMountStore.LoadFromDB();
-		sMovieStore.LoadFromDB();
+        sModifierTreeStore.LoadFromDB();
+        sMountCapabilityStore.LoadFromDB();
+        sMountStore.LoadFromDB();
+        sMovieStore.LoadFromDB();
         sNPCSoundsStore.LoadFromDB();
-		sOverrideSpellDataStore.LoadFromDB();
-		sPhaseStore.LoadFromDB();
-		sPlayerConditionStore.LoadFromDB();
-		sPowerDisplayStore.LoadFromDB();
-		sQuestFactionRewardStore.LoadFromDB();
-		sQuestMoneyRewardStore.LoadFromDB();
-		sQuestSortStore.LoadFromDB();
-		sQuestXPStore.LoadFromDB();
-		sRandPropPointsStore.LoadFromDB();
-		sRewardPackStore.LoadFromDB();
-		sScalingStatDistributionStore.LoadFromDB();
-		sScenarioStore.LoadFromDB();
-		sScenarioStepStore.LoadFromDB();
-	//	sSceneScriptStore.LoadFromDB();
-		sSceneScriptPackageStore.LoadFromDB();
-		sSkillLineStore.LoadFromDB();
-		sSkillLineAbilityStore.LoadFromDB();
-		sSkillRaceClassInfoStore.LoadFromDB();
-		sSoundKitStore.LoadFromDB();
-	//	sSpellStore.LoadFromDB();
-		sSpellAuraOptionsStore.LoadFromDB();
-		sSpellAuraRestrictionsStore.LoadFromDB();
-		sSpellCastTimesStore.LoadFromDB();
-		sSpellCastingRequirementsStore.LoadFromDB();
-		sSpellCategoriesStore.LoadFromDB();
-		sSpellCategoryStore.LoadFromDB();
-		sSpellClassOptionsStore.LoadFromDB();
-		sSpellCooldownsStore.LoadFromDB();
-		sSpellDurationStore.LoadFromDB();
-		sSpellEffectStore.LoadFromDB();
-	//	sSpellEffectScalingStore.LoadFromDB();
-		sSpellEquippedItemsStore.LoadFromDB();
-		sSpellFocusObjectStore.LoadFromDB();
-		sSpellInterruptsStore.LoadFromDB();
-		sSpellItemEnchantmentStore.LoadFromDB();
-		sSpellItemEnchantmentConditionStore.LoadFromDB();
-		sSpellLearnSpellStore.LoadFromDB();
-		sSpellLevelsStore.LoadFromDB();
-		sSpellMiscStore.LoadFromDB();
-		sSpellPowerStore.LoadFromDB();
-		sSpellProcsPerMinuteStore.LoadFromDB();
-		sSpellRadiusStore.LoadFromDB();
-		sSpellRangeStore.LoadFromDB();
-		sSpellReagentsStore.LoadFromDB();
-		sSpellScalingStore.LoadFromDB();
-		sSpellShapeshiftStore.LoadFromDB();
-		sSpellShapeshiftFormStore.LoadFromDB();
-		sSpellTargetRestrictionsStore.LoadFromDB();
-		sSpellTotemsStore.LoadFromDB();
-		sSpellXSpellVisualStore.LoadFromDB();
-		sSummonPropertiesStore.LoadFromDB();
-		sTalentStore.LoadFromDB();
-		sTaxiNodesStore.LoadFromDB();
-		sTaxiPathStore.LoadFromDB();
+        sOverrideSpellDataStore.LoadFromDB();
+        sPhaseStore.LoadFromDB();
+        sPlayerConditionStore.LoadFromDB();
+        sPowerDisplayStore.LoadFromDB();
+        sQuestFactionRewardStore.LoadFromDB();
+        sQuestMoneyRewardStore.LoadFromDB();
+        sQuestSortStore.LoadFromDB();
+        sQuestXPStore.LoadFromDB();
+        sRandPropPointsStore.LoadFromDB();
+        sRewardPackStore.LoadFromDB();
+        sScalingStatDistributionStore.LoadFromDB();
+        sScenarioStore.LoadFromDB();
+        sScenarioStepStore.LoadFromDB();
+        //	sSceneScriptStore.LoadFromDB();
+        sSceneScriptPackageStore.LoadFromDB();
+        sSkillLineStore.LoadFromDB();
+        sSkillLineAbilityStore.LoadFromDB();
+        sSkillRaceClassInfoStore.LoadFromDB();
+        sSoundKitStore.LoadFromDB();
+        //	sSpellStore.LoadFromDB();
+        sSpellAuraOptionsStore.LoadFromDB();
+        sSpellAuraRestrictionsStore.LoadFromDB();
+        sSpellCastTimesStore.LoadFromDB();
+        sSpellCastingRequirementsStore.LoadFromDB();
+        sSpellCategoriesStore.LoadFromDB();
+        sSpellCategoryStore.LoadFromDB();
+        sSpellClassOptionsStore.LoadFromDB();
+        sSpellCooldownsStore.LoadFromDB();
+        sSpellDurationStore.LoadFromDB();
+        sSpellEffectStore.LoadFromDB();
+        //	sSpellEffectScalingStore.LoadFromDB();
+        sSpellEquippedItemsStore.LoadFromDB();
+        sSpellFocusObjectStore.LoadFromDB();
+        sSpellInterruptsStore.LoadFromDB();
+        sSpellItemEnchantmentStore.LoadFromDB();
+        sSpellItemEnchantmentConditionStore.LoadFromDB();
+        sSpellLearnSpellStore.LoadFromDB();
+        sSpellLevelsStore.LoadFromDB();
+        sSpellMiscStore.LoadFromDB();
+        sSpellPowerStore.LoadFromDB();
+        sSpellProcsPerMinuteStore.LoadFromDB();
+        sSpellRadiusStore.LoadFromDB();
+        sSpellRangeStore.LoadFromDB();
+        sSpellReagentsStore.LoadFromDB();
+        sSpellScalingStore.LoadFromDB();
+        sSpellShapeshiftStore.LoadFromDB();
+        sSpellShapeshiftFormStore.LoadFromDB();
+        sSpellTargetRestrictionsStore.LoadFromDB();
+        sSpellTotemsStore.LoadFromDB();
+        sSpellXSpellVisualStore.LoadFromDB();
+        sSummonPropertiesStore.LoadFromDB();
+        sTalentStore.LoadFromDB();
+        sTaxiNodesStore.LoadFromDB();
+        sTaxiPathStore.LoadFromDB();
         sTextureFileDataStore.LoadFromDB();
-		sTransportAnimationStore.LoadFromDB();
-		sTransportRotationStore.LoadFromDB();
-		sUnitPowerBarStore.LoadFromDB();
-		sVehicleStore.LoadFromDB();
-		sVehicleSeatStore.LoadFromDB();
-		sWorldMapOverlayStore.LoadFromDB();
+        sTransportAnimationStore.LoadFromDB();
+        sTransportRotationStore.LoadFromDB();
+        sUnitPowerBarStore.LoadFromDB();
+        sVehicleStore.LoadFromDB();
+        sVehicleSeatStore.LoadFromDB();
+        sWorldMapOverlayStore.LoadFromDB();
 
-		// For items.
-		sObjectMgr->LoadItemTemplates();
-		sObjectMgr->LoadItemTemplateAddon();
-		sObjectMgr->LoadItemScriptNames();
+        // For items.
+        sObjectMgr->LoadItemTemplates();
+        sObjectMgr->LoadItemTemplateAddon();
+        sObjectMgr->LoadItemScriptNames();
 
 
-		// Send Packet
-		boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
+        // Send Packet
+        boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
 
-		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
-		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-        itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
-		
-		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
-		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");
+        HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
+        for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+            itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
 
-		return true;
-	}
+        handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
+        handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");
+
+        return true;
+    }
 };
 
 void AddSC_reload_commandscript()
