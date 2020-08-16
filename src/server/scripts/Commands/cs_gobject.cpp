@@ -83,6 +83,7 @@ public:
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
             { "raz",        rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameRazCommand,            ""        },
             { "doodad",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameDoodadCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
+            { "visibility", rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,   false, &HandleGameVisibilityCommand,         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
 
         };
         static std::vector<ChatCommand> commandTable =
@@ -181,7 +182,7 @@ public:
 
         // delete the old object and do a clean load from DB with a fresh new GameObject instance.
         // this is required to avoid weird behavior and memory leaks
-        delete object;
+        object->Delete();
 
         // this will generate a new guid if the object is in an instance
         object = GameObject::CreateGameObjectFromDB(spawnId, map);
@@ -909,6 +910,80 @@ public:
         handler->PSendSysMessage("Doodad for object %s %s \n", object->GetGUID().ToString().c_str(), object->HasDoodads() ? "ON" : "OFF");
     }
 
+    static bool HandleGameVisibilityCommand(ChatHandler* handler, char const* args)
+    {
+        // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+
+        std::string trinityArgs(args);
+        Tokenizer dataArgs(trinityArgs, ' ', 0, false);
+
+        if (dataArgs.size() < 2) {
+            handler->PSendSysMessage("Not enough arguments");
+            return false;
+        }
+
+        std::string id = handler->extractKeyFromLink((char*)(dataArgs[0]), "Hgameobject");
+
+        if (!std::all_of(id.begin(), id.end(), ::isdigit))
+            return false;
+
+        ObjectGuid::LowType guidLow = std::stoull(id);
+        if (!guidLow)
+            return false;
+
+        float distance;
+
+        try {
+            distance = std::atof(dataArgs[1]);
+        }
+        catch (...) {
+            return false;
+        }
+
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, guidLow);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (distance >= 5000)
+            return false;
+
+        if (distance > SIZE_OF_GRIDS) {
+            object->GetMap()->AddInfiniteGameObject(object);
+            //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+        }
+        else {
+            auto infinites = object->GetMap()->GetInfiniteGameObjects();
+            if (std::find(infinites.begin(), infinites.end(), object) != infinites.end())
+                object->GetMap()->RemoveInfiniteGameObject(object);
+
+            //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
+        }
+
+        float oldVisibility = const_cast<GameObjectData*>(object->GetGOData())->visibility;
+
+        const_cast<GameObjectData*>(object->GetGOData())->visibility = distance;
+
+        Map* map = object->GetMap();
+        object->SetVisibilityDistanceOverride(distance);
+        object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
+        object->SaveToDB();
+        object->Delete();
+
+        object = GameObject::CreateGameObjectFromDB(guidLow, map);
+
+        if (!object)
+            return false;
+
+        for (Map::PlayerList::const_iterator itr = map->GetPlayers().begin(); itr != map->GetPlayers().end(); ++itr)
+            itr->GetSource()->UpdateVisibilityOf(object);
+
+        handler->PSendSysMessage("Visibility set for object %s to %f\n", object->GetGUID().ToString().c_str(), distance);
+    }
+
     static bool HandleGameRazCommand(ChatHandler* handler, char const* args)
     {
         Player* player = handler->GetSession()->GetPlayer();
@@ -1089,6 +1164,8 @@ public:
                     insertdood->setFloat(10, rotation3);
                     insertdood->setFloat(11, sqrt(pow(x - object->GetPositionX(), 2) + pow(y - object->GetPositionY(), 2)));
                     insertdood->setFloat(12, std::atan2(x - object->GetPositionX(), y - object->GetPositionY()));
+                    insertdood->setBool(13, object->HasDoodads());
+                    insertdood->setFloat(14, object->GetVisibilityRange());
                     WorldDatabase.Execute(insertdood);
                 }
                 
@@ -1161,7 +1238,7 @@ public:
 
         // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
         // this is required to avoid weird behavior and memory leaks 
-        delete object;
+        object->Delete();
 
         object = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 
@@ -1215,6 +1292,8 @@ public:
                 float doodRotW = fields[9].GetFloat();
                 float doodDist = fields[10].GetFloat();
                 float doodAngle = fields[11].GetFloat();
+                bool  doodHasDoodads = fields[12].GetBool();
+                float doodVisibility = fields[13].GetFloat();
 
                 // Check if object exists !
                 GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(doodEntry);
@@ -1245,7 +1324,9 @@ public:
                 // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
                 PhasingHandler::InheritPhaseShift(object2, player);
 
-                // on récup le scale 
+                // on récup le scale
+                object2->SetDoodads(doodHasDoodads);
+                object2->SetVisibilityDistanceOverride(doodVisibility);
                 object2->SetObjectScale(doodSize);
                 object2->Relocate(object2->GetPositionX(), object2->GetPositionY(), object2->GetPositionZ(), object2->GetOrientation());
                 object2->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
@@ -1254,7 +1335,7 @@ public:
 
                 // delete the old object and do a clean load from DB with a fresh new GameObject instance. 
                 // this is required to avoid weird behavior and memory leaks 
-                delete object2;
+                object2->Delete();
 
                 object2 = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 

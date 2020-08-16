@@ -99,7 +99,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         void CleanupsBeforeDelete(bool finalCleanup = true) override;
 
     private:
-        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads,  float size = -1.0f);
+        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool hasDoodads,  float visibility = SIZE_OF_GRIDS, float size = -1.0f);
 
     public:
         static GameObject* CreateGameObject(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit = 0);
@@ -325,7 +325,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         bool HasDoodads() const { return m_hasDoodads; }
         void SetDoodads(bool hasDoodads);
     protected:
-        GameObjectModel* CreateModel();
+        void CreateModel();
         void UpdateModel();                                 // updates model in case displayId were changed
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),

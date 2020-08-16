@@ -86,7 +86,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_INS_CREATURE, "INSERT INTO creature (guid, id , map, spawnDifficulties, PhaseId, PhaseGroup, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, MovementType, npcflag, unit_flags, unit_flags2, unit_flags3, dynamicflags, size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_CREATURE, "DELETE FROM game_event_creature WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_MODEL_EQUIP, "DELETE FROM game_event_model_equip WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_INS_GAMEOBJECT, "INSERT INTO gameobject (guid, id, map, spawnDifficulties, PhaseId, PhaseGroup, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, size, hasDoodads) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_GAMEOBJECT, "INSERT INTO gameobject (guid, id, map, spawnDifficulties, PhaseId, PhaseGroup, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, size, hasDoodads, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_INS_DISABLES, "INSERT INTO disables (entry, sourceType, flags, comment) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_DISABLES, "SELECT entry FROM disables WHERE entry = ? AND sourceType = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_DISABLES, "DELETE FROM disables WHERE entry = ? AND sourceType = ?", CONNECTION_ASYNC);
@@ -190,8 +190,8 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID, "SELECT MAX(entry) from gameobject_dupplication_template", CONNECTION_SYNCH);
 
     // dupplication_doodads
-    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle, hasDoodads, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle, hasDoodads, visibility FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS, "DELETE FROM gameobject_dupplication_doodads WHERE entry = ?", CONNECTION_ASYNC);
 
     // dupplication_guid

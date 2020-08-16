@@ -345,8 +345,8 @@ class GridObject
         virtual ~GridObject() { }
 
         bool IsInGrid() const { return _gridRef.isValid(); }
-        void AddToGrid(GridRefManager<T>& m) { ASSERT(!IsInGrid()); _gridRef.link(&m, (T*)this); }
-        void RemoveFromGrid() { ASSERT(IsInGrid()); _gridRef.unlink(); }
+        void AddToGrid(GridRefManager<T>& m) { if(!IsInGrid()) _gridRef.link(&m, (T*)this); }
+        void RemoveFromGrid() { if (IsInGrid()) _gridRef.unlink(); }
     private:
         GridReference<T> _gridRef;
 };
@@ -548,6 +548,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         void setActive(bool isActiveObject);
         bool IsVisibilityOverridden() const { return m_visibilityDistanceOverride.is_initialized(); }
         void SetVisibilityDistanceOverride(VisibilityDistanceType type);
+        void SetVisibilityDistanceOverride(float distance);
         void SetWorldObject(bool apply);
         bool IsPermanentWorldObject() const { return m_isWorldObject; }
         bool IsWorldObject() const;

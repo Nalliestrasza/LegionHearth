@@ -9,14 +9,15 @@
 #include "Util.h"
 #include "Aurora.h"
 #include "AccountMgr.h"
+#include "SessionKeyGenerator.h"
 #include "AuroraPackets.h"
-
+#include "Random.h"
 #include <openssl/sha.h>
 
 Aurora::Aurora() : _session(NULL), _checkTimer(10000/*10 sec*/), _clientResponseTimer(0),
 _dataSent(false), _previousTimestamp(0), _initialized(false)
 {
-
+ 
 }
 
 Aurora::~Aurora()
@@ -65,13 +66,7 @@ void Aurora::Update()
 
 void Aurora::RequestData()
 {
-    WorldPacket pkt;
-    pkt.Initialize(SMSG_AURORA_TRACKER, 1);
-    pkt << 666; // implement a key system to avoid spoofing ?
-
-    _session->SendPacket(&pkt);
-
-    _dataSent = true;
+  
 }
 
 void WorldSession::HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet)

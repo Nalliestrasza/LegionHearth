@@ -61,6 +61,17 @@ void VisibleNotifier::SendToSelf()
         }
     }
 
+    if (Map* map = i_player.GetMap())
+    {
+        std::set<GameObject*> objects = map->GetInfiniteGameObjects();
+        for (GameObject* obj : objects) {
+            if (vis_guids.find(obj->GetGUID()) != vis_guids.end())
+                vis_guids.erase(obj->GetGUID());
+
+            i_player.UpdateVisibilityOf(obj, i_data, i_visibleNow);
+        }
+    }
+
     for (auto it = vis_guids.begin(); it != vis_guids.end(); ++it)
     {
         i_player.m_clientGUIDs.erase(*it);
@@ -73,6 +84,7 @@ void VisibleNotifier::SendToSelf()
                 player->UpdateVisibilityOf(&i_player);
         }
     }
+
 
     if (!i_data.HasData())
         return;

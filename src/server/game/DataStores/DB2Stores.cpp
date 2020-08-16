@@ -1105,7 +1105,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     }
     _mapDifficulties[0][0] = _mapDifficulties[1][0]; // map 0 is missing from MapDifficulty.dbc so we cheat a bit
 
-    // fix difficultiy for mythics dungeons and lfronly raid
+    // fix difficulties for mythics dungeons and lfronly raid
 
     _mapDifficulties[1516][1] = _mapDifficulties[1516][2];
     _mapDifficulties[1571][1] = _mapDifficulties[1571][2];

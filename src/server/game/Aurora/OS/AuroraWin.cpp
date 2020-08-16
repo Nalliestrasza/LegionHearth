@@ -1,5 +1,3 @@
-#include "Cryptography/HmacHash.h"
-#include "Cryptography/SessionKeyGeneration.h"
 #include "Common.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
@@ -8,25 +6,28 @@
 #include "ByteBuffer.h"
 #include "Database/DatabaseEnv.h"
 #include "GameTime.h"
+#include "SessionKeyGenerator.h"
 #include "World.h"
 #include "Player.h"
 #include "Util.h"
 #include "AuroraWin.h"
-#include "SHA1.h"
 #include "Random.h"
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <openssl/md5.h>
 #include "AuroraPackets.h"
+#include <vector>
 
-AuroraWin::AuroraWin() : Aurora(), _serverTicks(0) {}
+AuroraWin::AuroraWin() : Aurora(), _serverTicks(0)
+{}
 
 AuroraWin::~AuroraWin() { }
 
-void AuroraWin::Init(WorldSession* session)
+void AuroraWin::Init(WorldSession* session, SessionKey const& K)
 {
     _session = session;
     _initialized = true;
+
     TC_LOG_DEBUG("misc", "Server side HWID Checker for client %llu initializing ...", session->GetAccountId());
 }
 
@@ -34,7 +35,9 @@ void AuroraWin::RequestData()
 {
     TC_LOG_DEBUG("misc", "Serverside side HWID Checker for client %llu sending a request ...", _session->GetAccountId());
 
-    _session->SendAuroraTracker(WorldPackets::Aurora::AuroraTracker(666));
+    _seed = urand(0, 0xDEADBEEF);
+    _session->SendAuroraTracker(WorldPackets::Aurora::AuroraTracker(_seed));
+
     _dataSent = true;
 }
 
@@ -44,6 +47,14 @@ void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)
 
     _dataSent = false;
     _clientResponseTimer = 0;
+
+    uint32 clientVersion = packet.Version ^ _seed;
+
+    if (clientVersion != _checkVersion)
+    {
+        TC_LOG_DEBUG("misc", "HWID Version Mismatch (%u) for Client : %llu ...", clientVersion, _session->GetAccountId());
+        _session->KickPlayer();
+    }
 
     // get all accounts matchting the hwid ...
     LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_HWID_BAN);
@@ -115,6 +126,6 @@ void AuroraWin::HandleData(WorldPackets::Aurora::AuroraHWID& packet)
     _session->SetHWID(packet.PhysicalDriveId, packet.CPUId, packet.VolumeInformation, packet.IsVirtualMachine);
 
     // Set hold off timer, minimum timer should at least be 1 second
-    uint32 holdOff = 3600;
+    uint32 holdOff = 600;
     _checkTimer = (holdOff < 1 ? 1 : holdOff) * IN_MILLISECONDS;
 }
