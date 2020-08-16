@@ -190,8 +190,8 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_MAX_ID, "SELECT MAX(entry) from gameobject_dupplication_template", CONNECTION_SYNCH);
 
     // dupplication_doodads
-    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_GAMEOBJECT_DUPPLICATION_DOODADS, "INSERT INTO gameobject_dupplication_doodads(entry, objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle, hasDoodads, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_DOODADS, "SELECT objectID, diffX, diffY, diffZ, diffO, size, rotationX, rotationY, rotationZ, rotationW, distance, angle, hasDoodads, visibility FROM gameobject_dupplication_doodads WHERE entry = ? ORDER BY guid ASC", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_GAMEOBJECT_DUPPLICATION_DOODADS, "DELETE FROM gameobject_dupplication_doodads WHERE entry = ?", CONNECTION_ASYNC);
 
     // dupplication_guid

@@ -924,11 +924,21 @@ public:
 
         std::string id = handler->extractKeyFromLink((char*)(dataArgs[0]), "Hgameobject");
 
+        if (!std::all_of(id.begin(), id.end(), ::isdigit))
+            return false;
+
         ObjectGuid::LowType guidLow = std::stoull(id);
         if (!guidLow)
             return false;
 
-        float distance = std::atof(dataArgs[1]);
+        float distance;
+
+        try {
+            distance = std::atof(dataArgs[1]);
+        }
+        catch (...) {
+            return false;
+        }
 
         GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
         if (!object)
@@ -937,6 +947,9 @@ public:
             handler->SetSentErrorMessage(true);
             return false;
         }
+
+        if (distance >= 5000)
+            return false;
 
         if (distance > SIZE_OF_GRIDS) {
             object->GetMap()->AddInfiniteGameObject(object);
@@ -962,13 +975,11 @@ public:
 
         object = GameObject::CreateGameObjectFromDB(guidLow, map);
 
-        for (Map::PlayerList::const_iterator itr = map->GetPlayers().begin(); itr != map->GetPlayers().end(); ++itr)
-        {
-            itr->GetSource()->UpdateVisibilityOf(object);
-        }
-
         if (!object)
             return false;
+
+        for (Map::PlayerList::const_iterator itr = map->GetPlayers().begin(); itr != map->GetPlayers().end(); ++itr)
+            itr->GetSource()->UpdateVisibilityOf(object);
 
         handler->PSendSysMessage("Visibility set for object %s to %f\n", object->GetGUID().ToString().c_str(), distance);
     }
@@ -1153,6 +1164,8 @@ public:
                     insertdood->setFloat(10, rotation3);
                     insertdood->setFloat(11, sqrt(pow(x - object->GetPositionX(), 2) + pow(y - object->GetPositionY(), 2)));
                     insertdood->setFloat(12, std::atan2(x - object->GetPositionX(), y - object->GetPositionY()));
+                    insertdood->setBool(13, object->HasDoodads());
+                    insertdood->setFloat(14, object->GetVisibilityRange());
                     WorldDatabase.Execute(insertdood);
                 }
                 
@@ -1279,6 +1292,8 @@ public:
                 float doodRotW = fields[9].GetFloat();
                 float doodDist = fields[10].GetFloat();
                 float doodAngle = fields[11].GetFloat();
+                bool  doodHasDoodads = fields[12].GetBool();
+                float doodVisibility = fields[13].GetFloat();
 
                 // Check if object exists !
                 GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(doodEntry);
@@ -1309,7 +1324,9 @@ public:
                 // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
                 PhasingHandler::InheritPhaseShift(object2, player);
 
-                // on récup le scale 
+                // on récup le scale
+                object2->SetDoodads(doodHasDoodads);
+                object2->SetVisibilityDistanceOverride(doodVisibility);
                 object2->SetObjectScale(doodSize);
                 object2->Relocate(object2->GetPositionX(), object2->GetPositionY(), object2->GetPositionZ(), object2->GetOrientation());
                 object2->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
