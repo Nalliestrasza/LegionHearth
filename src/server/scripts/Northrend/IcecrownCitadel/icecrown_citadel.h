@@ -120,7 +120,9 @@ enum ICDataTypes
     DATA_TERENAS_MENETHIL              = 39,
     DATA_ENEMY_GUNSHIP                 = 40,
     DATA_UPPERSPIRE_TELE_ACT           = 41, /// also used by conditions
-    DATA_BLOOD_QUEEN_LANA_THEL_COUNCIL = 42
+    DATA_BLOOD_QUEEN_LANA_THEL_COUNCIL = 42,
+    DATA_BLOOD_PRINCE_COUNCIL_INTRO    = 43,
+    DATA_SINDRAGOSA_INTRO              = 44
 };
 
 enum ICCreaturesIds
@@ -531,8 +533,8 @@ enum ICAreaIds
 class spell_trigger_spell_from_caster : public SpellScriptLoader
 {
     public:
-        spell_trigger_spell_from_caster(char const* scriptName, uint32 triggerId);
         spell_trigger_spell_from_caster(char const* scriptName, uint32 triggerId, TriggerCastFlags triggerFlags);
+        spell_trigger_spell_from_caster(char const* scriptName, uint32 triggerId);
         SpellScript* GetSpellScript() const override;
 
     private:
@@ -540,7 +542,7 @@ class spell_trigger_spell_from_caster : public SpellScriptLoader
         TriggerCastFlags _triggerFlags;
 };
 
-template<typename AI, typename T>
+template <class AI, class T>
 inline AI* GetIcecrownCitadelAI(T* obj)
 {
     return GetInstanceAI<AI>(obj, ICCScriptName);

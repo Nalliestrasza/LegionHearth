@@ -101,7 +101,7 @@ public:
 
         static std::vector<ChatCommand> commandTable =
         {
-            { "lookup", rbac::RBAC_PERM_COMMAND_LOOKUP,  true, NULL, "", lookupCommandTable },
+            { "lookup", rbac::RBAC_PERM_COMMAND_LOOKUP,  true, nullptr, "", lookupCommandTable },
         };
         return commandTable;
     }
@@ -340,7 +340,7 @@ public:
             FactionEntry const* factionEntry = sFactionStore.LookupEntry(id);
             if (factionEntry)
             {
-                FactionState const* factionState = target ? target->GetReputationMgr().GetState(factionEntry) : NULL;
+                FactionState const* factionState = target ? target->GetReputationMgr().GetState(factionEntry) : nullptr;
 
                 LocaleConstant locale = handler->GetSessionDbcLocale();
                 std::string name = factionEntry->Name[locale];
@@ -681,11 +681,22 @@ public:
                             }
 
                             if (handler->GetSession())
+                            {
+                                int32 maxLevel = 0;
+                                if (Optional<ContentTuningLevels> questLevels = sDB2Manager.GetContentTuningData(qInfo->GetContentTuningId(),
+                                    handler->GetSession()->GetPlayer()->m_playerData->CtrOptions->ContentTuningConditionMask))
+                                    maxLevel = questLevels->MaxLevel;
+
+                                int32 scalingFactionGroup = 0;
+                                if (ContentTuningEntry const* contentTuning = sContentTuningStore.LookupEntry(qInfo->GetContentTuningId()))
+                                    scalingFactionGroup = contentTuning->GetScalingFactionGroup();
+
                                 handler->PSendSysMessage(LANG_QUEST_LIST_CHAT, qInfo->GetQuestId(), qInfo->GetQuestId(),
                                     handler->GetSession()->GetPlayer()->GetQuestLevel(qInfo),
                                     handler->GetSession()->GetPlayer()->GetQuestMinLevel(qInfo),
-                                    qInfo->GetQuestMaxScalingLevel(), qInfo->GetQuestScalingFactionGroup(),
+                                    maxLevel, scalingFactionGroup,
                                     title.c_str(), statusStr);
+                            }
                             else
                                 handler->PSendSysMessage(LANG_QUEST_LIST_CONSOLE, qInfo->GetQuestId(), title.c_str(), statusStr);
 
@@ -733,11 +744,22 @@ public:
                 }
 
                 if (handler->GetSession())
+                {
+                    int32 maxLevel = 0;
+                    if (Optional<ContentTuningLevels> questLevels = sDB2Manager.GetContentTuningData(qInfo->GetContentTuningId(),
+                        handler->GetSession()->GetPlayer()->m_playerData->CtrOptions->ContentTuningConditionMask))
+                        maxLevel = questLevels->MaxLevel;
+
+                    int32 scalingFactionGroup = 0;
+                    if (ContentTuningEntry const* contentTuning = sContentTuningStore.LookupEntry(qInfo->GetContentTuningId()))
+                        scalingFactionGroup = contentTuning->GetScalingFactionGroup();
+
                     handler->PSendSysMessage(LANG_QUEST_LIST_CHAT, qInfo->GetQuestId(), qInfo->GetQuestId(),
                         handler->GetSession()->GetPlayer()->GetQuestLevel(qInfo),
                         handler->GetSession()->GetPlayer()->GetQuestMinLevel(qInfo),
-                        qInfo->GetQuestMaxScalingLevel(), qInfo->GetQuestScalingFactionGroup(),
+                        maxLevel, scalingFactionGroup,
                         title.c_str(), statusStr);
+                }
                 else
                     handler->PSendSysMessage(LANG_QUEST_LIST_CONSOLE, qInfo->GetQuestId(), title.c_str(), statusStr);
 
@@ -901,7 +923,7 @@ public:
                     SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
                     bool learn = effect ? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, spellInfo->Difficulty) : NULL;
+                    SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, spellInfo->Difficulty) : nullptr;
 
                     bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
                     bool passive = spellInfo->IsPassive();
@@ -974,7 +996,7 @@ public:
             SpellEffectInfo const* effect = spellInfo->GetEffect(EFFECT_0);
             bool learn = effect? (effect->Effect == SPELL_EFFECT_LEARN_SPELL) : false;
 
-            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, DIFFICULTY_NONE) : NULL;
+            SpellInfo const* learnSpellInfo = effect ? sSpellMgr->GetSpellInfo(effect->TriggerSpell, DIFFICULTY_NONE) : nullptr;
 
             bool talent = spellInfo->HasAttribute(SPELL_ATTR0_CU_IS_TALENT);
             bool passive = spellInfo->IsPassive();
@@ -1325,9 +1347,14 @@ public:
         }
         else
         {
+<<<<<<< HEAD
             //ip = strtok((char*)args, " ");
 			nameTarget = strtok((char*)args, " ");
             limitStr = strtok(NULL, " ");
+=======
+            ip = strtok((char*)args, " ");
+            limitStr = strtok(nullptr, " ");
+>>>>>>> e26122dc54b5c5a356a97a842718168dab97a0aa
             limit = limitStr ? atoi(limitStr) : -1;
         }
 
@@ -1355,7 +1382,7 @@ public:
             return false;
 
         std::string account = strtok((char*)args, " ");
-        char* limitStr = strtok(NULL, " ");
+        char* limitStr = strtok(nullptr, " ");
         int32 limit = limitStr ? atoi(limitStr) : -1;
 
         if (!Utf8ToUpperOnlyLatin(account))
@@ -1374,7 +1401,7 @@ public:
             return false;
 
         std::string email = strtok((char*)args, " ");
-        char* limitStr = strtok(NULL, " ");
+        char* limitStr = strtok(nullptr, " ");
         int32 limit = limitStr ? atoi(limitStr) : -1;
 
         LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_LIST_BY_EMAIL);

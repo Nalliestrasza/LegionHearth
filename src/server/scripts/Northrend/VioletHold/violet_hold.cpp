@@ -23,8 +23,8 @@
 #include "MotionMaster.h"
 #include "Player.h"
 #include "GameObjectAI.h"
-#include "ScriptedGossip.h"
 #include "ScriptedEscortAI.h"
+#include "ScriptedGossip.h"
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "TemporarySummon.h"
@@ -237,7 +237,7 @@ Position const FifthPortalWPs[] =
     //{1827.100342f, 801.605957f, 44.363358f}
 };
 
-Position const SixthPoralWPs[] =
+Position const SixthPortalWPs[] =
 {
     {1888.861084f, 805.074768f, 38.375790f},
     {1869.793823f, 804.135804f, 38.647018f},
@@ -542,7 +542,7 @@ class npc_azure_saboteur : public CreatureScript
                     _bossId = _instance->GetData(DATA_2ND_BOSS);
             }
 
-            template<size_t N>
+            template <size_t N>
             void StartSmoothPath(Position const (&path)[N])
             {
                 me->GetMotionMaster()->MoveSmoothPath(POINT_INTRO, &path[0], N, false);
@@ -821,9 +821,9 @@ class npc_violet_hold_teleportation_portal_intro : public CreatureScript
         }
 };
 
-struct violet_hold_trashAI : public npc_escortAI
+struct violet_hold_trashAI : public EscortAI
 {
-    violet_hold_trashAI(Creature* creature) : npc_escortAI(creature)
+    violet_hold_trashAI(Creature* creature) : EscortAI(creature)
     {
         _instance = creature->GetInstanceScript();
 
@@ -842,7 +842,7 @@ struct violet_hold_trashAI : public npc_escortAI
         _scheduler.CancelAll();
     }
 
-    template<size_t N>
+    template <size_t N>
     Position const* GetPathAndInitLastWaypointFrom(Position const (&path)[N])
     {
         _lastWaypointId = N - 1;
@@ -881,7 +881,7 @@ struct violet_hold_trashAI : public npc_escortAI
                     path = GetPathAndInitLastWaypointFrom(FifthPortalWPs);
                     break;
                 case 5:
-                    path = GetPathAndInitLastWaypointFrom(SixthPoralWPs);
+                    path = GetPathAndInitLastWaypointFrom(SixthPortalWPs);
                     break;
                 default:
                     path = GetPathAndInitLastWaypointFrom(DefaultPortalWPs);
@@ -899,7 +899,7 @@ struct violet_hold_trashAI : public npc_escortAI
         }
     }
 
-    void WaypointReached(uint32 waypointId) override
+    void WaypointReached(uint32 waypointId, uint32 /*pathId*/) override
     {
         if (waypointId == _lastWaypointId)
             CreatureStartAttackDoor();
@@ -907,7 +907,7 @@ struct violet_hold_trashAI : public npc_escortAI
 
     void EnterCombat(Unit* who) override
     {
-        npc_escortAI::EnterCombat(who);
+        EscortAI::EnterCombat(who);
         ScheduledTasks();
     }
 
@@ -920,7 +920,7 @@ struct violet_hold_trashAI : public npc_escortAI
             return;
 
         _scheduler.Update(diff,
-            std::bind(&npc_escortAI::DoMeleeAttackIfReady, this));
+            std::bind(&EscortAI::DoMeleeAttackIfReady, this));
     }
 
     virtual void ScheduledTasks() { }
@@ -1123,7 +1123,7 @@ class npc_azure_stalker : public CreatureScript
 
                     task.Schedule(Milliseconds(1300), [this](TaskContext /*task*/)
                     {
-                        if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 5.0f))
+                        if (Unit* target = SelectTarget(SELECT_TARGET_MINDISTANCE, 0, 5.0f))
                             DoCast(target, SPELL_BACKSTAB);
                     });
 
@@ -1291,7 +1291,7 @@ class npc_violet_hold_defense_system : public CreatureScript
 
         CreatureAI* GetAI(Creature* creature) const override
         {
-            return new npc_violet_hold_defense_systemAI(creature);
+            return GetVioletHoldAI<npc_violet_hold_defense_systemAI>(creature);
         }
 };
 

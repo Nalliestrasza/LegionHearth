@@ -42,7 +42,7 @@ void UpdateData::RemoveOutOfRangeGUID(ObjectGuid guid)
     m_outOfRangeGUIDs.erase(guid);
 }
 
-void UpdateData::AddUpdateBlock(const ByteBuffer &block)
+void UpdateData::AddUpdateBlock(ByteBuffer const& block)
 {
     m_data.append(block);
     ++m_blockCount;

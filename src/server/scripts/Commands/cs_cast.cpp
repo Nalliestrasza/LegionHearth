@@ -50,7 +50,7 @@ public:
         };
         static std::vector<ChatCommand> commandTable =
         {
-            { "cast",   rbac::RBAC_PERM_COMMAND_CAST,        false, NULL,                    "", castCommandTable },
+            { "cast",   rbac::RBAC_PERM_COMMAND_CAST,        false, nullptr,                    "", castCommandTable },
         };
         return commandTable;
     }
@@ -95,7 +95,7 @@ public:
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
 
-        char* triggeredStr = strtok(NULL, " ");
+        char* triggeredStr = strtok(nullptr, " ");
         if (triggeredStr)
         {
             int l = strlen(triggeredStr);
@@ -103,10 +103,7 @@ public:
                 return false;
         }
 
-
-		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
-
-        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
+        TriggerCastFlags triggered = (triggeredStr != nullptr) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         handler->GetSession()->GetPlayer()->CastSpell(target, spellId, triggered);
 
         return true;
@@ -130,7 +127,7 @@ public:
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
 
-        char* triggeredStr = strtok(NULL, " ");
+        char* triggeredStr = strtok(nullptr, " ");
         if (triggeredStr)
         {
             int l = strlen(triggeredStr);
@@ -138,7 +135,7 @@ public:
                 return false;
         }
 
-        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
+        TriggerCastFlags triggered = (triggeredStr != nullptr) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(handler->GetSession()->GetPlayer(), spellId, triggered);
 
         return true;
@@ -157,14 +154,14 @@ public:
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
 
-        char* distStr = strtok(NULL, " ");
+        char* distStr = strtok(nullptr, " ");
 
         float dist = 0;
 
         if (distStr)
             sscanf(distStr, "%f", &dist);
 
-        char* triggeredStr = strtok(NULL, " ");
+        char* triggeredStr = strtok(nullptr, " ");
         if (triggeredStr)
         {
             int l = strlen(triggeredStr);
@@ -172,7 +169,7 @@ public:
                 return false;
         }
 
-        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
+        TriggerCastFlags triggered = (triggeredStr != nullptr) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         float x, y, z;
 
 		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dist %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
@@ -232,7 +229,7 @@ public:
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
 
-        char* triggeredStr = strtok(NULL, " ");
+        char* triggeredStr = strtok(nullptr, " ");
         if (triggeredStr)
         {
             int l = strlen(triggeredStr);
@@ -240,10 +237,7 @@ public:
                 return false;
         }
 
-
-		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast target %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
-
-        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
+        TriggerCastFlags triggered = (triggeredStr != nullptr) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(caster->GetVictim(), spellId, triggered);
 
         return true;
@@ -267,9 +261,9 @@ public:
         if (!CheckSpellExistsAndIsValid(handler, spellId))
             return false;
 
-        char* posX = strtok(NULL, " ");
-        char* posY = strtok(NULL, " ");
-        char* posZ = strtok(NULL, " ");
+        char* posX = strtok(nullptr, " ");
+        char* posY = strtok(nullptr, " ");
+        char* posZ = strtok(nullptr, " ");
 
         if (!posX || !posY || !posZ)
             return false;
@@ -278,7 +272,7 @@ public:
         float y = float(atof(posY));
         float z = float(atof(posZ));
 
-        char* triggeredStr = strtok(NULL, " ");
+        char* triggeredStr = strtok(nullptr, " ");
         if (triggeredStr)
         {
             int l = strlen(triggeredStr);
@@ -286,9 +280,7 @@ public:
                 return false;
         }
 
-		TC_LOG_DEBUG("chat.log.whisper", "%s fait .cast dest %d", handler->GetSession()->GetPlayer()->GetName().c_str(), spellId);
-
-        TriggerCastFlags triggered = (triggeredStr != NULL) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
+        TriggerCastFlags triggered = (triggeredStr != nullptr) ? TRIGGERED_FULL_DEBUG_MASK : TRIGGERED_NONE;
         caster->CastSpell(x, y, z, spellId, triggered);
 
         return true;

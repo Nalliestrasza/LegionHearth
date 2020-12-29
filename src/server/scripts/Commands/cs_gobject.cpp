@@ -42,6 +42,10 @@ EndScriptData */
 #include <sstream>
 #include "PhaseChat.h"
 
+// definitions are over in cs_npc.cpp
+bool HandleNpcSpawnGroup(ChatHandler* handler, char const* args);
+bool HandleNpcDespawnGroup(ChatHandler* handler, char const* args);
+
 class gobject_commandscript : public CommandScript
 {
 public:
@@ -78,6 +82,8 @@ public:
             { "near",       rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,     false, &HandleGameObjectNearCommand,      ""       },
             { "target",     rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,   false, &HandleGameObjectTargetCommand,    ""       },
             { "rotate",     rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,     false, &HandleGameObjectTurnCommand,      "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}         },
+            { "spawngroup",   rbac::RBAC_PERM_COMMAND_GOBJECT_SPAWNGROUP,   false, &HandleNpcSpawnGroup,              ""       },
+            { "despawngroup", rbac::RBAC_PERM_COMMAND_GOBJECT_DESPAWNGROUP, false, &HandleNpcDespawnGroup,            ""       },
             { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,            "", gobjectAddCommandTable },
             { "set",        rbac::RBAC_PERM_COMMAND_GOBJECT_SET,      false, NULL,            "", gobjectSetCommandTable },
             { "dupplicate", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,      false, NULL,    "", gobjectDuplicationCommandTable },
@@ -88,7 +94,7 @@ public:
         };
         static std::vector<ChatCommand> commandTable =
         {
-            { "gobject", rbac::RBAC_PERM_COMMAND_GOBJECT, false, NULL, "", gobjectCommandTable },
+            { "gobject", rbac::RBAC_PERM_COMMAND_GOBJECT, false, nullptr, "", gobjectCommandTable },
         };
         return commandTable;
     }
@@ -190,7 +196,7 @@ public:
             return false;
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
-        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
         // Log
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();
@@ -219,7 +225,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        char* spawntime = strtok(NULL, " ");
+        char* spawntime = strtok(nullptr, " ");
         uint32 spawntm = 300;
 
         if (spawntime)
@@ -384,7 +390,7 @@ public:
 
         if (target)
         {
-            int32 curRespawnDelay = int32(target->GetRespawnTimeEx() - time(NULL));
+            int32 curRespawnDelay = int32(target->GetRespawnTimeEx() - time(nullptr));
             if (curRespawnDelay < 0)
                 curRespawnDelay = 0;
 
@@ -409,6 +415,9 @@ public:
         if (!guidLow)
             return false;
 
+        Player const* const player = handler->GetSession()->GetPlayer();
+        // force respawn to make sure we find something
+        player->GetMap()->RemoveRespawnTime(SPAWN_TYPE_GAMEOBJECT, guidLow, true);
         GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
         if (!object)
         {
@@ -420,7 +429,7 @@ public:
         ObjectGuid ownerGuid = object->GetOwnerGUID();
         if (!ownerGuid.IsEmpty())
         {
-            Unit* owner = ObjectAccessor::GetUnit(*handler->GetSession()->GetPlayer(), ownerGuid);
+            Unit* owner = ObjectAccessor::GetUnit(*player, ownerGuid);
             if (!owner || !ownerGuid.IsPlayer())
             {
                 handler->PSendSysMessage(LANG_COMMAND_DELOBJREFERCREATURE, ownerGuid.ToString().c_str(), object->GetGUID().ToString().c_str());
@@ -465,18 +474,18 @@ public:
             return false;
         }
 
-        char* orientation = strtok(NULL, " ");
+        char* orientation = strtok(nullptr, " ");
         float oz = 0.f, oy = 0.f, ox = 0.f;
 
         if (orientation)
         {
             oz = float(atof(orientation));
 
-            orientation = strtok(NULL, " ");
+            orientation = strtok(nullptr, " ");
             if (orientation)
             {
                 oy = float(atof(orientation));
-                orientation = strtok(NULL, " ");
+                orientation = strtok(nullptr, " ");
                 if (orientation)
                     ox = float(atof(orientation));
             }
@@ -515,64 +524,46 @@ public:
     //move selected object
     static bool HandleGameObjectMoveCommand(ChatHandler* handler, char const* args)
     {
-			// number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
-			char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
-			if (!id)
-				return false;
+        // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
+        if (!id)
+            return false;
 
-			ObjectGuid::LowType guidLow = atoull(id);
-			if (!guidLow)
-				return false;
+        ObjectGuid::LowType guidLow = atoull(id);
+        if (!guidLow)
+            return false;
 
-			GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
-			if (!object)
-			{
-				handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
-				handler->SetSentErrorMessage(true);
-				return false;
-			}
+        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
+        if (!object)
+        {
+            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
-			char* toX = strtok(NULL, " ");
-			char* toY = strtok(NULL, " ");
-			char* toZ = strtok(NULL, " ");
+        char* toX = strtok(nullptr, " ");
+        char* toY = strtok(nullptr, " ");
+        char* toZ = strtok(nullptr, " ");
 
-			float x, y, z;
-			if (!toX)
-			{
-				Player* player = handler->GetSession()->GetPlayer();
-				player->GetPosition(x, y, z);
-			}
-			else
-			{
-				if (!toY || !toZ)
-					return false;
+        float x, y, z;
+        if (!toX)
+        {
+            Player* player = handler->GetSession()->GetPlayer();
+            player->GetPosition(x, y, z);
+        }
+        else
+        {
+            if (!toY || !toZ)
+                return false;
 
-				x = (float)atof(toX);
-				y = (float)atof(toY);
-				z = (float)atof(toZ);
+            x = (float)atof(toX);
+            y = (float)atof(toY);
+            z = (float)atof(toZ);
 
-				if (!MapManager::IsValidMapCoord(object->GetMapId(), x, y, z))
-				{
-					handler->PSendSysMessage(LANG_INVALID_TARGET_COORD, x, y, object->GetMapId());
-					handler->SetSentErrorMessage(true);
-					return false;
-				}
-			}
-
-            Map* map = object->GetMap();
-
-            object->Relocate(x, y, z, object->GetOrientation());
-            object->SaveToDB();
-
-            // Generate a completely new spawn with new guid
-            // 3.3.5a client caches recently deleted objects and brings them back to life
-            // when CreateObject block for this guid is received again
-            // however it entirely skips parsing that block and only uses already known location
-
-            object->Delete();
-
-            object = GameObject::CreateGameObjectFromDB(guidLow, map);
-            if (!object)
+            if (!MapManager::IsValidMapCoord(object->GetMapId(), x, y, z))
+            {
+                handler->PSendSysMessage(LANG_INVALID_TARGET_COORD, x, y, object->GetMapId());
+                handler->SetSentErrorMessage(true);
                 return false;
 
             handler->PSendSysMessage(LANG_COMMAND_MOVEOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str());
@@ -600,7 +591,7 @@ public:
             return false;
         }
 
-        char* phase = strtok (NULL, " ");
+        char* phase = strtok (nullptr, " ");
         uint32 phaseMask = phase ? atoul(phase) : 0;
         if (phaseMask == 0)
         {
@@ -649,7 +640,7 @@ public:
                 if (!gameObjectInfo)
                     continue;
 
-                handler->PSendSysMessage(LANG_GO_LIST_CHAT, std::to_string(guid).c_str(), entry, std::to_string(guid).c_str(), gameObjectInfo->name.c_str(), x, y, z, mapId);
+                handler->PSendSysMessage(LANG_GO_LIST_CHAT, std::to_string(guid).c_str(), entry, std::to_string(guid).c_str(), gameObjectInfo->name.c_str(), x, y, z, mapId, "", "");
 
                 ++count;
             } while (result->NextRow());
@@ -682,7 +673,7 @@ public:
             if (!cValue)
                 return false;
             ObjectGuid::LowType guidLow = atoull(cValue);
-            const GameObjectData* data = sObjectMgr->GetGOData(guidLow);
+            GameObjectData const* data = sObjectMgr->GetGameObjectData(guidLow);
             if (!data)
                 return false;
             entry = data->id;
@@ -694,18 +685,47 @@ public:
 
         GameObjectTemplate const* gameObjectInfo = sObjectMgr->GetGameObjectTemplate(entry);
 
+        GameObject* thisGO = nullptr;
+
         if (!gameObjectInfo)
             return false;
+
+        if (*args && handler->GetSession()->GetPlayer())
+            thisGO = handler->GetSession()->GetPlayer()->FindNearestGameObject(entry, 30);
+        else if (handler->getSelectedObject() && handler->getSelectedObject()->GetTypeId() == TYPEID_GAMEOBJECT)
+            thisGO = handler->getSelectedObject()->ToGameObject();
 
         type = gameObjectInfo->type;
         displayId = gameObjectInfo->displayId;
         name = gameObjectInfo->name;
         lootId = gameObjectInfo->GetLootId();
 
+        // If we have a real object, send some info about it
+        if (thisGO)
+        {
+            handler->PSendSysMessage(LANG_SPAWNINFO_GUIDINFO, thisGO->GetGUID().ToString().c_str());
+            handler->PSendSysMessage(LANG_SPAWNINFO_SPAWNID_LOCATION, std::to_string(thisGO->GetSpawnId()).c_str(), thisGO->GetPositionX(), thisGO->GetPositionY(), thisGO->GetPositionZ());
+            if (Player* player = handler->GetSession()->GetPlayer())
+            {
+                Position playerPos = player->GetPosition();
+                float dist = thisGO->GetExactDist(&playerPos);
+                handler->PSendSysMessage(LANG_SPAWNINFO_DISTANCEFROMPLAYER, dist);
+            }
+        }
         handler->PSendSysMessage(LANG_GOINFO_ENTRY, entry);
         handler->PSendSysMessage(LANG_GOINFO_TYPE, type);
         handler->PSendSysMessage(LANG_GOINFO_LOOTID, lootId);
         handler->PSendSysMessage(LANG_GOINFO_DISPLAYID, displayId);
+        if (WorldObject* object = handler->getSelectedObject())
+        {
+            if (object->ToGameObject() && object->ToGameObject()->GetGameObjectData() && object->ToGameObject()->GetGameObjectData()->spawnGroupData->groupId)
+            {
+                SpawnGroupTemplateData const* groupData = object->ToGameObject()->GetGameObjectData()->spawnGroupData;
+                handler->PSendSysMessage(LANG_SPAWNINFO_GROUP_ID, groupData->name.c_str(), groupData->groupId, groupData->flags, object->GetMap()->IsSpawnGroupActive(groupData->groupId));
+            }
+            if (object->ToGameObject())
+                handler->PSendSysMessage(LANG_SPAWNINFO_COMPATIBILITY_MODE, object->ToGameObject()->GetRespawnCompatibilityMode());
+        }
         handler->PSendSysMessage(LANG_GOINFO_NAME, name.c_str());
         handler->PSendSysMessage(LANG_GOINFO_SIZE, gameObjectInfo->size);
 
@@ -737,7 +757,7 @@ public:
             return false;
         }
 
-        char* type = strtok(NULL, " ");
+        char* type = strtok(nullptr, " ");
         if (!type)
             return false;
 
@@ -751,7 +771,7 @@ public:
             return true;
         }
 
-        char* state = strtok(NULL, " ");
+        char* state = strtok(nullptr, " ");
         if (!state)
             return false;
 
@@ -1220,16 +1240,16 @@ public:
 
         // Create Reference Copy Object where the player is
 
-        // Création de l'objet "object" 
+        // Crï¿½ation de l'objet "object" 
         GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(refEntry);
 
-        // on définit ici la position, etc... du gameobject ainsi que son entry. 
+        // on dï¿½finit ici la position, etc... du gameobject ainsi que son entry. 
         GameObject* object = GameObject::CreateGameObject(objectInfo->entry, player->GetMap(), *player, QuaternionData::fromEulerAnglesZYX(player->GetOrientation(), 0.0f, 0.0f), 255, GO_STATE_READY);
 
-        // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
+        // sans ï¿½a mon serveur copiait l'intï¿½gritï¿½ de la map 0 (royaume de l'est) :lmaofam: 
         PhasingHandler::InheritPhaseShift(object, player);
 
-        // on récup le scale 
+        // on rï¿½cup le scale 
         object->SetObjectScale(refSize);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
@@ -1315,16 +1335,16 @@ public:
 
                 // Create Object
 
-                // Création de l'objet "object" 
+                // Crï¿½ation de l'objet "object" 
                 GameObjectTemplate const* objectInfoDood = sObjectMgr->GetGameObjectTemplate(doodEntry);
 
-                // on définit ici la position, etc... du gameobject ainsi que son entry.
+                // on dï¿½finit ici la position, etc... du gameobject ainsi que son entry.
                 GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(yaw+(player->GetOrientation() - refOrientation), pitch, roll), 255, GO_STATE_READY);
 
-                // sans ça mon serveur copiait l'intégrité de la map 0 (royaume de l'est) :lmaofam: 
+                // sans ï¿½a mon serveur copiait l'intï¿½gritï¿½ de la map 0 (royaume de l'est) :lmaofam: 
                 PhasingHandler::InheritPhaseShift(object2, player);
 
-                // on récup le scale
+                // on rï¿½cup le scale
                 object2->SetDoodads(doodHasDoodads);
                 object2->SetVisibilityDistanceOverride(doodVisibility);
                 object2->SetObjectScale(doodSize);

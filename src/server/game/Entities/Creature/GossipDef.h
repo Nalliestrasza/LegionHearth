@@ -26,6 +26,7 @@
 class Object;
 class Quest;
 class WorldSession;
+enum class QuestGiverStatus : uint32;
 
 #define GOSSIP_MAX_MENU_ITEMS               32
 #define DEFAULT_GOSSIP_MESSAGE              0xffffff
@@ -129,6 +130,20 @@ enum Poi_Icon
     ICON_POI_REDHORSE           =   40                      // Red Horse
 };
 
+enum class GossipOptionStatus : uint8
+{
+    Available       = 0,
+    Unavailable     = 1,
+    Locked          = 2,
+    AlreadyComplete = 3
+};
+
+enum class GossipOptionRewardType : uint8
+{
+    Item        = 0,
+    Currency    = 1
+};
+
 struct GossipMenuItem
 {
     uint8       MenuItemIcon;
@@ -185,7 +200,7 @@ class TC_GAME_API GossipMenu
             if (itr != _menuItems.end())
                 return &itr->second;
 
-            return NULL;
+            return nullptr;
         }
 
         GossipMenuItemData const* GetItemData(uint32 indexId) const
@@ -194,7 +209,7 @@ class TC_GAME_API GossipMenu
             if (itr != _menuItemData.end())
                 return &itr->second;
 
-            return NULL;
+            return nullptr;
         }
 
         uint32 GetMenuItemSender(uint32 menuItemId) const;
@@ -274,7 +289,7 @@ class TC_GAME_API PlayerMenu
         /*********************************************************/
         /***                    QUEST SYSTEM                   ***/
         /*********************************************************/
-        void SendQuestGiverStatus(uint32 questStatus, ObjectGuid npcGUID) const;
+        void SendQuestGiverStatus(QuestGiverStatus questStatus, ObjectGuid npcGUID) const;
 
         void SendQuestGiverQuestListMessage(Object* questgiver);
 

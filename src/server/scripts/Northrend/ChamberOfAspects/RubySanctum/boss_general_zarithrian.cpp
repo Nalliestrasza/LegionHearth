@@ -20,7 +20,7 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ruby_sanctum.h"
-#include "ScriptedEscortAI.h"
+#include "ScriptedCreature.h"
 
 enum Texts
 {
@@ -77,7 +77,10 @@ class boss_general_zarithrian : public CreatureScript
             {
                 _Reset();
                 if (instance->GetBossState(DATA_SAVIANA_RAGEFIRE) == DONE && instance->GetBossState(DATA_BALTHARUS_THE_WARBORN) == DONE)
-                    me->RemoveUnitFlag(UnitFlags(UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE));
+                {
+                    me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
+                    me->SetImmuneToPC(false);
+                }
             }
 
             bool CanAIAttack(Unit const* target) const override
