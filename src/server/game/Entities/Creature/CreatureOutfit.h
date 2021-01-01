@@ -5,6 +5,7 @@
 #include "Player.h" // EquipmentSlots
 #include "SharedDefines.h" // Gender
 #include <memory>
+#include "UpdateFields.h"
 
 class Creature;
 class WorldSession;
@@ -15,7 +16,8 @@ public:
     friend class ObjectMgr;
 
     // Remember to change DB query too!
-    static constexpr uint32 max_custom_displays = 3;
+    static constexpr uint32 max_custom_categories = 50;
+
     static constexpr uint32 invisible_model = 11686;
     static constexpr uint32 max_real_modelid = 0x7FFFFFFF;
     static constexpr EquipmentSlots item_slots[] =
@@ -38,16 +40,10 @@ public:
     CreatureOutfit(uint8 race, Gender gender);
 
     uint8 Class = 1;
-    uint8 face = 0;
-    uint8 skin = 0;
-    uint8 hair = 0;
-    uint8 facialhair = 0;
-    uint8 haircolor = 0;
-    uint8 customdisplay[max_custom_displays] = { 0 };
     uint32 outfitdisplays[EQUIPMENT_SLOT_END] = { 0 };
     uint32 npcsoundsid = 0;
     uint64 guild = 0;
-
+    std::array<UF::ChrCustomizationChoice, max_custom_categories> Customizations;
     uint32 GetId() const { return id; }
     uint8 GetGender() const { return gender; }
     uint8 GetRace() const { return race; }

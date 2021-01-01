@@ -71,7 +71,7 @@ void WorldSession::HandleAuroraCreateGameObject(WorldPackets::Aurora::AuroraCrea
             return;
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
-        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
     }
 }
 
@@ -87,7 +87,7 @@ void WorldSession::HandleAuroraMoveGameObject(WorldPackets::Aurora::AuroraMoveGa
 
         if (GameObject* object = map->GetGameObject(gameObject.ObjectManagerGuid)) {
             ObjectGuid::LowType guidLow = object->GetSpawnId();
-            const_cast<GameObjectData*>(object->GetGOData())->size = gameObject.Scale;
+            const_cast<GameObjectData*>(object->GetGameObjectData())->size = gameObject.Scale;
             object->SetObjectScale(gameObject.Scale);
             object->SetWorldRotation(gameObject.Rotation.x, gameObject.Rotation.y, gameObject.Rotation.z, gameObject.Rotation.w);
             object->EnableCollision(true);

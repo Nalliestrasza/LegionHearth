@@ -15,12 +15,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ScriptData
-Name: gobject_commandscript
-%Complete: 100
-Comment: All gobject related commands
-Category: commandscripts
-EndScriptData */
+ /* ScriptData
+ Name: gobject_commandscript
+ %Complete: 100
+ Comment: All gobject related commands
+ Category: commandscripts
+ EndScriptData */
 
 #include "ScriptMgr.h"
 #include "Chat.h"
@@ -42,7 +42,7 @@ EndScriptData */
 #include <sstream>
 #include "PhaseChat.h"
 
-// definitions are over in cs_npc.cpp
+ // definitions are over in cs_npc.cpp
 bool HandleNpcSpawnGroup(ChatHandler* handler, char const* args);
 bool HandleNpcDespawnGroup(ChatHandler* handler, char const* args);
 
@@ -60,7 +60,6 @@ public:
         };
         static std::vector<ChatCommand> gobjectSetCommandTable =
         {
-            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
             { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}   },
             { "scale", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_SCALE, false, &HandleGameObjectSetScaleCommand,  "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Gameobjects_Update}  },
         };
@@ -262,7 +261,7 @@ public:
 
             if (objectId)
                 result = WorldDatabase.PQuery("SELECT guid, id, position_x, position_y, position_z, orientation, map, PhaseId, PhaseGroup, (POW(position_x - '%f', 2) + POW(position_y - '%f', 2) + POW(position_z - '%f', 2)) AS order_ FROM gameobject WHERE map = '%i' AND id = '%u' ORDER BY order_ ASC LIMIT 1",
-                player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(), objectId);
+                    player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(), objectId);
             else
             {
                 std::string name = id;
@@ -283,7 +282,7 @@ public:
             {
                 if (initString)
                 {
-                    eventFilter  <<  "OR eventEntry IN (" << *itr;
+                    eventFilter << "OR eventEntry IN (" << *itr;
                     initString = false;
                 }
                 else
@@ -300,8 +299,8 @@ public:
                 "LEFT OUTER JOIN game_event_gameobject on gameobject.guid = game_event_gameobject.guid WHERE map = '%i' %s ORDER BY order_ ASC LIMIT 10",
                 handler->GetSession()->GetPlayer()->GetPositionX(), handler->GetSession()->GetPlayer()->GetPositionY(), handler->GetSession()->GetPlayer()->GetPositionZ(),
                 handler->GetSession()->GetPlayer()->GetMapId(), eventFilter.str().c_str());
-            
-            
+
+
         }
 
         if (!result)
@@ -320,19 +319,19 @@ public:
 
         do
         {
-            
+
 
             Field* fields = result->Fetch();
-            guidLow =       fields[0].GetUInt64();
-            id =            fields[1].GetUInt32();
-            x =             fields[2].GetFloat();
-            y =             fields[3].GetFloat();
-            z =             fields[4].GetFloat();
-            o =             fields[5].GetFloat();
-            mapId =         fields[6].GetUInt16();
-            phaseId =       fields[7].GetUInt32();
-            phaseGroup =    fields[8].GetUInt32();
-            poolId =  sPoolMgr->IsPartOfAPool<GameObject>(guidLow);
+            guidLow = fields[0].GetUInt64();
+            id = fields[1].GetUInt32();
+            x = fields[2].GetFloat();
+            y = fields[3].GetFloat();
+            z = fields[4].GetFloat();
+            o = fields[5].GetFloat();
+            mapId = fields[6].GetUInt16();
+            phaseId = fields[7].GetUInt32();
+            phaseGroup = fields[8].GetUInt32();
+            poolId = sPoolMgr->IsPartOfAPool<GameObject>(guidLow);
             if (!poolId || sPoolMgr->IsSpawnedObject<GameObject>(guidLow))
                 found = true;
         } while (result->NextRow() && !found);
@@ -355,7 +354,7 @@ public:
 
 
         // log info
-        QueryResult logResult = WorldDatabase.PQuery("SELECT spawnerAccountId, spawnerPlayerId from gameobject_log WHERE guid = %u", guidLow);       
+        QueryResult logResult = WorldDatabase.PQuery("SELECT spawnerAccountId, spawnerPlayerId from gameobject_log WHERE guid = %u", guidLow);
 
         if (!logResult)
         {
@@ -372,21 +371,21 @@ public:
             handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_ACCID, spawnerAccountId);
 
             QueryResult getName = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = %u", spawnerPlayerId);
-            
+
             if (!getName)
             {
                 handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_DELETE_PNAME);
             }
             else
             {
-				Field* fields = getName->Fetch();
-				std::string spawnerName;
-				spawnerName = fields[0].GetString();
+                Field* fields = getName->Fetch();
+                std::string spawnerName;
+                spawnerName = fields[0].GetString();
                 handler->PSendSysMessage(LANG_GAMEOBJECT_DETAIL_PNAME, spawnerName);
             }
         }
-        
-      
+
+
 
         if (target)
         {
@@ -565,45 +564,12 @@ public:
                 handler->PSendSysMessage(LANG_INVALID_TARGET_COORD, x, y, object->GetMapId());
                 handler->SetSentErrorMessage(true);
                 return false;
-
+            }
             handler->PSendSysMessage(LANG_COMMAND_MOVEOBJMESSAGE, std::to_string(object->GetSpawnId()).c_str(), object->GetGOInfo()->name.c_str(), object->GetGUID().ToString().c_str());
             return true;
-	}
-       
-
-    //set phasemask for selected object
-    static bool HandleGameObjectSetPhaseCommand(ChatHandler* /*handler*/, char const* /*args*/)
-    {
-        /*// number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
-        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
-        if (!id)
-            return false;
-
-        ObjectGuid::LowType guidLow = atoull(id);
-        if (!guidLow)
-            return false;
-
-        GameObject* object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
-        if (!object)
-        {
-            handler->PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, std::to_string(guidLow).c_str());
-            handler->SetSentErrorMessage(true);
-            return false;
         }
-
-        char* phase = strtok (nullptr, " ");
-        uint32 phaseMask = phase ? atoul(phase) : 0;
-        if (phaseMask == 0)
-        {
-            handler->SendSysMessage(LANG_BAD_VALUE);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        object->SetPhaseMask(phaseMask, true);
-        object->SaveToDB();*/
-        return true;
     }
+
 
     static bool HandleGameObjectNearCommand(ChatHandler* handler, char const* args)
     {
@@ -779,29 +745,29 @@ public:
 
         switch (objectType)
         {
-            case 0:
-                object->SetGoState(GOState(objectState));
-                break;
-            case 1:
-                object->SetGoType(GameobjectTypes(objectState));
-                break;
-            case 2:
-                object->SetGoArtKit(objectState);
-                break;
-            case 3:
-                object->SetGoAnimProgress(objectState);
-                break;
-            case 4:
-                object->SendCustomAnim(objectState);
-                break;
-            case 5:
-                if (objectState < 0 || objectState > GO_DESTRUCTIBLE_REBUILDING)
-                    return false;
+        case 0:
+            object->SetGoState(GOState(objectState));
+            break;
+        case 1:
+            object->SetGoType(GameobjectTypes(objectState));
+            break;
+        case 2:
+            object->SetGoArtKit(objectState);
+            break;
+        case 3:
+            object->SetGoAnimProgress(objectState);
+            break;
+        case 4:
+            object->SendCustomAnim(objectState);
+            break;
+        case 5:
+            if (objectState < 0 || objectState > GO_DESTRUCTIBLE_REBUILDING)
+                return false;
 
-                object->SetDestructibleState(GameObjectDestructibleState(objectState));
-                break;
-            default:
-                break;
+            object->SetDestructibleState(GameObjectDestructibleState(objectState));
+            break;
+        default:
+            break;
         }
 
         handler->PSendSysMessage("Set gobject type %d state %d", objectType, objectState);
@@ -809,7 +775,7 @@ public:
     }
 
     static bool HandleGameObjectSetScaleCommand(ChatHandler* handler, char const* args)
-    {         
+    {
         // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)
@@ -840,11 +806,11 @@ public:
         if (scale <= 0.0f)
         {
             scale = object->GetGOInfo()->size;
-            const_cast<GameObjectData*>(object->GetGOData())->size = -1.0f;
+            const_cast<GameObjectData*>(object->GetGameObjectData())->size = -1.0f;
         }
         else
         {
-            const_cast<GameObjectData*>(object->GetGOData())->size = scale;
+            const_cast<GameObjectData*>(object->GetGameObjectData())->size = scale;
         }
 
 
@@ -909,7 +875,7 @@ public:
             return false;
         }
 
-        const_cast<GameObjectData*>(object->GetGOData())->hasDoodads = resultBool;
+        const_cast<GameObjectData*>(object->GetGameObjectData())->hasDoodads = resultBool;
 
         Map* map = object->GetMap();
 
@@ -983,9 +949,9 @@ public:
             //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
         }
 
-        float oldVisibility = const_cast<GameObjectData*>(object->GetGOData())->visibility;
+        float oldVisibility = const_cast<GameObjectData*>(object->GetGameObjectData())->visibility;
 
-        const_cast<GameObjectData*>(object->GetGOData())->visibility = distance;
+        const_cast<GameObjectData*>(object->GetGameObjectData())->visibility = distance;
 
         Map* map = object->GetMap();
         object->SetVisibilityDistanceOverride(distance);
@@ -1012,7 +978,7 @@ public:
         if (getGuid)
         {
             do {
-                
+
                 Field* field = getGuid->Fetch();
                 uint64 guidLow = field[0].GetUInt64();
 
@@ -1147,7 +1113,7 @@ public:
             insertdup->setFloat(3, object->GetEntry());
             insertdup->setFloat(4, object->GetPositionZ());
             insertdup->setFloat(5, object->GetOrientation());
-            insertdup->setFloat(6, sObjectMgr->GetGOData(guidLow)->size);
+            insertdup->setFloat(6, sObjectMgr->GetGameObjectData(guidLow)->size);
             insertdup->setString(7, player->GetName());
             WorldDatabase.Execute(insertdup);
 
@@ -1188,7 +1154,7 @@ public:
                     insertdood->setFloat(14, object->GetVisibilityRange());
                     WorldDatabase.Execute(insertdood);
                 }
-                
+
             } while (result->NextRow());
         }
 
@@ -1240,16 +1206,16 @@ public:
 
         // Create Reference Copy Object where the player is
 
-        // Cr�ation de l'objet "object" 
+        // Cr?ation de l'objet "object" 
         GameObjectTemplate const* objectInfo = sObjectMgr->GetGameObjectTemplate(refEntry);
 
-        // on d�finit ici la position, etc... du gameobject ainsi que son entry. 
+        // on d?finit ici la position, etc... du gameobject ainsi que son entry. 
         GameObject* object = GameObject::CreateGameObject(objectInfo->entry, player->GetMap(), *player, QuaternionData::fromEulerAnglesZYX(player->GetOrientation(), 0.0f, 0.0f), 255, GO_STATE_READY);
 
-        // sans �a mon serveur copiait l'int�grit� de la map 0 (royaume de l'est) :lmaofam: 
+        // sans ?a mon serveur copiait l'int?grit? de la map 0 (royaume de l'est) :lmaofam: 
         PhasingHandler::InheritPhaseShift(object, player);
 
-        // on r�cup le scale 
+        // on r?cup le scale 
         object->SetObjectScale(refSize);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
         object->SaveToDB(player->GetMap()->GetId(), { player->GetMap()->GetDifficultyID() });
@@ -1262,7 +1228,7 @@ public:
 
         object = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 
-        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
         // Dupplication infos (for delete command)
         // Guid Max select
@@ -1326,7 +1292,7 @@ public:
                 // PosX and PosY calcul
                 float doodPosX = player->GetPositionX() + (doodDist * cos(angle));
                 float doodPosY = player->GetPositionY() + (doodDist * sin(angle));
-                float doodPosZ = doodDiffZ  + player->GetPositionZ();
+                float doodPosZ = doodDiffZ + player->GetPositionZ();
                 float doodOrientation = doodDiffO + player->GetOrientation();
 
                 // Rotation
@@ -1335,16 +1301,16 @@ public:
 
                 // Create Object
 
-                // Cr�ation de l'objet "object" 
+                // Cr?ation de l'objet "object" 
                 GameObjectTemplate const* objectInfoDood = sObjectMgr->GetGameObjectTemplate(doodEntry);
 
-                // on d�finit ici la position, etc... du gameobject ainsi que son entry.
-                GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(yaw+(player->GetOrientation() - refOrientation), pitch, roll), 255, GO_STATE_READY);
+                // on d?finit ici la position, etc... du gameobject ainsi que son entry.
+                GameObject* object2 = GameObject::CreateGameObject(objectInfoDood->entry, player->GetMap(), Position(doodPosX, doodPosY, doodPosZ, doodOrientation), QuaternionData::fromEulerAnglesZYX(yaw + (player->GetOrientation() - refOrientation), pitch, roll), 255, GO_STATE_READY);
 
-                // sans �a mon serveur copiait l'int�grit� de la map 0 (royaume de l'est) :lmaofam: 
+                // sans ?a mon serveur copiait l'int?grit? de la map 0 (royaume de l'est) :lmaofam: 
                 PhasingHandler::InheritPhaseShift(object2, player);
 
-                // on r�cup le scale
+                // on r?cup le scale
                 object2->SetDoodads(doodHasDoodads);
                 object2->SetVisibilityDistanceOverride(doodVisibility);
                 object2->SetObjectScale(doodSize);
@@ -1359,14 +1325,14 @@ public:
 
                 object2 = GameObject::CreateGameObjectFromDB(spawnId, player->GetMap());
 
-                sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+                sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
                 // Log
                 WorldDatabasePreparedStatement* gobInfo = WorldDatabase.GetPreparedStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID);
                 gobInfo->setUInt64(0, spawnId);
                 gobInfo->setUInt32(1, spawnerAccountId);
                 gobInfo->setUInt64(2, spawnerGuid);
-                gobInfo->setUInt32(3, dupplicationGuid+1);
+                gobInfo->setUInt32(3, dupplicationGuid + 1);
                 WorldDatabase.Execute(gobInfo);
 
             } while (duppDoodads->NextRow());
@@ -1394,7 +1360,7 @@ public:
         }
 
         Field* dupfields = duppTarget->Fetch();
-        
+
         uint32 duppGuid = dupfields[0].GetUInt32();
         uint32 duppEntry = dupfields[1].GetUInt32();
         uint64 refObjGuid = dupfields[2].GetUInt64();
@@ -1420,7 +1386,7 @@ public:
         }
 
         // Distance
-        
+
         double playerX = (trunc((handler->GetSession()->GetPlayer()->GetPositionX()) * 10 * 0.9144)) / 10;
         double playerY = (trunc((handler->GetSession()->GetPlayer()->GetPositionY()) * 10 * 0.9144)) / 10;
         double playerZ = (trunc((handler->GetSession()->GetPlayer()->GetPositionZ()) * 10 * 0.9144)) / 10;
@@ -1435,14 +1401,14 @@ public:
         if (distance > 300)
             handler->SendSysMessage(LANG_DUPPLICATION_TARGET_FAR);
         else
-        { 
+        {
             if (distance < 1)
                 handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_CLOSE, distance);
             else
                 handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_HERE, distance);
 
             // Infos
-            handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_SUCCESS, dupName.c_str(), duppGuid, duppEntry,duppX,duppY,duppZ, player->GetMapId());
+            handler->PSendSysMessage(LANG_DUPPLICATION_TARGET_SUCCESS, dupName.c_str(), duppGuid, duppEntry, duppX, duppY, duppZ, player->GetMapId());
         }
         return true;
     }
@@ -1530,7 +1496,7 @@ public:
         if (!boolArg)
             return false;
 
-        
+
         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_DUPPLICATION_TEMPLATE_ACCOUNT);
         stmt->setUInt32(0, dupEntry);
         stmt->setUInt32(1, handler->GetSession()->GetAccountId());
@@ -1585,7 +1551,7 @@ public:
 
         if (!duppAccount)
         {
-            handler->PSendSysMessage(LANG_DUPPLICATION_ERROR_OR_PRIVATE,dupEntry);
+            handler->PSendSysMessage(LANG_DUPPLICATION_ERROR_OR_PRIVATE, dupEntry);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -1611,7 +1577,7 @@ public:
 
         return true;
     }
-  
+
 };
 
 void AddSC_gobject_commandscript()

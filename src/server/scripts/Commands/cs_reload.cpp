@@ -1293,8 +1293,6 @@ public:
 		sBattlePetSpeciesStateStore.LoadFromDB();
 		sBattlemasterListStore.LoadFromDB();
 		sBroadcastTextStore.LoadFromDB();
-        sCharHairGeosetsStore.LoadFromDB();
-		sCharStartOutfitStore.LoadFromDB();
 		sCharTitlesStore.LoadFromDB();
 		sChatChannelsStore.LoadFromDB();
 		sChrClassesStore.LoadFromDB();
@@ -1392,7 +1390,6 @@ public:
 		sQuestXPStore.LoadFromDB();
 		sRandPropPointsStore.LoadFromDB();
 		sRewardPackStore.LoadFromDB();
-		sScalingStatDistributionStore.LoadFromDB();
 		sScenarioStore.LoadFromDB();
 		sScenarioStepStore.LoadFromDB();
 	//	sSceneScriptStore.LoadFromDB();
@@ -1454,8 +1451,8 @@ public:
 		boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
 
 		HashMapHolder<Player>::MapType const& m = ObjectAccessor::GetPlayers();
-		for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-        itr->second->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+        for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+            itr->second->GetSession()->SendAvailableHotfixes();
 		
 		handler->SendGlobalGMSysMessage("167 DB2 reloaded.");
 		handler->SendGlobalGMSysMessage("Hotfixes data reloaded.");

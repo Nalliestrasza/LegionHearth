@@ -1,0 +1,1 @@
+ALTER TABLE `gameobject`ADD COLUMN `visibility` FLOAT NOT NULL DEFAULT '533.333';

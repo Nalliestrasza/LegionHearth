@@ -1347,14 +1347,8 @@ public:
         }
         else
         {
-<<<<<<< HEAD
-            //ip = strtok((char*)args, " ");
 			nameTarget = strtok((char*)args, " ");
-            limitStr = strtok(NULL, " ");
-=======
-            ip = strtok((char*)args, " ");
             limitStr = strtok(nullptr, " ");
->>>>>>> e26122dc54b5c5a356a97a842718168dab97a0aa
             limit = limitStr ? atoi(limitStr) : -1;
         }
 

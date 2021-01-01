@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2306,10 +2306,10 @@ public:
             ObjectGuid::LowType guid = map->GenerateLowGuid<HighGuid::Creature>();
             CreatureData& data = sObjectMgr->NewOrExistCreatureData(guid);
             data.id = id;
-            data.posX = chr->GetTransOffsetX();
-            data.posY = chr->GetTransOffsetY();
-            data.posZ = chr->GetTransOffsetZ();
-            data.orientation = chr->GetTransOffsetO();
+            data.spawnPoint.m_positionX = chr->GetTransOffsetX();
+            data.spawnPoint.m_positionY = chr->GetTransOffsetY();
+            data.spawnPoint.m_positionZ = chr->GetTransOffsetZ();
+            data.spawnPoint.m_orientation = chr->GetTransOffsetO();
             /// @todo: add phases
 
             Creature* creature = trans->CreateNPCPassenger(guid, &data);
@@ -2441,7 +2441,7 @@ public:
                 return false;
             }
 
-            uint32 map_id = data->mapid;
+            uint32 map_id = data->spawnPoint.m_mapId;
 
             if (handler->GetSession()->GetPlayer()->GetMapId() != map_id)
             {

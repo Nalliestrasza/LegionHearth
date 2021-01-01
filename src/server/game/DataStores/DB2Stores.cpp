@@ -404,6 +404,7 @@ namespace
     std::unordered_map<std::pair<uint32 /*itemId*/, ItemContext>, AzeriteUnlockMappingEntry const*> _azeriteUnlockMappings;
     std::array<std::array<uint32, MAX_POWERS>, MAX_CLASSES> _powersByClass;
     std::unordered_map<uint32 /*chrCustomizationOptionId*/, std::vector<ChrCustomizationChoiceEntry const*>> _chrCustomizationChoicesByOption;
+    std::unordered_map<uint32 /*chrCustomizationChoiceId*/, uint32 /*chrCustomizationOptionId*/> _chrCustomizationOptionByChoice;
     std::unordered_map<std::pair<uint8, uint8>, ChrModelEntry const*> _chrModelsByRaceAndGender;
     std::map<std::tuple<uint8 /*race*/, uint8/*gender*/, uint8/*shapeshift*/>, ShapeshiftFormModelData> _chrCustomizationChoicesForShapeshifts;
     std::unordered_map<std::pair<uint8 /*race*/, uint8/*gender*/>, std::vector<ChrCustomizationOptionEntry const*>> _chrCustomizationOptionsByRaceAndGender;
@@ -973,7 +974,10 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     }
 
     for (ChrCustomizationChoiceEntry const* customizationChoice : sChrCustomizationChoiceStore)
+    {
+        _chrCustomizationOptionByChoice.insert(std::make_pair(customizationChoice->ID, customizationChoice->ChrCustomizationOptionID));
         _chrCustomizationChoicesByOption[customizationChoice->ChrCustomizationOptionID].push_back(customizationChoice);
+    }
 
     std::unordered_multimap<uint32, std::pair<uint32, uint8>> shapeshiftFormByModel;
     std::unordered_map<uint32, ChrCustomizationDisplayInfoEntry const*> displayInfoByCustomizationChoice;
@@ -1846,6 +1850,11 @@ std::vector<ChrCustomizationChoiceEntry const*> const* DB2Manager::GetCustomizti
 std::vector<ChrCustomizationOptionEntry const*> const* DB2Manager::GetCustomiztionOptions(uint8 race, uint8 gender) const
 {
     return Trinity::Containers::MapGetValuePtr(_chrCustomizationOptionsByRaceAndGender, { race,gender });
+}
+
+uint32 const* DB2Manager::GetCustomiztionCategory(uint32 chrCustomizationChoiceId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_chrCustomizationOptionByChoice, chrCustomizationChoiceId);
 }
 
 std::unordered_map<uint32, std::vector<uint32>> const* DB2Manager::GetRequiredCustomizationChoices(uint32 chrCustomizationReqId) const

@@ -1843,8 +1843,8 @@ struct ItemDisplayInfoEntry
     uint32 ModelResourcesID2;
     int32 ModelMaterialResourcesID1;
     int32 ModelMaterialResourcesID2;
-    uint8 unk83_1;
-    uint8 unk83_2;
+    int32 Field_8_2_0_30080_011_1;
+    int32 Field_8_2_0_30080_011_2;
     int32 GeosetGroup1;
     int32 GeosetGroup2;
     int32 GeosetGroup3;

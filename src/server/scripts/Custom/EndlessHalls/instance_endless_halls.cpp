@@ -29,6 +29,8 @@ gets instead the deserter debuff.
 #include "Map.h"
 #include "endless_halls.h"
 #include "PhasingHandler.h"
+#include <ostream>
+#include <sstream>
 
 ObjectData const creatureData[] =
 {

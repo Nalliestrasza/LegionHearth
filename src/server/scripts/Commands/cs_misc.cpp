@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -669,13 +669,18 @@ public:
                 if (!targetGroupLeader || (targetGroupLeader->GetMapId() != map->GetId()) || (targetGroupLeader->GetInstanceId() != map->GetInstanceId()))
                     if ((targetMap->GetId() != map->GetId()) || (targetMap->GetInstanceId() != map->GetInstanceId()))
                     {
-                        handler->PSendSysMessage(LANG_CANNOT_SUMMON_INST_INST, nameLink.c_str());
+                        handler->PSendSysMessage(LANG_CANNOT_SUMMON_TO_INST);
                         handler->SetSentErrorMessage(true);
                         return false;
                     }
-                }
 
-                
+                // check if we're already in a different instance of the same map
+                if ((targetMap->GetId() == map->GetId()) && (targetMap->GetInstanceId() != map->GetInstanceId()))
+                {
+                    handler->PSendSysMessage(LANG_CANNOT_SUMMON_INST_INST, nameLink.c_str());
+                    handler->SetSentErrorMessage(true);
+                    return false;
+                }
             }
 
             handler->PSendSysMessage(LANG_SUMMONING, nameLink.c_str(), "");
@@ -3271,7 +3276,7 @@ public:
                     return false;
 
                 GameObject* object = NULL;
-                if (GameObjectData const* gameObjectData = sObjectMgr->GetGOData(guidLow))
+                if (GameObjectData const* gameObjectData = sObjectMgr->GetGameObjectData(guidLow))
                     object = handler->GetObjectFromPlayerMapByDbGuid(guidLow);
 
                 if (!object)
@@ -3930,7 +3935,7 @@ public:
 
     static bool HandleForgeInfoCommand(ChatHandler* handler, char const* args)
     {
-
+        /*
         Unit* target = handler->getSelectedUnit();
 
         // Get Textures
@@ -4206,6 +4211,7 @@ public:
             handler->PSendSysMessage(LANG_CUST_TERTIARYHAND, arme3);
 
         }
+        */
 
         return true;
     }
@@ -5487,7 +5493,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
 
         if (target->IsCreature())
         {
-            target->ToCreature()->setRegeneratingHealth(false);
+            //target->ToCreature()->setRegeneratingHealth(false);
             handler->PSendSysMessage("Points de vie de %s : %d / %u", target->GetName().c_str(), value, target->GetMaxHealth());
             return true;
         }
@@ -5635,7 +5641,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             return false;
         }
 
-        const GameObjectData* data = sObjectMgr->GetGOData(guidLow);
+        const GameObjectData* data = sObjectMgr->GetGameObjectData(guidLow);
         if (!data)
             return false;
 
@@ -5761,7 +5767,7 @@ static bool HandleTicketListCommand(ChatHandler* handler, const char* args)
             return false;
 
         /// @todo is it really necessary to add both the real and DB table guid here ?
-        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGOData(spawnId)));
+        sObjectMgr->AddGameobjectToGrid(spawnId, ASSERT_NOTNULL(sObjectMgr->GetGameObjectData(spawnId)));
 
         // Log
         uint32 spawnerAccountId = player->GetSession()->GetAccountId();

@@ -146,6 +146,7 @@ public:
             return pos;
     }
 
+    /*
     static bool modifyNpcHP(ChatHandler* handler, const char* args, Creature* target)
     {
         if (!*args)
@@ -169,6 +170,7 @@ public:
         handler->PSendSysMessage("Point de vie de %s : %u / %d", target->GetName().c_str(), target->GetHealth(), value);
         return true;
     }
+    */
 
     //Edit Player HP
     static bool HandleModifyHPCommand(ChatHandler* handler, char const* args)
@@ -176,8 +178,6 @@ public:
         int32 hp, hpmax;
         Unit* unit = handler->GetSession()->GetPlayer()->GetSelectedUnit();
 
-        if (unit && unit->IsCreature())
-            return modifyNpcHP(handler, args, unit->ToCreature());
 
         Player* target = handler->getSelectedPlayerOrSelf();
         if (CheckModifyResources(handler, args, target, hp, hpmax))

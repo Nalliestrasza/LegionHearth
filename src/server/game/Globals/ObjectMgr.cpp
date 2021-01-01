@@ -8657,34 +8657,14 @@ void ObjectMgr::LoadCreatureOutfits()
         {/*RACE_MECHAGNOME*/            37, RACE_GNOME},
     };
 
-    for (auto const & r : newRaceToOldRace)
-    {
-        auto* e1 = sChrRacesStore.AssertEntry(r.first);
-        auto* e2 = sChrRacesStore.AssertEntry(r.second);
-        if (!GetCreatureModelInfo(e1->MaleDisplayId))
-        {
-            auto* info = GetCreatureModelInfo(e2->MaleDisplayId);
-            ASSERT(info, "Dress NPCs: New race has no info for male and old race has no info either");
-            _creatureModelStore[e1->MaleDisplayId] = *info;
-        }
-        if (!GetCreatureModelInfo(e1->FemaleDisplayId))
-        {
-            auto* info = GetCreatureModelInfo(e2->FemaleDisplayId);
-            ASSERT(info, "Dress NPCs: New race has no info for female and old race has no info either");
-            _creatureModelStore[e1->FemaleDisplayId] = *info;
-        }
-    }
 
-    for (auto* e : sChrRacesStore)
-    {
-        ASSERT(GetCreatureModelInfo(e->MaleDisplayId), "Dress NPCs requires an entry in creature_model_info for modelid %u (%s Male)", e->MaleDisplayId, e->Name[DEFAULT_LOCALE]);
-        ASSERT(GetCreatureModelInfo(e->FemaleDisplayId), "Dress NPCs requires an entry in creature_model_info for modelid %u (%s Female)", e->FemaleDisplayId, e->Name[DEFAULT_LOCALE]);
-    }
-
-    QueryResult result = WorldDatabase.Query("SELECT entry, npcsoundsid, race, class, gender, skin, face, hair, haircolor, facialhair, feature1, feature2, feature3, "
+    QueryResult result = WorldDatabase.Query("SELECT entry, npcsoundsid, race, class, gender, cust0, cust1, cust2, cust3, cust4, cust5, cust6, cust7, cust8,"
+        "cust9, cust10, cust11, cust12, cust13, cust14, cust15, cust16, cust17, cust18, cust19, cust20, cust21, cust22, cust23, cust24, cust25, cust26, cust27, cust28,"
+        "cust29, cust30, cust31, cust32, cust33, cust34, cust35, cust36, cust37, cust38, cust39, cust40, cust41, cust42, cust43, cust44, cust45, cust46, cust47, cust48, cust49, "
         "head, head_appearance, shoulders, shoulders_appearance, body, body_appearance, chest, chest_appearance, waist, waist_appearance, "
         "legs, legs_appearance, feet, feet_appearance, wrists, wrists_appearance, hands, hands_appearance, tabard, tabard_appearance, back, back_appearance, "
         "guildid FROM creature_template_outfits");
+
 
     if (!result)
     {
@@ -8735,20 +8715,21 @@ void ObjectMgr::LoadCreatureOutfits()
         co->gender       = fields[i++].GetUInt8();
         switch (co->gender)
         {
-        case GENDER_FEMALE: co->displayId = rEntry->FemaleDisplayId; break;
-        case GENDER_MALE:   co->displayId = rEntry->MaleDisplayId; break;
+        case GENDER_FEMALE:
+        case GENDER_MALE:
+            co->displayId = DB2Manager::Instance().GetChrModel(co->race, co->gender)->DisplayID;
+            break;
         default:
             TC_LOG_ERROR("server.loading", ">> Outfit entry %u in `creature_template_outfits` has invalid gender %u", entry, uint32(co->gender));
             continue;
         }
 
-        co->skin         = fields[i++].GetUInt8();
-        co->face         = fields[i++].GetUInt8();
-        co->hair         = fields[i++].GetUInt8();
-        co->haircolor    = fields[i++].GetUInt8();
-        co->facialhair   = fields[i++].GetUInt8();
-        for (uint32 j = 0; j < CreatureOutfit::max_custom_displays; ++j)
-            co->customdisplay[j] = fields[i++].GetUInt8();
+        for (size_t i = 0; i < CreatureOutfit::max_custom_categories; i++)
+        {
+            co->Customizations[i].ChrCustomizationChoiceID = fields[i++].GetUInt32();
+            co->Customizations[i].ChrCustomizationOptionID = *DB2Manager::Instance().GetCustomiztionCategory(co->Customizations[i].ChrCustomizationChoiceID);
+        }
+
         for (EquipmentSlots slot : CreatureOutfit::item_slots)
         {
             int64 displayInfo = fields[i++].GetInt64();

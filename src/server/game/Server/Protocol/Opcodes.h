@@ -1951,7 +1951,7 @@ enum OpcodeServer : uint16
 
     // Aurora - Client Extender by BinarySpace
     SMSG_AURORA_UPDATE_WMO = 0x2FFF,
-    SMSG_AURORA_TRACKER = 0x2FFE,
+    SMSG_AURORA_TRACKER = 0x28AA,
     SMSG_AURORA_TEST = 0x2FF7,
 
     SMSG_AURORA_ZONE_CUSTOM = 0x2F56,

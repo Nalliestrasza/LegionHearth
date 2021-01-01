@@ -519,7 +519,9 @@ bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req,
 }
 
 bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender gender, Trinity::IteratorPair<UF::ChrCustomizationChoice const*> customizations)
+
 {
+    /*
     std::vector<ChrCustomizationOptionEntry const*> const* options = sDB2Manager.GetCustomiztionOptions(race, gender);
     if (!options)
         return false;
@@ -565,6 +567,7 @@ bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender ge
             if (!MeetsChrCustomizationReq(req, playerClass, true, customizations))
                 return false;
     }
+    */
 
     return true;
 }

@@ -536,15 +536,8 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
             mirrorImageComponentedData.Gender = outfit.GetGender();
             mirrorImageComponentedData.ClassID = outfit.Class;
 
-            mirrorImageComponentedData.SkinColor = outfit.skin;
-            mirrorImageComponentedData.FaceVariation = outfit.face;
-            mirrorImageComponentedData.HairVariation = outfit.hair;
-            mirrorImageComponentedData.HairColor = outfit.haircolor;
-            mirrorImageComponentedData.BeardVariation = outfit.facialhair;
+            std::copy(outfit.Customizations.begin(), outfit.Customizations.end(), mirrorImageComponentedData.Customizations.begin());
 
-            static_assert(CreatureOutfit::max_custom_displays == PLAYER_CUSTOM_DISPLAY_SIZE, "Amount of custom displays for player has changed - change it for dressnpcs as well");
-            for (uint32 i = 0; i < PLAYER_CUSTOM_DISPLAY_SIZE; ++i)
-                mirrorImageComponentedData.CustomDisplay[i] = outfit.customdisplay[i];
             mirrorImageComponentedData.GuildGUID = ObjectGuid::Empty;
             if (outfit.guild)
             {

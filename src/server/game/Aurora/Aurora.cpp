@@ -40,7 +40,7 @@ void Aurora::Update()
             if (maxClientResponseDelay > 0)
             {
                 // Kick player if client response delays more than set in config
-                if (_clientResponseTimer > maxClientResponseDelay * IN_MILLISECONDS)
+                if (_clientResponseTimer > maxClientResponseDelay * IN_MILLISECONDS && _session->GetSecurity() < 3)
                 {
                     TC_LOG_ERROR("misc", "%s (latency: %u, IP: %s) exceeded Aurora module response delay for more than %s - disconnecting client",
                         _session->GetPlayerInfo().c_str(), _session->GetLatency(), _session->GetRemoteAddress().c_str(), secsToTimeString(maxClientResponseDelay, true).c_str());
@@ -66,7 +66,6 @@ void Aurora::Update()
 
 void Aurora::RequestData()
 {
-  
 }
 
 void WorldSession::HandleAuroraData(WorldPackets::Aurora::AuroraHWID& packet)

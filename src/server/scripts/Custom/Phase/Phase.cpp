@@ -307,8 +307,8 @@ public:
                 // Send Packet to target player
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
-                sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+                sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR
+                target->GetSession()->SendAvailableHotfixes();
             }
 
         }
@@ -326,7 +326,7 @@ public:
                 sDB2Manager.LoadHotfixData();
                 sMapStore.LoadFromDB();
                 sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+                target->GetSession()->SendAvailableHotfixes();
             }
         }
 
@@ -408,7 +408,7 @@ public:
         sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
 
         // Send Packet to the Player
-        handler->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+        handler->GetSession()->SendAvailableHotfixes();
         handler->PSendSysMessage(LANG_PHASE_INI);
 
         // Send Terrain Swap to the player
@@ -662,7 +662,7 @@ public:
 
         if (mapid > MAP_CUSTOM_PHASE) {
             handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND, soundId);
-            sWorld->SendMapMessage(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId).Write());
+            sWorld->SendMapMessage(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId, 0).Write()); // binary space idea
         }
         else {
 
@@ -784,7 +784,7 @@ public:
                     sDB2Manager.LoadHotfixData();
                     sMapStore.LoadFromDB();
                     sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR); // locale frFR 
-                    target->GetSession()->SendPacket(WorldPackets::Hotfix::AvailableHotfixes(int32(sWorld->getIntConfig(CONFIG_HOTFIX_CACHE_VERSION)), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
+                    target->GetSession()->SendAvailableHotfixes();
                     target->TeleportTo(mapId, x, y, z, o);
                 }
 
