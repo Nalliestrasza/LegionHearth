@@ -2870,6 +2870,27 @@ struct ItemDisplayInfoLoadInfo
     }
 };
 
+struct ChrCustomizationChoiceLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+           {true, FT_INT, "ID"},
+           {true, FT_INT, "ChrCustomizationOptionID"},
+           {true, FT_INT, "ChrCustomizationReqID"},
+           {false, FT_SHORT, "OrderIndex"},
+           {true, FT_INT, "SwatchColor1"},
+           {true, FT_INT, "SwatchColor2"},
+           {false, FT_SHORT, "UiOrderIndex"},
+           {true, FT_INT, "Flags"},
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, ChrCustomizationChoiceMeta::Instance(), HOTFIX_SEL_CHAR_CUSTOMIZATION_CHOICE);
+        return &loadInfo;
+    }
+};
+
+
 struct ItemEffectLoadInfo
 {
     static DB2LoadInfo const* Instance()

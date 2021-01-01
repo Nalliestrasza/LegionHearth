@@ -6686,6 +6686,26 @@ struct ItemDisplayInfoMeta
     }
 };
 
+struct ChrCustomizationChoiceLoadInfo
+{
+    static DB2Meta const* Instance()
+    {
+        static DB2MetaField const fields[8] =
+        {
+             { FT_INT, 1, true},
+             { FT_INT, 1, true},
+             { FT_INT, 1, true},
+             { FT_SHORT, 1, false},
+             { FT_INT, 1, true},
+             { FT_INT, 1, true},
+             { FT_SHORT, 1, false},
+             { FT_INT, 1, true},
+        };
+        static DB2Meta instance(3450554, -1, 8, 8, 0x2469645E, fields, -1);
+        return &instance;
+    }
+};
+
 struct ItemDisplayInfoMaterialResMeta
 {
     static DB2Meta const* Instance()

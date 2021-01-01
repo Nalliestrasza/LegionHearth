@@ -1861,6 +1861,18 @@ struct ItemDisplayInfoEntry
     int32 HelmetGeosetVis2;
 };
 
+struct ChrCustomizationChoiceEntry
+{
+    int32 ID;
+    int32 ChrCustomizationOptionID;
+    int32 ChrCustomizationReqID;
+    uint8 OrderIndex;
+    int32 SwatchColor1;
+    int32 SwatchColor2;
+    uint8 UiOrderIndex;
+    int32 Flags;
+};
+
 struct ItemEffectEntry
 {
     uint32 ID;
