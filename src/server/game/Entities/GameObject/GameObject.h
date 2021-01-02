@@ -80,25 +80,25 @@ enum LootState
 
 class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>, public MapObject
 {
-public:
-    explicit GameObject();
-    ~GameObject();
+    public:
+        explicit GameObject();
+        ~GameObject();
 
-protected:
-    void BuildValuesCreate(ByteBuffer* data, Player const* target) const override;
-    void BuildValuesUpdate(ByteBuffer* data, Player const* target) const override;
-    void ClearUpdateMask(bool remove) override;
+    protected:
+        void BuildValuesCreate(ByteBuffer* data, Player const* target) const override;
+        void BuildValuesUpdate(ByteBuffer* data, Player const* target) const override;
+        void ClearUpdateMask(bool remove) override;
 
-public:
-    void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-        UF::GameObjectData::Mask const& requestedGameObjectMask, Player const* target) const;
+    public:
+        void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
+            UF::GameObjectData::Mask const& requestedGameObjectMask, Player const* target) const;
 
-    void AddToWorld() override;
-    void RemoveFromWorld() override;
-    void CleanupsBeforeDelete(bool finalCleanup = true) override;
+        void AddToWorld() override;
+        void RemoveFromWorld() override;
+        void CleanupsBeforeDelete(bool finalCleanup = true) override;
 
-private:
-    bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid);
+    private:
+        bool Create(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit, bool dynamic, ObjectGuid::LowType spawnid, float size = -1.0f, bool hasDoodads = false, float visibility = SIZE_OF_GRIDS);
 public:
     static GameObject* CreateGameObject(uint32 entry, Map* map, Position const& pos, QuaternionData const& rotation, uint32 animProgress, GOState goState, uint32 artKit = 0);
     static GameObject* CreateGameObjectFromDB(ObjectGuid::LowType spawnId, Map* map, bool addToMap = true);
@@ -119,6 +119,7 @@ public:
     void SetWorldRotationAngles(float z_rot, float y_rot, float x_rot);
     void SetWorldRotation(float qx, float qy, float qz, float qw);
     void SetParentRotation(QuaternionData const& rotation);      // transforms(rotates) transport's path
+    QuaternionData GetWorldRotationAngles() const;
     int64 GetPackedWorldRotation() const { return m_packedRotation; }
 
     // overwrite WorldObject function for proper name localization
@@ -317,11 +318,11 @@ public:
     void AIM_Destroy();
     bool AIM_Initialize();
 
+    bool HasDoodads() const { return m_hasDoodads; }
+    void SetDoodads(bool hasDoodads);
+
     UF::UpdateField<UF::GameObjectData, 0, TYPEID_GAMEOBJECT> m_gameObjectData;
 
-    bool HasDoodads() const { return false; }
-    void SetDoodads(bool hasDoodads);
-    QuaternionData GetWorldRotationAngles() const;
 protected:
     void CreateModel();
     void UpdateModel();                                 // updates model in case displayId were changed
@@ -360,6 +361,8 @@ protected:
     uint32 m_lootGenerationTime;
 
     ObjectGuid m_linkedTrap;
+
+    bool m_hasDoodads;
 
 private:
     void RemoveFromOwner();

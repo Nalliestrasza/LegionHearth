@@ -1076,7 +1076,9 @@ struct GameObjectData : public SpawnData
     uint8 artKit = 0;
     float size = 0.0f;
     bool hasDoodads;
-    float visibility = 533.333f;
+    float visibility = 533.3333f;
+    
+
 };
 
 #endif // GameObjectData_h__

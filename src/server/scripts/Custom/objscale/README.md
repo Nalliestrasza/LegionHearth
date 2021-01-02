@@ -1,9 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 #Objscale [![Build Status](https://travis-ci.org/Rochet2/TrinityCore.svg?branch=objscale_6.x)](https://travis-ci.org/Rochet2/TrinityCore)
 
 ####About
 =======
 # Objscale [![Build Status](https://travis-ci.org/Rochet2/TrinityCore.svg?branch=objscale_7.x)](https://travis-ci.org/Rochet2/TrinityCore)
+=======
+# Objscale [![Build Status](https://travis-ci.org/Rochet2/TrinityCore.svg?branch=objscale_master)](https://travis-ci.org/Rochet2/TrinityCore)
+>>>>>>> beae6bdea63f11ded139d687dafde1e51716f370
 
 #### About
 >>>>>>> ec6b3c4abe8bfc8cf15521049525179ce00006b6
@@ -22,19 +26,29 @@ Available as:
 #### Installation
 
 Available as:
+<<<<<<< HEAD
 - Direct merge: https://github.com/Rochet2/TrinityCore/tree/objscale_7.x
 - Diff: https://github.com/Rochet2/TrinityCore/compare/TrinityCore:master...objscale_7.x.diff
 - Diff in github view: https://github.com/Rochet2/TrinityCore/compare/TrinityCore:master...objscale_7.x
 >>>>>>> ec6b3c4abe8bfc8cf15521049525179ce00006b6
+=======
+- Direct merge: https://github.com/Rochet2/TrinityCore/tree/objscale_master
+- Diff: https://github.com/Rochet2/TrinityCore/compare/TrinityCore:master...objscale_master.diff
+- Diff in github view: https://github.com/Rochet2/TrinityCore/compare/TrinityCore:master...objscale_master
+>>>>>>> beae6bdea63f11ded139d687dafde1e51716f370
 
 Using direct merge:
 - open git bash to source location
 - do `git remote add rochet2 https://github.com/Rochet2/TrinityCore.git`
 <<<<<<< HEAD
+<<<<<<< HEAD
 - do `git pull rochet2 objscale_6.x`
 =======
 - do `git pull rochet2 objscale_7.x`
 >>>>>>> ec6b3c4abe8bfc8cf15521049525179ce00006b6
+=======
+- do `git pull rochet2 objscale_master`
+>>>>>>> beae6bdea63f11ded139d687dafde1e51716f370
 - use cmake and compile
 
 Using diff:
