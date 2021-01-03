@@ -2295,6 +2295,8 @@ struct ModelFileDataEntry
     uint8 unk0;
     uint8 unk1;
     uint32 ModelID;
+};
+
 struct MapDifficultyXConditionEntry
 {
     uint32 ID;
