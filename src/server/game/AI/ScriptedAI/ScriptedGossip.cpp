@@ -23,6 +23,12 @@ uint32 GetGossipActionFor(Player* player, uint32 gossipListId) { return player->
 void ClearGossipMenuFor(Player* player) { player->PlayerTalkClass->ClearMenus(); }
 // Using provided text, not from DB
 void AddGossipItemFor(Player* player, uint32 icon, std::string const& text, uint32 sender, uint32 action) { player->PlayerTalkClass->GetGossipMenu().AddMenuItem(-1, icon, text, sender, action, "", 0); }
+uint32 TC_GAME_API AddGossipItemForReturn(Player* player, uint32 icon, std::string const& text, uint32 sender, uint32 action)
+{
+    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(-1, icon, text, sender, action, "", 0);
+
+    return action;
+}
 // Using provided texts, not from DB
 void AddGossipItemFor(Player* player, uint32 icon, std::string const& text, uint32 sender, uint32 action, std::string const& popupText, uint32 popupMoney, bool coded) { player->PlayerTalkClass->GetGossipMenu().AddMenuItem(-1, icon, text, sender, action, popupText, popupMoney, coded); }
 // Uses gossip item info from DB

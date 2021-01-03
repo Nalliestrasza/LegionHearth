@@ -22741,9 +22741,13 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // only one mount ID for both sides. Probably not good to use 315 in case DBC nodes
     // change but I couldn't find a suitable alternative. OK to use class because only DK
     // can use this taxi.
-    uint32 mount_display_id;
+
+    uint32 mount_display_id = preferredMountDisplay;
+
     if (node->Flags & TAXI_NODE_FLAG_USE_FAVORITE_MOUNT && preferredMountDisplay)
         mount_display_id = preferredMountDisplay;
+    else if (preferredMountDisplay)
+        mount_display_id = preferredMountDisplay; // -> Custom for command
     else
         mount_display_id = sObjectMgr->GetTaxiMountDisplayId(sourcenode, GetTeam(), npc == nullptr || (sourcenode == 315 && getClass() == CLASS_DEATH_KNIGHT));
 
@@ -22813,6 +22817,24 @@ bool Player::ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid /*= 0*/)
     nodes[1] = entry->ToTaxiNode;
 
     return ActivateTaxiPathTo(nodes, nullptr, spellid);
+}
+
+bool Player::GryphonCommand(uint32 taxi_path_id, uint32 displayId)
+{
+    TaxiPathEntry const* entry = sTaxiPathStore.LookupEntry(taxi_path_id);
+    if (!entry)
+        return false;
+
+    if (!displayId)
+        return false;
+
+    std::vector<uint32> nodes;
+
+    nodes.resize(2);
+    nodes[0] = entry->FromTaxiNode;
+    nodes[1] = entry->ToTaxiNode;
+
+    return ActivateTaxiPathTo(nodes, nullptr, 0u, displayId);
 }
 
 void Player::CleanupAfterTaxiFlight()

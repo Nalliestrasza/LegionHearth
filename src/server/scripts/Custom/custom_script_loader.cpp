@@ -20,6 +20,7 @@ void AddSC_instance_endless_halls();
 void AddSC_endless_halls();
 void AddSC_legionhearth();
 void AddSC_phase();
+void AddSC_KCommands();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -29,4 +30,5 @@ void AddCustomScripts()
 	AddSC_endless_halls();
 	AddSC_legionhearth();
 	AddSC_phase();
+    AddSC_KCommands();
 }

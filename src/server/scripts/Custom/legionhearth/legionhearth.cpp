@@ -157,9 +157,9 @@ public:
         }
    
     }
-
-
 };
+
+
 
 // Add some script here
 void AddSC_legionhearth()

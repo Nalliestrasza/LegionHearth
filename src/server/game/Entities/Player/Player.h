@@ -1077,6 +1077,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), getClass(), getLevel()); }
         bool ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc = nullptr, uint32 spellid = 0, uint32 preferredMountDisplay = 0);
         bool ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid = 0);
+        bool GryphonCommand(uint32 taxi_path_id, uint32 displayId);
         void CleanupAfterTaxiFlight();
         void ContinueTaxiFlight() const;
                                                             // mount_id can be used in scripting calls
