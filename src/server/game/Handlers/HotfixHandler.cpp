@@ -64,6 +64,7 @@ void WorldSession::SendAvailableHotfixes()
     SendPacket(WorldPackets::Hotfix::AvailableHotfixes(realm.Id.GetAddress(), sDB2Manager.GetHotfixCount(), sDB2Manager.GetHotfixData()).Write());
 }
 
+
 void WorldSession::HandleHotfixRequest(WorldPackets::Hotfix::HotfixRequest& hotfixQuery)
 {
     DB2Manager::HotfixContainer const& hotfixes = sDB2Manager.GetHotfixData();

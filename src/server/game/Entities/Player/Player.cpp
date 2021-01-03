@@ -1312,7 +1312,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 {
 
     // Phase System
-    if (mapid > MAP_CUSTOM_PHASE)
+    if (mapid >= MAP_CUSTOM_PHASE)
     {
         QueryResult getType = WorldDatabase.PQuery("SELECT type FROM phase_allow WHERE phaseId = %u", mapid);
 
@@ -1321,30 +1321,26 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
         Field* field = getType->Fetch();
         uint16 type = field[0].GetUInt16();
-        if (type == 1)
+
+        if (type != 1 )
         {
-            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
-        }
-        else
-        {
-            if (GetSession()->GetSecurity() >= 2)
+            QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", mapid, GetSession()->GetAccountId());
+
+            if (!checkSql || GetSession()->GetSecurity() < 2)
             {
-                ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
+                ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
+                return false;
             }
             else
             {
-                QueryResult checkSql = WorldDatabase.PQuery("SELECT playerId FROM phase_allow WHERE phaseId = %u AND playerId = %u", mapid, GetSession()->GetAccountId());
-                if (!checkSql)
-                {
-                    ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_ERROR);
-                    return false;
-                }
-                else
-                {
-                    ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
-                }
-
+                GetSession()->SendPhaseHotfixes();
+                ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
             }
+        }
+        else
+        {
+            GetSession()->SendPhaseHotfixes();
+            ChatHandler(GetSession()).PSendSysMessage(LANG_PHASETP_SUCCESS);
         }
 
     }

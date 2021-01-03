@@ -969,6 +969,7 @@ void WorldObject::UpdatePositionData()
 {
     PositionFullTerrainStatus data;
     GetMap()->GetFullTerrainStatusForPosition(_phaseShift, GetPositionX(), GetPositionY(), GetPositionZ(), data);
+
     ProcessPositionDataChanged(data);
 }
 
