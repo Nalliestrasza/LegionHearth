@@ -957,6 +957,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     // ModelFileData.db2
     PrepareStatement(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT ID, unk0, unk1, ModelID FROM model_file_data WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_MODEL_FILE_DATA, "SELECT MAX(ID) + 1 FROM model_file_data", CONNECTION_SYNCH);
+    // MapDifficultyXCondition.db2
+    PrepareStatement(HOTFIX_SEL_MAP_DIFFICULTY_X_CONDITION, "SELECT ID, FailureDescription, PlayerConditionID, OrderIndex, MapDifficultyID"
+        " FROM map_difficulty_x_condition WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MAP_DIFFICULTY_X_CONDITION, "SELECT MAX(ID) + 1 FROM map_difficulty_x_condition", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_MAP_DIFFICULTY_X_CONDITION, "SELECT ID, FailureDescription_lang FROM map_difficulty_x_condition_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // ModifierTree.db2
     PrepareStatement(HOTFIX_SEL_MODIFIER_TREE, "SELECT ID, Parent, Operator, Amount, Type, Asset, SecondaryAsset, TertiaryAsset FROM modifier_tree"

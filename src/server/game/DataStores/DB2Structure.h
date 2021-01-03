@@ -2295,6 +2295,13 @@ struct ModelFileDataEntry
     uint8 unk0;
     uint8 unk1;
     uint32 ModelID;
+struct MapDifficultyXConditionEntry
+{
+    uint32 ID;
+    LocalizedString FailureDescription;
+    uint32 PlayerConditionID;
+    int32 OrderIndex;
+    uint32 MapDifficultyID;
 };
 
 struct ModifierTreeEntry
