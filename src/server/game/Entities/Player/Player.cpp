@@ -1312,7 +1312,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 {
 
     // Phase System
-    if (mapid >= MAP_CUSTOM_PHASE)
+    if (mapid >= MAP_CUSTOM_PHASE && GetSession()->GetPlayer()->GetMapId() != mapid)
     {
         QueryResult getType = WorldDatabase.PQuery("SELECT type FROM phase_allow WHERE phaseId = %u", mapid);
 
