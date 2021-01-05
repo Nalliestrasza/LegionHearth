@@ -976,8 +976,9 @@ class TC_GAME_API WorldSession
         void RemovePhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size);
         bool HasPhasePermission(uint32_t phaseId, PhaseChat::Permissions permission);
         bool HasPhasePermissions(uint32_t phaseId, PhaseChat::Permissions* permissions, uint32_t size);
-
         bool HasPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::PhaseMaxPermissions> permissions);
+        void SendPhaseHotfixes();
+
 
         AccountTypes GetSecurity() const { return _security; }
         uint32 GetAccountId() const { return _accountId; }

@@ -1306,6 +1306,14 @@ bool WorldSession::HasPhasePermissions(uint32_t phaseId, std::bitset<PhaseChat::
     return hasPerms;
 }
 
+void WorldSession::SendPhaseHotfixes()
+{
+    sDB2Manager.LoadHotfixData();
+    sMapStore.LoadFromDB();
+    sMapStore.LoadStringsFromDB(LocaleConstant::LOCALE_frFR);
+    SendAvailableHotfixes();
+}
+
 bool WorldSession::DosProtection::EvaluateOpcode(WorldPacket& p, time_t time) const
 {
     uint32 maxPacketCounterAllowed = GetMaxPacketCounterAllowed(p.GetOpcode());

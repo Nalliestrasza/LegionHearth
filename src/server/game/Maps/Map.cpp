@@ -2904,7 +2904,7 @@ uint32 Map::GetZoneId(PhaseShift const& phaseShift, float x, float y, float z)
         if (area->ParentAreaID)
             return area->ParentAreaID;
 
-    // Phases fix until reboot ...
+        // Phases fix until reboot ...
     if (!areaId) {
         if (MapEntry const* entry = sMapStore.AssertEntry(this->GetId())) {
             if (Map* parentMap = sMapMgr->FindMap(entry->ParentMapID, 0)) {

@@ -89,7 +89,7 @@ public:
         static std::vector<ChatCommand> setCommandTable =
         {
             { "cast",       rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", castCommandTable },
-       //   { "name",       rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetNameCommand,     "" },
+            //   { "name",       rbac::RBAC_PERM_COMMAND_AURA,     false, &HandleSetNameCommand,     "" },
         };
 
         static std::vector<ChatCommand> unsetCommandTable =
@@ -101,13 +101,12 @@ public:
         {
             {"create",  rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleCreateTicketCommand,                   "" },
             {"cancel",  rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleCancelTicketCommand,                   "" },
-        //  {"close",   rbac::RBAC_PERM_COMMAND_KICK,          false, &HandleCloseTicketCommand,                    "" },
-            {"list",    rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleListTicketCommand,                     "" },
+            //  {"close",   rbac::RBAC_PERM_COMMAND_KICK,          false, &HandleCloseTicketCommand,                    "" },
+                {"list",    rbac::RBAC_PERM_COMMAND_AURA,          false, &HandleListTicketCommand,                     "" },
         };
 
         static std::vector<ChatCommand> customCommandTable =
         {
-
             { "sendfly",		rbac::RBAC_PERM_COMMAND_AURA,       false, &HandleSendFlyCommand,                   "" },
             // CUSTOM
             //{ "database",         rbac::RBAC_PERM_COMMAND_KICK,              true, &HandleDebugDatabase,           "" },
@@ -161,6 +160,22 @@ public:
         };
 
         return customCommandTable;
+    }
+
+
+    static bool HandleCustomCommand(ChatHandler* handler, char const* args)
+    {
+        Player* plr = handler->GetSession()->GetPlayer();
+
+        if (!plr)
+            return false;
+
+        // -> Don't need to initialize a UNIT_STAND because we have amended these checks in CharacterHandler.cpp (line 1668 & 1669)
+        WorldPackets::Misc::EnableBarberShop packet;
+        plr->SendDirectMessage(packet.Write());
+
+        return true;
+
     }
 
 
@@ -288,48 +303,6 @@ public:
         return true;
     }
 
-    static bool HandleCustomCommand(ChatHandler* handler, char const* args)
-    {
-        TC_LOG_DEBUG("chat.log.whisper", "Negre de %s fait un .custom", handler->GetSession()->GetPlayer()->GetName().c_str());
-        uint32 objectId = 999999;
-        Player* player = handler->GetSession()->GetPlayer();
-
-        const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
-
-        float x = float(player->GetPositionX());
-        float y = float(player->GetPositionY());
-        float z = float(player->GetPositionZ());
-        float ang = player->GetOrientation();
-        //float rot2 = std::sin(ang / 2);
-        //float rot3 = std::cos(ang / 2);
-        Map* map = player->GetMap();
-
-        uint32 spawntm = 400;
-
-        // Maintenant la commande a besoin d'une variable quaternion au lieu de 4 valeurs.
-        G3D::Quat rotation = G3D::Matrix3::fromEulerAnglesZYX(player->GetOrientation(), 0.f, 0.f);
-
-        GameObject* object = player->SummonGameObject(objectId, x, y, z, ang, QuaternionData(rotation.x, rotation.y, rotation.z, rotation.w), spawntm);
-
-        player->SummonGameObject(objectId, x, y, z, ang, QuaternionData(rotation.x, rotation.y, rotation.z, rotation.w), spawntm);
-
-        object->DestroyForNearbyPlayers();
-        object->UpdateObjectVisibility();
-
-        if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(110851, handler->GetSession()->GetPlayer()->GetMap()->GetDifficultyID()))
-        {
-            ObjectGuid castId = ObjectGuid::Create<HighGuid::Cast>(SPELL_CAST_SOURCE_NORMAL, player->GetMapId(), 110851, player->GetMap()->GenerateLowGuid<HighGuid::Cast>());
-            Aura::TryRefreshStackOrCreate(spellInfo, castId, MAX_EFFECT_MASK, player, player, handler->GetSession()->GetPlayer()->GetMap()->GetDifficultyID());
-        }
-
-        object->Use(handler->GetSession()->GetPlayer());
-
-        GameObject* go = player->FindNearestGameObjectOfType(GAMEOBJECT_TYPE_BARBER_CHAIR, 0.01f);
-
-        player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight));
-
-        return true;
-    }
 
     static bool HandleMountCommand(ChatHandler* handler, char const* args)
     {
@@ -3091,9 +3064,6 @@ public:
         handler->SetSentErrorMessage(true);
 
     }
-
-
-
 
     /*
     * END OF ADDON HELPER
