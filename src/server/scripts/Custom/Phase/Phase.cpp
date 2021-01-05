@@ -79,12 +79,14 @@ public:
         {
              { "public",    rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseSetPublicCommand,             "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Administration}},
              { "private",   rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseSetPrivateCommand,            "" , std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Administration}},
+             { "area",  rbac::RBAC_PERM_COMMAND_AURA,   false, HandlePhaseSetAreaNameCommand,             "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit} },
         };
 
         static std::vector<ChatCommand> phaseRemoveCommandTable =
         {
             { "terrain",     rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseRemoveTerrainCommand,             "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit}},
             { "invite",      rbac::RBAC_PERM_COMMAND_AURA,     false, &HandlePhaseRemoveInviteCommand,              "", std::vector<ChatCommand>() },
+           {  "area",    rbac::RBAC_PERM_COMMAND_AURA,     false, HandlePhaseDelAreaNameCommand,             "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit} },
         };
 
         static std::vector<ChatCommand> phasePermissionCommandTable =
@@ -117,8 +119,6 @@ public:
             { "remove",         rbac::RBAC_PERM_COMMAND_AURA,	  false, nullptr, "", phaseRemoveCommandTable },
             { "playsound",      rbac::RBAC_PERM_COMMAND_AURA,	  false, &HandlePhasePlaySoundCommand,	         "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit}  },
             { "set",            rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", phaseSetCommandTable    },
-            { "setareaname",    rbac::RBAC_PERM_COMMAND_AURA,     false, HandlePhaseSetAreaNameCommand,             "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit} },
-            { "delareaname",    rbac::RBAC_PERM_COMMAND_AURA,     false, HandlePhaseDelAreaNameCommand,             "", std::vector<ChatCommand>(), {PhaseChat::Permissions::Phase_Edit} },
             { "permission",     rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", phasePermissionCommandTable      },
             { "rank",     rbac::RBAC_PERM_COMMAND_AURA,     false, nullptr, "", phaseRankCommandTable      },
 
@@ -481,19 +481,29 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 mapId = player->GetMapId();
         uint32 areaId = player->GetAreaId();
+        uint32 zoneId = player->GetZoneId();
 
         std::string trinityArgs(args);
 
-        if (trinityArgs.find(";") == std::string::npos || trinityArgs.empty())
+        if (trinityArgs.find(";") == std::string::npos || trinityArgs.empty()) {
+            handler->PSendSysMessage("Arguments : nom;subzone");
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
         Tokenizer dataArgs(trinityArgs, ';', 0, false);
 
-        if (dataArgs.size() < 2)
+        if (dataArgs.size() < 2) {
+            handler->PSendSysMessage("Arguments : nom;subzone");
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
-        if (mapId < MAP_CUSTOM_PHASE)
+        if (mapId < MAP_CUSTOM_PHASE) {
+            handler->PSendSysMessage("Il vous faut être dans une phase");
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
         std::string zoneName = dataArgs[0];
         std::string subZoneName = dataArgs[1];
@@ -504,8 +514,9 @@ public:
             return false;
 
         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
-        stmt->setInt32(0, mapId);
-        stmt->setInt32(1, areaId);
+        stmt->setUInt32(0, mapId);
+        stmt->setUInt32(1, areaId);
+        stmt->setUInt32(2, zoneId);
         PreparedQueryResult customArea = WorldDatabase.Query(stmt);
 
         if (customArea)
@@ -515,16 +526,19 @@ public:
             WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_PHASE_AREA_NAME);
             stmt->setString(0, zoneName);
             stmt->setString(1, subZoneName);
-            stmt->setInt32(2, mapId);
-            stmt->setInt32(3, areaId);
+            stmt->setUInt32(2, mapId);
+            stmt->setUInt32(3, areaId);
+            stmt->setUInt32(4, zoneId);
+
             WorldDatabase.Execute(stmt);
         }
         else {
             WorldDatabasePreparedStatement* name = WorldDatabase.GetPreparedStatement(WORLD_INS_PHASE_AREA_NAME);
             name->setUInt32(0, mapId);
             name->setUInt32(1, areaId);
-            name->setString(2, zoneName);
-            name->setString(3, subZoneName);
+            name->setUInt32(2, zoneId);
+            name->setString(3, zoneName);
+            name->setString(4, subZoneName);
 
             WorldDatabase.Execute(name);
         }
@@ -533,13 +547,13 @@ public:
         WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
         zoneCustom.AreaID = areaId;
         zoneCustom.MapID = mapId;
-        zoneCustom.ZoneID = player->GetZoneId();
+        zoneCustom.ZoneID = zoneId;
         zoneCustom.ZoneName = zoneName;
         zoneCustom.SubZoneName = subZoneName;
-        zoneCustom.Delete = 0;
 
-        sWorld->SendAreaIDMessage(areaId, zoneCustom.Write());
+        sWorld->SendMapMessage(mapId, zoneCustom.Write());
 
+        handler->PSendSysMessage("Zone name set.");
         return true;
     }
 
@@ -548,38 +562,45 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
         uint32 mapId = player->GetMapId();
         uint32 areaId = player->GetAreaId();
+        uint32 zoneId = player->GetZoneId();
 
-        if (mapId < MAP_CUSTOM_PHASE)
+        if (mapId < MAP_CUSTOM_PHASE) {
+            handler->PSendSysMessage("Il vous faut être dans une phase");
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
         WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
-        stmt->setInt32(0, mapId);
-        stmt->setInt32(1, areaId);
+        stmt->setUInt32(0, mapId);
+        stmt->setUInt32(1, areaId);
+        stmt->setUInt32(2, zoneId);
+
         PreparedQueryResult customArea = WorldDatabase.Query(stmt);
 
         if (customArea)
         {
             Field* field = customArea->Fetch();
             WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_PHASE_AREA_NAME);
-            stmt->setInt32(0, mapId);
-            stmt->setInt32(1, areaId);
+            stmt->setUInt32(0, mapId);
+            stmt->setUInt32(1, areaId);
+            stmt->setUInt32(2, zoneId);
             WorldDatabase.Execute(stmt);
 
-            WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
+            WorldPackets::Aurora::AuroraZoneCustomDelete zoneCustom;
             zoneCustom.AreaID = areaId;
             zoneCustom.MapID = mapId;
-            zoneCustom.ZoneID = player->GetZoneId();
-            zoneCustom.ZoneName = " ";
-            zoneCustom.SubZoneName = " ";
-            zoneCustom.Delete = 1;
+            zoneCustom.ZoneID = zoneId;
 
             sWorld->SendMapMessage(mapId, zoneCustom.Write());
         }
         else
         {
+            handler->PSendSysMessage("Il n'y a pas de nom défini dans cette zone");
+            handler->SetSentErrorMessage(true);
             return false;
         }
 
+        handler->PSendSysMessage("Phase name del.");
         return true;
     }
 
@@ -662,7 +683,7 @@ public:
 
         if (mapid > MAP_CUSTOM_PHASE) {
             handler->PSendSysMessage(LANG_PHASE_PLAY_SOUND, soundId);
-            sWorld->SendMapMessage(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId, 0).Write()); // binary space idea
+            sWorld->SendMapMessage(mapid, WorldPackets::Misc::PlaySound(handler->GetSession()->GetPlayer()->GetGUID(), soundId, 0).Write()); 
         }
         else {
 

@@ -978,6 +978,13 @@ void WorldObject::ProcessPositionDataChanged(PositionFullTerrainStatus const& da
     if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(m_areaId))
         if (area->ParentAreaID)
             m_zoneId = area->ParentAreaID;
+
+    if (!m_areaId || !m_zoneId)
+    {
+        m_areaId =  GetMap()->GetAreaId(GetPhaseShift(), m_positionX, m_positionY, m_positionZ);
+        m_zoneId = GetMap()->GetZoneId(GetPhaseShift(), m_positionX, m_positionY, m_positionZ);
+    }
+
     m_staticFloorZ = data.floorZ;
 }
 

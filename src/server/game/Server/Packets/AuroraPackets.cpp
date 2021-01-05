@@ -19,14 +19,11 @@
 
 void WorldPackets::Aurora::AuroraHWID::Read()
 {
-    uint32 bufferFixIsVM;
-
     _worldPacket >> Version;
     _worldPacket >> PhysicalDriveId;
     _worldPacket >> VolumeInformation;
     _worldPacket >> CPUId;
-    _worldPacket >> bufferFixIsVM;
-    IsVirtualMachine = static_cast<bool>(bufferFixIsVM);
+    _worldPacket >> IsVirtualMachine;
 }
 
 void WorldPackets::Aurora::AuroraMoveGameObject::Read()
@@ -105,12 +102,10 @@ WorldPacket const* WorldPackets::Aurora::AuroraZoneCustom::Write()
 {
     _worldPacket << uint32(AreaID);
     _worldPacket << uint32(MapID);
-    _worldPacket << uint32_t(ZoneID);
+    _worldPacket << uint32(ZoneID);
 
     _worldPacket << std::string(ZoneName);
     _worldPacket << std::string(SubZoneName);
-
-    _worldPacket << uint32_t(Delete);
 
     return &_worldPacket;
 }
@@ -131,6 +126,15 @@ WorldPacket const* WorldPackets::Aurora::AuroraCustomWorldModelObject::Write()
     _worldPacket << Roll;
     _worldPacket << Scale;
     _worldPacket << HasDoodads;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Aurora::AuroraZoneCustomDelete::Write()
+{
+    _worldPacket << uint32(AreaID);
+    _worldPacket << uint32(MapID);
+    _worldPacket << uint32(ZoneID);
 
     return &_worldPacket;
 }

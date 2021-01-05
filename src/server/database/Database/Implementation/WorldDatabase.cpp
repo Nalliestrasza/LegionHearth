@@ -174,10 +174,11 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_UPD_PHASE_SET_TYPE, "UPDATE phase_allow SET type = ? WHERE phaseId = ?", CONNECTION_ASYNC);
 
     // area name 
-    PrepareStatement(WORLD_INS_PHASE_AREA_NAME, "INSERT INTO phase_custom_areaid(MapID, AreaID, MapName, AreaName) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_SEL_PHASE_AREA_NAME, "SELECT * FROM phase_custom_areaid WHERE MapID = ? AND AreaID = ?", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_UPD_PHASE_AREA_NAME, "UPDATE phase_custom_areaid SET MapName = ?, AreaName = ? WHERE MapID = ? AND AreaID = ? ", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_DEL_PHASE_AREA_NAME, "DELETE FROM phase_custom_areaid WHERE MapID = ? AND AreaID = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_PHASE_AREA_NAME, "INSERT INTO phase_custom_areaid(MapID, AreaID, ZoneID, MapName, AreaName) VALUES (?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_PHASE_AREA_NAME, "SELECT * FROM phase_custom_areaid WHERE MapID = ? AND AreaID = ? AND ZoneID = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_UPD_PHASE_AREA_NAME, "UPDATE phase_custom_areaid SET MapName = ?, AreaName = ? WHERE MapID = ? AND AreaID = ? AND ZoneID = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_PHASE_AREA_NAME, "DELETE FROM phase_custom_areaid WHERE MapID = ? AND AreaID = ? AND ZoneID = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_PHASE_MAP_AREAS_NAMES, "SELECT * FROM phase_custom_areaid WHERE MapID = ?", CONNECTION_SYNCH);
 
 
     // DUPPLICATIONS
