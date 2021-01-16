@@ -2286,7 +2286,7 @@ uint32 Unit::CalculateDamage(WeaponAttackType attType, bool normalized, bool add
                 break;
             case BASE_ATTACK:
                 minDamage = m_unitData->MinDamage;
-                maxDamage = m_unitData->MaxRangedDamage;
+                maxDamage = m_unitData->MaxDamage;
                 if (IsInFeralForm())
                 {
                     minDamage += m_unitData->MinOffHandDamage;
@@ -4203,7 +4203,7 @@ void Unit::RemoveArenaAuras()
     RemoveAppliedAuras([](AuraApplication const* aurApp)
     {
         Aura const* aura = aurApp->GetBase();
-        return !aura->GetSpellInfo()->HasAttribute(SPELL_ATTR4_UNK21)                                       // don't remove stances, shadowform, pally/hunter auras
+        return !aura->GetSpellInfo()->HasAttribute(SPELL_ATTR4_DONT_REMOVE_IN_ARENA)                        // don't remove stances, shadowform, pally/hunter auras
             && !aura->IsPassive()                                                                           // don't remove passive auras
             && (aurApp->IsPositive() || !aura->GetSpellInfo()->HasAttribute(SPELL_ATTR3_DEATH_PERSISTENT)); // not negative death persistent auras
     });
