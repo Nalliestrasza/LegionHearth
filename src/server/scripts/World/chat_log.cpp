@@ -56,12 +56,7 @@ class ChatLogScript : public PlayerScript
 
         void OnChat(Player* player, uint32 /*type*/, uint32 lang, std::string& msg, Player* receiver) override
         {
-            if (lang != LANG_ADDON && lang != LANG_ADDON_LOGGED)
-                TC_LOG_DEBUG("chat.log.whisper", "Player %s tells %s: %s",
-                    player->GetName().c_str(), receiver ? receiver->GetName().c_str() : "<unknown>", msg.c_str());
-            //else
-                //TC_LOG_DEBUG("chat.log.addon.whisper", "Player %s tells %s: %s",
-                    //player->GetName().c_str(), receiver ? receiver->GetName().c_str() : "<unknown>", msg.c_str());
+
             TC_LOG_CHAT("whisper", "Player %s tells %s: %s",
                player->GetName().c_str(), receiver ? receiver->GetName().c_str() : "<unknown>", msg.c_str());
         }
