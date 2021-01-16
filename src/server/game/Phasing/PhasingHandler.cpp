@@ -203,6 +203,35 @@ void PhasingHandler::OnMapChange(WorldObject* object)
     object->GetPhaseShift().UiMapPhaseIds.clear();
     object->GetSuppressedPhaseShift().VisibleMapIds.clear();
 
+    uint32 mapID = object->GetMapId();
+
+    if (object->ToPlayer() && mapID >= MAP_CUSTOM_PHASE) {
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_MAP_AREAS_NAMES);
+        stmt->setInt32(0, mapID);
+
+        PreparedQueryResult customArea = WorldDatabase.Query(stmt);
+        Player* player = object->ToPlayer();
+        if (customArea) {
+            do
+            {
+                Field* fields = customArea->Fetch();
+                uint32 areaId = fields[1].GetUInt32();
+                uint32 zoneId = fields[2].GetUInt32();
+                std::string zoneName = fields[3].GetString();
+                std::string subZone = fields[4].GetString();
+
+                WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
+                zoneCustom.AreaID = areaId;
+                zoneCustom.MapID = mapID;
+                zoneCustom.ZoneID = zoneId;
+                zoneCustom.ZoneName = zoneName;
+                zoneCustom.SubZoneName = subZone;
+
+                player->SendDirectMessage(zoneCustom.Write());
+            } while (customArea->NextRow());
+        }
+    }
+
     for (auto const& visibleMapPair : sObjectMgr->GetTerrainSwaps())
     {
         for (TerrainSwapInfo const* visibleMapInfo : visibleMapPair.second)
@@ -236,32 +265,6 @@ void PhasingHandler::OnAreaChange(WorldObject* object)
 
     uint32 areaId = object->GetAreaId();
     uint32 mapID = object->GetMapId();
-
-
-    if (object->ToPlayer() && mapID >= MAP_CUSTOM_PHASE) {
-        auto player = object->ToPlayer();
-        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_PHASE_AREA_NAME);
-        stmt->setInt32(0, mapID);
-        stmt->setInt32(1, areaId);
-        PreparedQueryResult customArea = WorldDatabase.Query(stmt);
-
-        if (customArea) {
-            Field* fields = customArea->Fetch();
-
-            std::string zoneName = fields[2].GetString();
-            std::string subZone = fields[3].GetString();
-
-            WorldPackets::Aurora::AuroraZoneCustom zoneCustom;
-            zoneCustom.AreaID = areaId;
-            zoneCustom.MapID = player->GetMapId();
-            zoneCustom.ZoneID = player->GetZoneId();
-            zoneCustom.ZoneName = zoneName;
-            zoneCustom.SubZoneName = subZone;
-            zoneCustom.Delete = 0;
-
-            player->SendDirectMessage(zoneCustom.Write());
-        }
-    }
 
     AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(areaId);
     while (areaEntry)

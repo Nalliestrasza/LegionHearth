@@ -794,6 +794,7 @@ namespace WorldPackets
         class AuroraEnableFreelook;
 
         class AuroraZoneCustom;
+        class AuroraZoneCustomDelete;
         class AuroraTracker;
         class AuroraCustomWorldModelObject;
     }

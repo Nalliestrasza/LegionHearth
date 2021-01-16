@@ -107,7 +107,7 @@ namespace WorldPackets
         class AuroraZoneCustom final : public ServerPacket
         {
         public:
-            AuroraZoneCustom() : ServerPacket(SMSG_AURORA_ZONE_CUSTOM, 2) { }
+            AuroraZoneCustom() : ServerPacket(SMSG_AURORA_ZONE_CUSTOM, 4 + 4 + 4) { }
 
             WorldPacket const* Write() override;
 
@@ -116,7 +116,18 @@ namespace WorldPackets
             uint32 ZoneID;
             std::string ZoneName;
             std::string SubZoneName;
-            uint32 Delete;
+        };
+
+        class AuroraZoneCustomDelete final : public ServerPacket
+        {
+        public:
+            AuroraZoneCustomDelete() : ServerPacket(SMSG_AURORA_ZONE_CUSTOM_DELETE, 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 AreaID;
+            uint32 MapID;
+            uint32 ZoneID;
         };
 
         class AuroraTracker final : public ServerPacket
