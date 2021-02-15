@@ -536,6 +536,7 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
             mirrorImageComponentedData.Gender = outfit.GetGender();
             mirrorImageComponentedData.ClassID = outfit.Class;
 
+            mirrorImageComponentedData.Customizations.resize(outfit.Customizations.size());
             std::copy(outfit.Customizations.begin(), outfit.Customizations.end(), mirrorImageComponentedData.Customizations.begin());
 
             mirrorImageComponentedData.GuildGUID = ObjectGuid::Empty;

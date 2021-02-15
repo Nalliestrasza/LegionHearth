@@ -208,6 +208,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // dupplication | gameobject_logs
     PrepareStatement(WORLD_SEL_GAMEOBJECT_LOG, "SELECT guid from gameobject_log WHERE dupplicationGuid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID, "INSERT INTO gameobject_log (guid, spawnerAccountId, spawnerPlayerId, dupplicationGuid) VALUES (?,?,?,?)", CONNECTION_ASYNC);
+
+    // outfit customization | creature_template_outfit_customization
+    PrepareStatement(WORLD_SEL_OUTFIT_CUSTOMIZATIONS, "SELECT chrCustomizationOptionID,chrCustomizationChoiceID from creature_template_outfits_customizations WHERE outfitID = ?", CONNECTION_SYNCH);
 	
 }
 

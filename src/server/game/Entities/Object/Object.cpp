@@ -139,8 +139,8 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
 		float yaw, pitch, roll;
         if (GameObject const* go = ToGameObject()) {
 			
-            uint64_t low = GetGUID().GetRawValue(0);
-            uint64_t high = GetGUID().GetRawValue(1);
+            uint64_t guidLow = GetGUID().GetRawValue(0);
+            uint64_t guidHigh = GetGUID().GetRawValue(1);
 
             go->GetWorldRotationAngles().toEulerAnglesZYX(yaw, pitch, roll);
 
@@ -151,13 +151,13 @@ void Object::SendCustomUpdatesToPlayer(Player* player) const
                     return;
 
                 WorldPackets::Aurora::AuroraCustomWorldModelObject customWMO;
-                customWMO.GuidLow = low;
-                customWMO.GuidHigh = high;
+                customWMO.GuidLow = guidLow;
+                customWMO.GuidHigh = guidHigh;
                 customWMO.Yaw = yaw;
                 customWMO.Pitch = pitch;
                 customWMO.Roll = roll;
                 customWMO.Scale = go->GetObjectScale();
-                customWMO.HasDoodads = static_cast<uint32_t>(go->HasDoodads());
+                customWMO.HasDoodads = go->HasDoodads();
                 player->GetSession()->SendAuroraCustomWorldModelObject(customWMO);
             }
         }
@@ -1464,8 +1464,8 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool ignoreStealth, boo
         return true;
 
     if (const GameObject* object = obj->ToGameObject()) {
-        const auto infinites = object->GetMap()->GetInfiniteGameObjects();
-        if (std::find(infinites.begin(), infinites.end(), object) != infinites.end()) {
+        const std::set<ObjectGuid> infinites = object->GetMap()->GetInfiniteGameObjects();
+        if (std::find(infinites.begin(), infinites.end(), object->GetGUID()) != infinites.end()) {
             float distance = GetDistance(obj);
             //TC_LOG_ERROR("misc", "[+) WorldObject::CanSeeOrDetect(Infinite) : %f ", distance);
             return true && (distance <= object->GetVisibilityRange());

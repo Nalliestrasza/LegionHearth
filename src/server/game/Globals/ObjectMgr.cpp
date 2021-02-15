@@ -8776,10 +8776,22 @@ void ObjectMgr::LoadCreatureOutfits()
             continue;
         }
 
-        for (size_t i = 0; i < CreatureOutfit::max_custom_categories; i++)
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_OUTFIT_CUSTOMIZATIONS);
+        stmt->setUInt64(0, (uint64)entry);
+        if (PreparedQueryResult customizationsResult = WorldDatabase.Query(stmt))
         {
-            co->Customizations[i].ChrCustomizationChoiceID = fields[i++].GetUInt32();
-            co->Customizations[i].ChrCustomizationOptionID = *DB2Manager::Instance().GetCustomiztionCategory(co->Customizations[i].ChrCustomizationChoiceID);
+            uint32 j = 0;
+            do
+            {
+                Field* fields = customizationsResult->Fetch();
+                co->Customizations[j].ChrCustomizationOptionID = fields[0].GetUInt32();
+                co->Customizations[j++].ChrCustomizationChoiceID = fields[1].GetUInt32();
+            } while (customizationsResult->NextRow());
+        }
+        else
+        {
+            TC_LOG_ERROR("server.loading", ">> Loaded 0 customisations outfits in `creature_template_outfits_customisation` for entry %u", entry);
+            return;
         }
 
         for (EquipmentSlots slot : CreatureOutfit::item_slots)

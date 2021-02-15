@@ -503,7 +503,7 @@ public:
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), oz);
         //object->SetWorldRotationAngles(oz, oy, ox);
         object->SetWorldRotationAngles(oz * toRad, oy * toRad, ox * toRad);
-        object->SaveToDB();
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
 
         // Generate a completely new spawn with new guid
         // 3.3.5a client caches recently deleted objects and brings them back to life
@@ -818,7 +818,7 @@ public:
 
         object->SetObjectScale(scale);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-        object->SaveToDB();
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
 
         // Generate a completely new spawn with new guid
         // 3.3.5a client caches recently deleted objects and brings them back to life
@@ -881,7 +881,7 @@ public:
 
         object->SetDoodads(resultBool);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-        object->SaveToDB();
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
 
         // Generate a completely new spawn with new guid
         // 3.3.5a client caches recently deleted objects and brings them back to life
@@ -938,13 +938,13 @@ public:
             return false;
 
         if (distance > SIZE_OF_GRIDS) {
-            object->GetMap()->AddInfiniteGameObject(object);
+            object->GetMap()->AddInfiniteGameObject(object->GetGUID());
             //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
         }
         else {
-            auto infinites = object->GetMap()->GetInfiniteGameObjects();
-            if (std::find(infinites.begin(), infinites.end(), object) != infinites.end())
-                object->GetMap()->RemoveInfiniteGameObject(object);
+            std::set<ObjectGuid> infinites = object->GetMap()->GetInfiniteGameObjects();
+            if (std::find(infinites.begin(), infinites.end(), object->GetGUID()) != infinites.end())
+                object->GetMap()->RemoveInfiniteGameObject(object->GetGUID());
 
             //handler->PSendSysMessage("Visibles : %d \n", object->GetMap()->GetInfiniteGameObjects().size());
         }
@@ -956,7 +956,7 @@ public:
         Map* map = object->GetMap();
         object->SetVisibilityDistanceOverride(distance);
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), object->GetOrientation());
-        object->SaveToDB();
+        object->SaveToDB(map->GetId(), { map->GetDifficultyID() });
         object->Delete();
 
         object = GameObject::CreateGameObjectFromDB(guidLow, map);

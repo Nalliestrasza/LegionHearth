@@ -247,6 +247,8 @@ void GameObject::RemoveFromWorld()
 
         if (m_spawnId)
             Trinity::Containers::MultimapErasePair(GetMap()->GetGameObjectBySpawnIdStore(), m_spawnId, this);
+
+        GetMap()->RemoveInfiniteGameObject(GetGUID());
         GetMap()->GetObjectsStore().Remove<GameObject>(GetGUID());
     }
 }
@@ -325,6 +327,8 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
         SetObjectScale(size);
     else
         SetObjectScale(goInfo->size);
+
+    SetDoodads(hasDoodads);
 
     if (m_goTemplateAddon)
     {
@@ -488,6 +492,12 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
     // Check if GameObject is Large
     if (goInfo->IsLargeGameObject())
         SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
+
+    SetVisibilityDistanceOverride(visibility);
+
+    if (GetVisibilityRange() > SIZE_OF_GRIDS) {
+        GetMap()->AddInfiniteGameObject(this->GetGUID());
+    }
 
     return true;
 }

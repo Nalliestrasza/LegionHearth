@@ -145,7 +145,7 @@ namespace WorldPackets
         {
         public:
 		
-            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, (8 * 2) + (4 * 4) + 4) { }
+            AuroraCustomWorldModelObject() : ServerPacket(SMSG_AURORA_UPDATE_WMO, (8 * 2) + (4 * 4) + 1) { }
 
             WorldPacket const* Write() override;
 
@@ -155,7 +155,7 @@ namespace WorldPackets
             float Pitch = 0.0;
             float Roll = 0.0;
             float Scale = 1.0;
-            uint32 HasDoodads = 0;
+            bool HasDoodads = 0;
         };
 
 

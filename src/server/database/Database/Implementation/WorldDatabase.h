@@ -211,6 +211,9 @@ enum WorldDatabaseStatements : uint32
     WORLD_SEL_GAMEOBJECT_LOG,
     WORLD_INS_GAMEOBJECT_LOG_DUPPLICATION_GUID,
 
+    //Creature template Outfit Customisation (9.0)
+    WORLD_SEL_OUTFIT_CUSTOMIZATIONS,
+
     MAX_WORLDDATABASE_STATEMENTS
 };
 

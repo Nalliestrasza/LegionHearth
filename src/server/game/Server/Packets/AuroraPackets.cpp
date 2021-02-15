@@ -125,7 +125,7 @@ WorldPacket const* WorldPackets::Aurora::AuroraCustomWorldModelObject::Write()
     _worldPacket << Pitch;
     _worldPacket << Roll;
     _worldPacket << Scale;
-    _worldPacket << HasDoodads;
+    _worldPacket << uint8(HasDoodads);
 
     return &_worldPacket;
 }
