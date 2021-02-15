@@ -506,6 +506,9 @@ public:
             return false;
         }
 
+        x /= 100.0f;
+        y /= 100.0f;
+
         sDB2Manager.Zone2MapCoordinates(areaEntry->ParentAreaID ? uint32(areaEntry->ParentAreaID) : areaId, x, y);
 
         if (!MapManager::IsValidMapCoord(zoneEntry->ContinentID, x, y))

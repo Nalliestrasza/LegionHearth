@@ -380,5 +380,6 @@ private:
     bool m_respawnCompatibilityMode;
     uint16 _animKitId;
     uint32 _worldEffectID;
+    ObjectGuid m_visibleByUnitOnly;
 };
 #endif

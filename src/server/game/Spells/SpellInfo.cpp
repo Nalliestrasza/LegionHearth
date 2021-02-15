@@ -372,6 +372,7 @@ SpellImplicitTargetInfo::StaticData  SpellImplicitTargetInfo::_data[TOTAL_SPELL_
 };
 
 SpellEffectInfo::SpellEffectInfo(SpellInfo const* spellInfo, SpellEffectEntry const* _effect)
+    : EffectAttributes(SpellEffectAttributes::None)
 {
     ASSERT(spellInfo);
     ASSERT(_effect);
@@ -404,6 +405,7 @@ SpellEffectInfo::SpellEffectInfo(SpellInfo const* spellInfo, SpellEffectEntry co
     Scaling.Variance = _effect->Variance;
     Scaling.ResourceCoefficient = _effect->ResourceCoefficient;
     ImplicitTargetConditions = nullptr;
+    EffectAttributes = _effect->GetEffectAttributes();
 }
 
 bool SpellEffectInfo::IsEffect() const
@@ -962,7 +964,7 @@ SpellEffectInfo::StaticData SpellEffectInfo::_data[TOTAL_SPELL_EFFECTS] =
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_UNIT}, // 168 SPELL_EFFECT_168
     {EFFECT_IMPLICIT_TARGET_CASTER,   TARGET_OBJECT_TYPE_UNIT}, // 169 SPELL_EFFECT_DESTROY_ITEM
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_UNIT}, // 170 SPELL_EFFECT_170
-    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_DEST}, // 171 SPELL_EFFECT_171
+    {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_DEST}, // 171 SPELL_EFFECT_SUMMON_PERSONAL_GAMEOBJECT
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_UNIT}, // 172 SPELL_EFFECT_172
     {EFFECT_IMPLICIT_TARGET_NONE,     TARGET_OBJECT_TYPE_NONE}, // 173 SPELL_EFFECT_UNLOCK_GUILD_VAULT_TAB
     {EFFECT_IMPLICIT_TARGET_EXPLICIT, TARGET_OBJECT_TYPE_UNIT}, // 174 SPELL_EFFECT_174
@@ -1125,6 +1127,7 @@ SpellInfo::SpellInfo(SpellNameEntry const* spellName, ::Difficulty difficulty, S
     IconFileDataId = _misc ? _misc->SpellIconFileDataID : 0;
     ActiveIconFileDataId = _misc ? _misc->ActiveIconFileDataID : 0;
     ContentTuningId = _misc ? _misc->ContentTuningID : 0;
+    ShowFutureSpellPlayerConditionID = _misc ? _misc->ShowFutureSpellPlayerConditionID : 0;
 
     _visuals = std::move(visuals);
 
@@ -1549,7 +1552,19 @@ bool SpellInfo::IsRequiringDeadTarget() const
 
 bool SpellInfo::IsAllowingDeadTarget() const
 {
-    return HasAttribute(SPELL_ATTR2_CAN_TARGET_DEAD) || Targets & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_UNIT_DEAD);
+    if (HasAttribute(SPELL_ATTR2_CAN_TARGET_DEAD) || Targets & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_UNIT_DEAD))
+        return true;
+
+    for (SpellEffectInfo const* effect : _effects)
+    {
+        if (!effect)
+            continue;
+
+        if (effect->TargetA.GetObjectType() == TARGET_OBJECT_TYPE_CORPSE || effect->TargetB.GetObjectType() == TARGET_OBJECT_TYPE_CORPSE)
+            return true;
+    }
+
+    return false;
 }
 
 bool SpellInfo::IsGroupBuff() const
@@ -3820,7 +3835,7 @@ std::vector<SpellPowerCost> SpellInfo::CalcPowerCost(Unit const* caster, SpellSc
             }
 
             if (power->PowerType == POWER_MANA)
-                flatMod *= 1.0f + caster->m_unitData->ManaCostModifierModifier;
+                flatMod *= 1.0f + caster->m_unitData->ManaCostMultiplier; // this is wrong
 
             powerCost += flatMod;
         }
@@ -4218,7 +4233,11 @@ bool SpellInfo::_IsPositiveEffect(uint32 effIndex, bool deep) const
             {
                 case 29214: // Wrath of the Plaguebringer
                 case 34700: // Allergic Reaction
+                case 41914: // Parasitic Shadowfiend (Illidan)
+                case 41917: // Parasitic Shadowfiend (Illidan)
                 case 54836: // Wrath of the Plaguebringer
+                case 61987: // Avenging Wrath Marker
+                case 61988: // Divine Shield exclude aura
                     return false;
                 case 30877: // Tag Murloc
                 case 61716: // Rabbit Costume
@@ -4513,4 +4532,13 @@ void SpellInfo::_UnloadImplicitTargetConditionLists()
             delete cur;
         }
     }
+}
+
+bool SpellInfo::MeetsFutureSpellPlayerCondition(Player const* player) const
+{
+    if (ShowFutureSpellPlayerConditionID == 0)
+        return false;
+
+    PlayerConditionEntry const* playerCondition = sPlayerConditionStore.LookupEntry(ShowFutureSpellPlayerConditionID);
+    return !playerCondition || ConditionMgr::IsPlayerMeetingCondition(player, playerCondition);
 }

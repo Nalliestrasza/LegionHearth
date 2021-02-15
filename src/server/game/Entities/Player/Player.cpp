@@ -1689,7 +1689,7 @@ void Player::SetObjectScale(float scale)
     SetBoundingRadius(scale * DEFAULT_PLAYER_BOUNDING_RADIUS);
     SetCombatReach(scale * DEFAULT_PLAYER_COMBAT_REACH);
     if (IsInWorld())
-        SendMovementSetCollisionHeight(scale * GetCollisionHeight(IsMounted()));
+        SendMovementSetCollisionHeight(scale * GetCollisionHeight(IsMounted()), WorldPackets::Movement::UpdateCollisionHeightReason::Scale);
 }
 
 bool Player::IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index, Unit* caster) const
@@ -2418,6 +2418,8 @@ void Player::GiveLevel(uint8 level)
 
     UpdateCriteria(CRITERIA_TYPE_REACH_LEVEL);
 
+    PushQuests();
+
     sScriptMgr->OnPlayerLevelChanged(this, oldLevel);
 }
 
@@ -2565,7 +2567,7 @@ void Player::InitStatsForLevel(bool reapplyMods)
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::ModTargetResistance), 0);
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::ModTargetPhysicalResistance), 0);
     for (uint8 i = SPELL_SCHOOL_NORMAL; i < MAX_SPELL_SCHOOL; ++i)
-        SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::PowerCostModifier, i), 0);
+        SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ManaCostModifier, i), 0);
 
     // Reset no reagent cost field
     SetNoRegentCostMask(flag128());
@@ -5164,10 +5166,63 @@ float Player::GetRatingMultiplier(CombatRating cr) const
 
 float Player::GetRatingBonusValue(CombatRating cr) const
 {
-    float baseResult = float(m_activePlayerData->CombatRatings[cr]) * GetRatingMultiplier(cr);
+    float baseResult = ApplyRatingDiminishing(cr, float(m_activePlayerData->CombatRatings[cr]) * GetRatingMultiplier(cr));
     if (cr != CR_RESILIENCE_PLAYER_DAMAGE)
         return baseResult;
     return float(1.0f - pow(0.99f, baseResult)) * 100.0f;
+}
+
+float Player::ApplyRatingDiminishing(CombatRating cr, float bonusValue) const
+{
+    uint32 diminishingCurveId = 0;
+    switch (cr)
+    {
+        case CR_DODGE:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::DodgeDiminishing);
+            break;
+        case CR_PARRY:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::ParryDiminishing);
+            break;
+        case CR_BLOCK:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::BlockDiminishing);
+            break;
+        case CR_CRIT_MELEE:
+        case CR_CRIT_RANGED:
+        case CR_CRIT_SPELL:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::CritDiminishing);
+            break;
+        case CR_SPEED:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::SpeedDiminishing);
+            break;
+        case CR_LIFESTEAL:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::LifestealDiminishing);
+            break;
+        case CR_HASTE_MELEE:
+        case CR_HASTE_RANGED:
+        case CR_HASTE_SPELL:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::HasteDiminishing);
+            break;
+        case CR_AVOIDANCE:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::AvoidanceDiminishing);
+            break;
+        case CR_MASTERY:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::MasteryDiminishing);
+            break;
+        case CR_VERSATILITY_DAMAGE_DONE:
+        case CR_VERSATILITY_HEALING_DONE:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::VersatilityDoneDiminishing);
+            break;
+        case CR_VERSATILITY_DAMAGE_TAKEN:
+            diminishingCurveId = sDB2Manager.GetGlobalCurveId(GlobalCurve::VersatilityTakenDiminishing);
+            break;
+        default:
+            break;
+    }
+
+    if (diminishingCurveId)
+        return sDB2Manager.GetCurveValueAt(diminishingCurveId, bonusValue);
+
+    return bonusValue;
 }
 
 float Player::GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const
@@ -6150,6 +6205,12 @@ void Player::CheckAreaExploreAndOutdoor()
                     XP = uint32(sObjectMgr->GetBaseXP(areaLevel) * sWorld->getRate(RATE_XP_EXPLORE));
                 }
 
+                if (sWorld->getIntConfig(CONFIG_MIN_DISCOVERED_SCALED_XP_RATIO))
+                {
+                    uint32 minScaledXP = uint32(sObjectMgr->GetBaseXP(areaLevel)*sWorld->getRate(RATE_XP_EXPLORE)) * sWorld->getIntConfig(CONFIG_MIN_DISCOVERED_SCALED_XP_RATIO) / 100;
+                    XP = std::max(minScaledXP, XP);
+                }
+
                 GiveXP(XP, nullptr);
                 SendExplorationExperience(areaId, XP);
             }
@@ -7126,6 +7187,8 @@ void Player::UpdateArea(uint32 newArea)
         _restMgr->SetRestFlag(REST_FLAG_IN_FACTION_AREA);
     else
         _restMgr->RemoveRestFlag(REST_FLAG_IN_FACTION_AREA);
+
+    PushQuests();
 
     UpdateCriteria(CRITERIA_TYPE_TRAVELLED_TO_AREA, newArea);
 }
@@ -10579,6 +10642,10 @@ InventoryResult Player::CanStoreItem(uint8 bag, uint8 slot, ItemPosCountVec& des
 
 bool Player::HasItemTotemCategory(uint32 TotemCategory) const
 {
+    for (AuraEffect const* providedTotemCategory : GetAuraEffectsByType(SPELL_AURA_PROVIDE_TOTEM_CATEGORY))
+        if (DB2Manager::IsTotemCategoryCompatibleWith(providedTotemCategory->GetMiscValueB(), TotemCategory))
+            return true;
+
     Item* item;
     uint8 inventoryEnd = INVENTORY_SLOT_ITEM_START + GetInventorySlotCount();
     for (uint8 i = EQUIPMENT_SLOT_START; i < inventoryEnd; ++i)
@@ -15510,8 +15577,7 @@ void Player::AddQuest(Quest const* quest, Object* questGiver)
                     GetReputationMgr().SetVisible(factionEntry);
                 break;
             case QUEST_OBJECTIVE_CRITERIA_TREE:
-                if (quest->HasFlagEx(QUEST_FLAGS_EX_IS_WORLD_QUEST))
-                    m_questObjectiveCriteriaMgr->ResetCriteriaTree(obj.ObjectID);
+                m_questObjectiveCriteriaMgr->ResetCriteriaTree(obj.ObjectID);
                 break;
             default:
                 break;
@@ -16812,6 +16878,20 @@ void Player::SetQuestSlotTimer(uint16 slot, uint32 timer)
         .ModifyValue(&UF::QuestLog::EndTime), timer);
 }
 
+void Player::SetQuestSlotObjectiveFlag(uint16 slot, int8 objectiveIndex)
+{
+    SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::QuestLog, slot)
+        .ModifyValue(&UF::QuestLog::ObjectiveFlags), 1 << objectiveIndex);
+}
+
+void Player::RemoveQuestSlotObjectiveFlag(uint16 slot, int8 objectiveIndex)
+{
+    RemoveUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_playerData)
+        .ModifyValue(&UF::PlayerData::QuestLog, slot)
+        .ModifyValue(&UF::QuestLog::ObjectiveFlags), 1 << objectiveIndex);
+}
+
 void Player::SetQuestCompletedBit(uint32 questBit, bool completed)
 {
     if (!questBit)
@@ -17514,9 +17594,9 @@ void Player::SetQuestObjectiveData(QuestObjective const& objective, int32 data)
         if (!objective.IsStoringFlag())
             SetQuestSlotCounter(log_slot, objective.StorageIndex, status.ObjectiveData[objective.StorageIndex]);
         else if (data)
-            SetQuestSlotState(log_slot, 256 << objective.StorageIndex);
+            SetQuestSlotObjectiveFlag(log_slot, objective.StorageIndex);
         else
-            RemoveQuestSlotState(log_slot, 256 << objective.StorageIndex);
+            RemoveQuestSlotObjectiveFlag(log_slot, objective.StorageIndex);
     }
 }
 
@@ -18805,9 +18885,20 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder* holder)
         ShowNeutralPlayerFactionSelectUI();
     */
 
-    printf("b");
-
+    PushQuests();
     return true;
+}
+
+void Player::PushQuests()
+{
+    for (Quest const* quest : sObjectMgr->GetQuestTemplatesAutoPush())
+    {
+        if (quest->GetQuestTag() && quest->GetQuestTag() != QuestTagType::Tag)
+            continue;
+
+        if (!quest->IsUnavailable() && CanTakeQuest(quest, false))
+            AddQuestAndCheckCompletion(quest, nullptr);
+    }
 }
 
 void Player::_LoadCUFProfiles(PreparedQueryResult result)
@@ -19614,7 +19705,7 @@ void Player::_LoadQuestStatus(PreparedQueryResult result)
     uint16 slot = 0;
 
     ////                                                       0      1       2
-    //QueryResult* result = CharacterDatabase.PQuery("SELECT quest, status, timer WHERE guid = '%u'", GetGUIDLow());
+    //QueryResult* result = CharacterDatabase.PQuery("SELECT quest, status, timer WHERE guid = '%u' AND status <> 0", GetGUIDLow());
 
     if (result)
     {
@@ -19713,7 +19804,7 @@ void Player::_LoadQuestStatusObjectives(PreparedQueryResult result)
                     if (!objectiveItr->IsStoringFlag())
                         SetQuestSlotCounter(slot, objectiveIndex, data);
                     else if (data)
-                        SetQuestSlotState(slot, 256 << objectiveIndex);
+                        SetQuestSlotObjectiveFlag(slot, objectiveIndex);
                 }
                 else
                     TC_LOG_ERROR("entities.player", "Player::_LoadQuestStatusObjectives: Player '%s' (%s) has quest %d out of range objective index %u.", GetName().c_str(), GetGUID().ToString().c_str(), questID, objectiveIndex);
@@ -24794,8 +24885,19 @@ void Player::LearnSkillRewardedSpells(uint32 skillId, uint32 skillValue)
         if (!spellInfo)
             continue;
 
-        if (ability->AcquireMethod != SKILL_LINE_ABILITY_LEARNED_ON_SKILL_VALUE && ability->AcquireMethod != SKILL_LINE_ABILITY_LEARNED_ON_SKILL_LEARN)
-            continue;
+        switch (ability->AcquireMethod)
+        {
+            case SKILL_LINE_ABILITY_LEARNED_ON_SKILL_VALUE:
+            case SKILL_LINE_ABILITY_LEARNED_ON_SKILL_LEARN:
+                break;
+            case SKILL_LINE_ABILITY_REWARDED_FROM_QUEST:
+                if (!ability->GetFlags().HasFlag(SkillLineAbilityFlags::CanFallbackToLearnedOnSkillLearn) ||
+                    !spellInfo->MeetsFutureSpellPlayerCondition(this))
+                    continue;
+                break;
+            default:
+                continue;
+        }
 
         // AcquireMethod == 2 && NumSkillUps == 1 --> automatically learn riding skill spell, else we skip it (client shows riding in spellbook as trainable).
         if (skillId == SKILL_RIDING && (ability->AcquireMethod != SKILL_LINE_ABILITY_LEARNED_ON_SKILL_LEARN || ability->NumSkillUps != 1))
@@ -25527,7 +25629,7 @@ bool Player::isHonorOrXPTarget(Unit const* victim) const
     uint8 k_grey = Trinity::XP::GetGrayLevel(getLevel());
 
     // Victim level less gray level
-    if (v_level < k_grey)
+    if (v_level < k_grey && !sWorld->getIntConfig(CONFIG_MIN_CREATURE_SCALED_XP_RATIO))
         return false;
 
     if (Creature const* const creature = victim->ToCreature())
@@ -28175,7 +28277,7 @@ void Player::DeleteGarrison()
     }
 }
 
-void Player::SendMovementSetCollisionHeight(float height)
+void Player::SendMovementSetCollisionHeight(float height, WorldPackets::Movement::UpdateCollisionHeightReason reason)
 {
     WorldPackets::Movement::MoveSetCollisionHeight setCollisionHeight;
     setCollisionHeight.MoverGUID = GetGUID();
@@ -28184,7 +28286,7 @@ void Player::SendMovementSetCollisionHeight(float height)
     setCollisionHeight.Scale = GetObjectScale();
     setCollisionHeight.MountDisplayID = GetMountDisplayId();
     setCollisionHeight.ScaleDuration = m_unitData->ScaleDuration;
-    setCollisionHeight.Reason = WorldPackets::Movement::UPDATE_COLLISION_HEIGHT_MOUNT;
+    setCollisionHeight.Reason = reason;
     SendDirectMessage(setCollisionHeight.Write());
 
     WorldPackets::Movement::MoveUpdateCollisionHeight updateCollisionHeight;

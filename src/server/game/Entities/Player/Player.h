@@ -104,6 +104,11 @@ namespace WorldPackets
     {
         struct CharacterCreateInfo;
     }
+
+    namespace Movement
+    {
+        enum class UpdateCollisionHeightReason : uint8;
+    }
 }
 
 typedef std::deque<Mail*> PlayerMails;
@@ -1094,6 +1099,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void SetGMVisible(bool on);
         void SetPvPDeath(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_PVP_DEATH; else m_ExtraFlags &= ~PLAYER_EXTRA_PVP_DEATH; }
 
+        uint32 GetXP() const { return m_activePlayerData->XP; }
+        uint32 GetXPForNextLevel() const { return m_activePlayerData->NextLevelXP; }
         void SetXP(uint32 xp);
         void GiveXP(uint32 xp, Unit* victim, float group_rate=1.0f);
         void GiveLevel(uint8 level);
@@ -1412,6 +1419,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void SetQuestSlotState(uint16 slot, uint32 state);
         void RemoveQuestSlotState(uint16 slot, uint32 state);
         void SetQuestSlotTimer(uint16 slot, uint32 timer);
+        void SetQuestSlotObjectiveFlag(uint16 slot, int8 objectiveIndex);
+        void RemoveQuestSlotObjectiveFlag(uint16 slot, int8 objectiveIndex);
         void SetQuestCompletedBit(uint32 questBit, bool completed);
 
         uint16 GetReqKillOrCastCurrentCount(uint32 quest_id, int32 entry) const;
@@ -1821,6 +1830,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void GetDodgeFromAgility(float &diminishing, float &nondiminishing) const;
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
+        float ApplyRatingDiminishing(CombatRating cr, float bonusValue) const;
 
         /// Returns base spellpower bonus from spellpower stat on items, without spellpower from intellect stat
         uint32 GetBaseSpellPowerBonus() const { return m_baseSpellPower; }
@@ -2397,7 +2407,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 
         void ValidateMovementInfo(MovementInfo* mi);
 
-        void SendMovementSetCollisionHeight(float height);
+        void SendMovementSetCollisionHeight(float height, WorldPackets::Movement::UpdateCollisionHeightReason reason);
 
         bool CanFly() const override { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_CAN_FLY); }
 
@@ -2586,6 +2596,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         /*********************************************************/
         /***                    QUEST SYSTEM                   ***/
         /*********************************************************/
+
+        void PushQuests();
 
         //We allow only one timed quest active at the same time. Below can then be simple value instead of set.
         typedef std::set<uint32> QuestSet;
