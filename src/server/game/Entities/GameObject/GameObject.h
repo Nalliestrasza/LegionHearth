@@ -318,6 +318,10 @@ public:
     void AIM_Destroy();
     bool AIM_Initialize();
 
+    void SetVisibleByUnitOnly(ObjectGuid unit) { m_visibleByUnitOnly = unit; }
+    bool IsVisibleByUnitOnly() const { return !m_visibleByUnitOnly.IsEmpty(); }
+    ObjectGuid GetVisibleByUnitOnly() const { return m_visibleByUnitOnly; }
+
     bool HasDoodads() const { return m_hasDoodads; }
     void SetDoodads(bool hasDoodads);
 
