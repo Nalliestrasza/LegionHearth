@@ -220,6 +220,7 @@ struct SmartEvent
             uint32 maxDist;
             uint32 cooldownMin;
             uint32 cooldownMax;
+            uint32 playerOnly;
         } los;
 
         struct
@@ -276,6 +277,11 @@ struct SmartEvent
         {
             uint32 quest;
         } quest;
+
+        struct
+        {
+            uint32 id;
+        } questObjective;
 
         struct
         {
@@ -594,7 +600,8 @@ enum SMART_ACTION
     SMART_ACTION_PLAY_CINEMATIC                     = 135,    // reserved for future uses
     SMART_ACTION_SET_MOVEMENT_SPEED                 = 136,    // movementType, speedInteger, speedFraction
     SMART_ACTION_PLAY_SPELL_VISUAL_KIT              = 137,    // spellVisualKitId, kitType (unknown values, copypaste from packet dumps), duration
-    SMART_ACTION_END                                = 138
+    SMART_ACTION_CREATE_CONVERSATION                = 143,    // conversation_template.id
+    SMART_ACTION_END                                = 144
 };
 
 enum class SmartActionSummonCreatureFlags
@@ -1182,6 +1189,11 @@ struct SmartAction
             uint32 duration;
         } spellVisualKit;
 
+        struct
+        {
+            uint32 id;
+        } conversation;
+
         //! Note for any new future actions
         //! All parameters must have type uint32
 
@@ -1387,7 +1399,7 @@ enum SmartScriptType
     SMART_SCRIPT_TYPE_AREATRIGGER = 2, //done
     SMART_SCRIPT_TYPE_EVENT = 3, //
     SMART_SCRIPT_TYPE_GOSSIP = 4, //
-    SMART_SCRIPT_TYPE_QUEST = 5, //
+    SMART_SCRIPT_TYPE_QUEST = 5, //done
     SMART_SCRIPT_TYPE_SPELL = 6, //
     SMART_SCRIPT_TYPE_TRANSPORT = 7, //
     SMART_SCRIPT_TYPE_INSTANCE = 8, //

@@ -353,6 +353,16 @@ namespace WorldPackets
             bool FromScript = false; // 0 - standart complete quest mode with npc, 1 - auto-complete mode
         };
 
+        class QuestGiverCloseQuest final : public ClientPacket
+        {
+        public:
+            QuestGiverCloseQuest(WorldPacket&& packet) : ClientPacket(CMSG_QUEST_GIVER_CLOSE_QUEST, std::move(packet)) { }
+
+            void Read() override;
+
+            int32 QuestID = 0;
+        };
+
         struct QuestObjectiveSimple
         {
             int32 ID        = 0;
@@ -619,9 +629,9 @@ namespace WorldPackets
 
         struct WorldQuestUpdateInfo
         {
-            WorldQuestUpdateInfo(int32 lastUpdate, uint32 questID, uint32 timer, int32 variableID, int32 value) :
+            WorldQuestUpdateInfo(time_t lastUpdate, uint32 questID, uint32 timer, int32 variableID, int32 value) :
                 LastUpdate(lastUpdate), QuestID(questID), Timer(timer), VariableID(variableID), Value(value) { }
-            int32 LastUpdate;
+            Timestamp<> LastUpdate;
             uint32 QuestID;
             uint32 Timer;
             // WorldState
