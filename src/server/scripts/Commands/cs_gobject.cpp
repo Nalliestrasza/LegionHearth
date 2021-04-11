@@ -1287,7 +1287,7 @@ public:
                     continue;
 
                 // New angle calcul
-                float angle = (M_PI / 2) - (doodAngle - (player->GetOrientation() - refOrientation));
+                float angle = M_PI_2 - (doodAngle - (player->GetOrientation() - refOrientation));
 
                 // PosX and PosY calcul
                 float doodPosX = player->GetPositionX() + (doodDist * cos(angle));
